@@ -48,6 +48,11 @@ export default function Home() {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(10,10,11,.5) 0%,rgba(10,10,11,.28) 40%,rgba(10,10,11,.86) 100%)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(120% 80% at 12% 105%,rgba(193,18,31,.42),transparent 58%)' }} />
 
+        {/* jemná plovoucí silueta loga vpravo */}
+        <div aria-hidden="true" style={{ position: 'absolute', zIndex: 1, right: '-7%', top: '11%', transform: 'translateY(-50%)', width: 'clamp(440px,48vw,760px)', height: 'clamp(440px,48vw,760px)', opacity: 0.11, filter: 'blur(1.5px)', WebkitMaskImage: 'radial-gradient(circle at 50% 50%,#000 40%,transparent 66%)', maskImage: 'radial-gradient(circle at 50% 50%,#000 40%,transparent 66%)', pointerEvents: 'none', animation: 'fkFloat 7s ease-in-out infinite' }}>
+          <img src="/logo.webp" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        </div>
+
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: '0 28px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", color: '#fff', fontSize: 'clamp(66px,11vw,168px)', lineHeight: 1.22, letterSpacing: '.5px', textTransform: 'uppercase', textShadow: '0 4px 50px rgba(0,0,0,.45)', maxWidth: 1050 }}>FK Kunice<br /><span>1934</span></h1>
           <div className="fk-rev" style={{ marginTop: 24, width: 'max-content', maxWidth: '90vw', position: 'relative', transform: 'rotate(-3.5deg)' }}>
