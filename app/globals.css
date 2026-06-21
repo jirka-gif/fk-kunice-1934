@@ -28,29 +28,54 @@ input, textarea, select { font-family: 'Inter', system-ui, sans-serif; }
 
 .fk-min { min-height: 100vh; overflow-x: hidden; position: relative; background: #F6F7F9; }
 
-/* ---- Responzivita (návrh je desktop-first; níže mobilní fallback) ---- */
+/* =========================================================================
+   RESPONZIVITA — návrh je desktop-first; níže kompletní mobilní pravidla.
+   Mřížky jsou v inline stylech, proto cílíme atributovými selektory pod
+   .fk-min a pokrýváme obě varianty zápisu repeat() (s mezerou i bez),
+   protože prohlížeč serializuje cssText nekonzistentně.
+   Kalendář pronájmu (repeat(7,...)) záměrně necháváme beze změny.
+   ========================================================================= */
+
+/* Navigace: skryjeme řádek odkazů, ukážeme hamburger */
 @media (max-width: 920px) {
   .fk-navlinks { display: none !important; }
-}
-@media (max-width: 760px) {
-  .fk-match-grid, .fk-news-grid { grid-template-columns: 1fr !important; }
-  .fk-teams, .fk-why, .fk-sponsors { grid-template-columns: 1fr 1fr !important; }
-  .fk-stats { grid-template-columns: 1fr 1fr !important; gap: 28px !important; }
-  .fk-gallery { grid-template-columns: 1fr 1fr !important; }
-  .fk-head { flex-direction: column; align-items: flex-start !important; }
-  .fk-foot-grid { grid-template-columns: 1fr 1fr !important; }
-}
-@media (max-width: 480px) {
-  .fk-teams, .fk-why, .fk-sponsors, .fk-foot-grid { grid-template-columns: 1fr !important; }
+  .fk-burger { display: inline-flex !important; }
 }
 
-/* ---- Administrace ---- */
+/* ---- TABLET / menší (≤900px): vícesloupcové → 2, obsah+sidebar → 1 ---- */
 @media (max-width: 900px) {
-  .fk-admin { grid-template-columns: 1fr !important; }
+  .fk-min [style*="repeat(4,1fr)"],
+  .fk-min [style*="repeat(4, 1fr)"],
+  .fk-min [style*="repeat(3,1fr)"],
+  .fk-min [style*="repeat(3, 1fr)"],
+  .fk-teams, .fk-why, .fk-sponsors, .fk-stats, .fk-gallery, .fk-foot-grid, .fk-admin-cards {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .fk-min [style*="1.5fr 1fr"],
+  .fk-min [style*="1.55fr 1fr"],
+  .fk-min [style*="1.4fr 1fr"],
+  .fk-min [style*="1.3fr 1fr"],
+  .fk-min [style*="1.15fr 1fr"],
+  .fk-min [style*="1.1fr 1fr"],
+  .fk-min [style*="280px 1fr"],
+  .fk-match-grid, .fk-news-grid, .fk-admin, .fk-admin-grid2 {
+    grid-template-columns: 1fr !important;
+  }
+  /* sticky sidebary uvolníme, ať nepřekrývají obsah */
+  .fk-min [style*="position:sticky"],
+  .fk-min [style*="position: sticky"],
   .fk-admin-side { position: static !important; }
-  .fk-admin-cards { grid-template-columns: 1fr 1fr !important; }
-  .fk-admin-grid2 { grid-template-columns: 1fr !important; }
+  .fk-head { flex-direction: column; align-items: flex-start !important; }
 }
-@media (max-width: 520px) {
-  .fk-admin-cards { grid-template-columns: 1fr 1fr !important; }
+
+/* ---- TELEFON (≤560px): 3 sloupce → 1, 2 sloupce → 1 ---- */
+@media (max-width: 560px) {
+  .fk-min [style*="repeat(3,1fr)"],
+  .fk-min [style*="repeat(3, 1fr)"],
+  .fk-min [style*="repeat(2,1fr)"],
+  .fk-min [style*="repeat(2, 1fr)"],
+  .fk-min [style*="1fr 1fr"],
+  .fk-teams, .fk-why, .fk-foot-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
