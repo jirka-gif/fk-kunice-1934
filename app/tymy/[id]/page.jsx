@@ -5,10 +5,11 @@ import { useParams } from 'next/navigation';
 import { Hov, Eyebrow, H2 } from '@/app/components/ui';
 import { COLORS, PH, PH_ARR, photo, initials } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
-import { teams, ageBase, posCycle } from '@/content/club';
+import { useContent } from '@/lib/store';
 
 export default function TeamDetail() {
   useRevealEngine();
+  const { teams, ageBase, posCycle } = useContent();
   const params = useParams();
   const teamId = params.id;
   const curTeam = teams.find((t) => t.id === teamId) || teams[0];

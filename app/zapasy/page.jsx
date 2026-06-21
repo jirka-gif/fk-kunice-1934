@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, PH } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
-import { matchDetail } from '@/content/club';
+import { useContent } from '@/lib/store';
 
 // ikona události dle typu (návrh řádky 1150–1154)
 function evIcon(type) {
@@ -21,6 +21,7 @@ function styleObj(str) {
 
 export default function MatchDetail() {
   useRevealEngine();
+  const { matchDetail } = useContent();
   const { header, when, home, away, score, result, events, stats } = matchDetail;
 
   // galerie — 8 gradient placeholderů (vzor z home galerie)

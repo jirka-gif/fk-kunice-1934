@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Hov } from './ui';
-import { club } from '@/content/club';
+import { useContent } from '@/lib/store';
 
 const LINKS_A = [['Týmy', '/tymy'], ['Zápasy', '/zapasy'], ['Novinky', '/novinky'], ['Galerie', '/'], ['Historie', '/']];
 const LINKS_B = [['Letní kempy', '/kempy'], ['Pronájem areálu', '/pronajem'], ['Nábor dětí', '/kontakt'], ['Admin / CMS', '/admin']];
@@ -12,6 +12,7 @@ function Fb() { return (<svg width={18} height={18} viewBox="0 0 24 24" fill="no
 function Tw() { return (<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 8.6a8.4 8.4 0 0 1-2.4.7 4.2 4.2 0 0 0 1.8-2.3 8.3 8.3 0 0 1-2.6 1 4.1 4.1 0 0 0-7 3.8A11.7 11.7 0 0 1 3 6.1a4.1 4.1 0 0 0 1.3 5.5 4 4 0 0 1-1.9-.5v.05a4.1 4.1 0 0 0 3.3 4 4.1 4.1 0 0 1-1.8.07 4.1 4.1 0 0 0 3.8 2.8A8.3 8.3 0 0 1 2 19.5a11.7 11.7 0 0 0 6.3 1.8c7.5 0 11.7-6.3 11.7-11.7v-.5A8.3 8.3 0 0 0 22 8.6z" /></svg>); }
 
 export default function Footer() {
+  const { club } = useContent();
   return (
     <footer style={{ background: '#0c0c0e', color: '#fff', padding: '84px 0 34px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(60% 60% at 8% 0%,rgba(193,18,31,.16),transparent 58%)' }} />

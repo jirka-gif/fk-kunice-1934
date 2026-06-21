@@ -43,3 +43,14 @@ input, textarea, select { font-family: 'Inter', system-ui, sans-serif; }
 @media (max-width: 480px) {
   .fk-teams, .fk-why, .fk-sponsors, .fk-foot-grid { grid-template-columns: 1fr !important; }
 }
+
+/* ---- Administrace ---- */
+@media (max-width: 900px) {
+  .fk-admin { grid-template-columns: 1fr !important; }
+  .fk-admin-side { position: static !important; }
+  .fk-admin-cards { grid-template-columns: 1fr 1fr !important; }
+  .fk-admin-grid2 { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 520px) {
+  .fk-admin-cards { grid-template-columns: 1fr 1fr !important; }
+}

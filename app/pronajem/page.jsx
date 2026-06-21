@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
-import { rentalPlans, rentalBusyDays, rentalFaq } from '@/content/club';
+import { useContent } from '@/lib/store';
 
 const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 const inputBase = 'border:1px solid #ECEEF1;background:#FAFBFC;border-radius:13px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
@@ -11,6 +11,7 @@ const inputFocus = 'border-color:#C1121F;background:#fff';
 
 export default function Pronajem() {
   useRevealEngine();
+  const { rentalPlans, rentalBusyDays, rentalFaq } = useContent();
   const [selDay, setSelDay] = useState(18);
   const [faqOpen, setFaqOpen] = useState({});
 

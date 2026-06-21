@@ -1,6 +1,7 @@
 import './globals.css';
 import Nav from './components/Nav';
 import Footer from './components/Footer';
+import { ContentProvider } from '@/lib/store';
 
 export const metadata = {
   metadataBase: new URL('https://fk-kunice-1934.vercel.app'),
@@ -29,9 +30,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="cs">
       <body>
-        <Nav />
-        <main className="fk-min">{children}</main>
-        <Footer />
+        <ContentProvider>
+          <Nav />
+          <main className="fk-min">{children}</main>
+          <Footer />
+        </ContentProvider>
       </body>
     </html>
   );

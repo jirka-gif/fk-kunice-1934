@@ -2,10 +2,11 @@
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
-import { quickActions, people } from '@/content/club';
+import { useContent } from '@/lib/store';
 
 export default function Kontakt() {
   useRevealEngine();
+  const { quickActions, people } = useContent();
 
   return (
     <div style={{ background: '#F6F7F9' }}>

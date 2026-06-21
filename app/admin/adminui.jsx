@@ -1,0 +1,108 @@
+'use client';
+// Sdílená UI primitiva pro administraci FK Kunice.
+
+const RED = '#C1121F';
+const LINE = '#ECEEF1';
+
+export function Field({ label, value, onChange, type = 'text', placeholder, textarea, rows = 3, width }) {
+  const common = {
+    border: `1px solid ${LINE}`, background: '#FAFBFC', borderRadius: 11, padding: '11px 13px',
+    fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none', width: '100%',
+  };
+  return (
+    <label style={{ display: 'block', flex: width ? `0 0 ${width}` : 1, minWidth: 0 }}>
+      {label && <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', marginBottom: 6, textTransform: 'uppercase' }}>{label}</div>}
+      {textarea ? (
+        <textarea value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{ ...common, resize: 'vertical' }} />
+      ) : (
+        <input value={value ?? ''} onChange={(e) => onChange(type === 'number' ? e.target.value.replace(/[^0-9-]/g, '') : e.target.value)} placeholder={placeholder} inputMode={type === 'number' ? 'numeric' : undefined} style={common} />
+      )}
+    </label>
+  );
+}
+
+export function Row({ children, gap = 12, style }) {
+  return <div style={{ display: 'flex', gap, flexWrap: 'wrap', alignItems: 'flex-end', ...style }}>{children}</div>;
+}
+
+export function Btn({ children, onClick, kind = 'ghost', small, type = 'button' }) {
+  const styles = {
+    primary: { background: RED, color: '#fff', border: 'none' },
+    ghost: { background: '#fff', color: '#3a3f47', border: `1px solid ${LINE}` },
+    danger: { background: '#FBEAEC', color: RED, border: 'none' },
+    dark: { background: '#121212', color: '#fff', border: 'none' },
+  }[kind];
+  return (
+    <button type={type} onClick={onClick} style={{ ...styles, fontWeight: 700, fontSize: small ? 12 : 14, padding: small ? '7px 11px' : '11px 18px', borderRadius: 11, cursor: 'pointer', transition: 'filter .15s', whiteSpace: 'nowrap' }}
+      onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(.95)')} onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}>
+      {children}
+    </button>
+  );
+}
+
+export function Card({ children, style }) {
+  return <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', ...style }}>{children}</div>;
+}
+
+export function SectionHead({ title, desc, count }) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ fontFamily: "'Bebas Neue'", fontSize: 30, color: '#121212', letterSpacing: '.3px' }}>{title}</div>
+        {count != null && <span style={{ background: '#FBEAEC', color: RED, fontWeight: 800, fontSize: 12, padding: '3px 10px', borderRadius: 99 }}>{count}</span>}
+      </div>
+      {desc && <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginTop: 4 }}>{desc}</div>}
+    </div>
+  );
+}
+
+// Editor pole objektů: přidat / smazat / přesunout. `renderItem(item, update, index)`.
+export function ListEditor({ items, onChange, newItem, renderItem, addLabel = '+ Přidat', itemTitle }) {
+  const update = (i, patch) => {
+    const next = items.slice();
+    next[i] = typeof patch === 'function' ? patch(next[i]) : { ...next[i], ...patch };
+    onChange(next);
+  };
+  const remove = (i) => { if (confirm('Opravdu smazat tuto položku?')) onChange(items.filter((_, idx) => idx !== i)); };
+  const move = (i, dir) => {
+    const j = i + dir; if (j < 0 || j >= items.length) return;
+    const next = items.slice(); [next[i], next[j]] = [next[j], next[i]]; onChange(next);
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {items.map((item, i) => (
+        <Card key={i} style={{ padding: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#9AA1AC' }}>{itemTitle ? itemTitle(item, i) : `#${i + 1}`}</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <Btn small onClick={() => move(i, -1)}>↑</Btn>
+              <Btn small onClick={() => move(i, 1)}>↓</Btn>
+              <Btn small kind="danger" onClick={() => remove(i)}>Smazat</Btn>
+            </div>
+          </div>
+          {renderItem(item, (patch) => update(i, patch), i)}
+        </Card>
+      ))}
+      <div><Btn kind="primary" onClick={() => onChange([...items, typeof newItem === 'function' ? newItem() : { ...newItem }])}>{addLabel}</Btn></div>
+    </div>
+  );
+}
+
+// Editor pole textových řetězců (hráči, položky, sponzoři).
+export function StringListEditor({ items, onChange, placeholder = 'Nová položka', columns = 1 }) {
+  const update = (i, v) => { const next = items.slice(); next[i] = v; onChange(next); };
+  const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns},1fr)`, gap: 8, marginBottom: 10 }}>
+        {items.map((v, i) => (
+          <div key={i} style={{ display: 'flex', gap: 6 }}>
+            <input value={v} onChange={(e) => update(i, e.target.value)} style={{ flex: 1, minWidth: 0, border: `1px solid ${LINE}`, background: '#FAFBFC', borderRadius: 10, padding: '9px 11px', fontSize: 14, fontFamily: 'Inter', outline: 'none' }} />
+            <button onClick={() => remove(i)} title="Smazat" style={{ flex: 'none', width: 34, border: 'none', background: '#FBEAEC', color: RED, borderRadius: 10, cursor: 'pointer', fontWeight: 800 }}>✕</button>
+          </div>
+        ))}
+      </div>
+      <Btn kind="ghost" small onClick={() => onChange([...items, ''])}>+ Přidat ({placeholder})</Btn>
+    </div>
+  );
+}

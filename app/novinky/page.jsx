@@ -3,10 +3,11 @@ import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, PH, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
-import { articles, newsCategories } from '@/content/club';
+import { useContent } from '@/lib/store';
 
 export default function Novinky() {
   useRevealEngine();
+  const { articles, newsCategories } = useContent();
   const [newsCat, setNewsCat] = useState('Vše');
 
   const shown = newsCat === 'Vše' ? articles : articles.filter((a) => a._c === newsCat);

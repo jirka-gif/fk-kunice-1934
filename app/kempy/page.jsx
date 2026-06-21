@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
-import { campDetail } from '@/content/club';
+import { useContent } from '@/lib/store';
 
 const cardSh = '0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05)';
 
@@ -19,6 +19,7 @@ export default function Kempy() {
   useRevealEngine();
   const [faqOpen, setFaqOpen] = useState({});
 
+  const { campDetail } = useContent();
   const { badge, title, lead, price, term, capacity, perks, program, includes, coaches, faq } = campDetail;
   const remaining = capacity.total - capacity.taken;
   const barWidth = (capacity.taken / capacity.total) * 100;

@@ -4,10 +4,7 @@ import Link from 'next/link';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { Hov, Eyebrow, H2 } from './components/ui';
 import { COLORS, PH, PH_ARR, HERO_BGS, photo, initials, wldBadge } from '@/lib/design';
-import {
-  teams, homeStats, nextMatch, results, leagueTable,
-  whyCards, camps, facilities, homeNews, sponsors,
-} from '@/content/club';
+import { useContent } from '@/lib/store';
 
 const cardSh = 'box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 26px rgba(18,18,18,.06)';
 
@@ -21,6 +18,7 @@ function WhyIcon({ k }) {
 
 export default function Home() {
   useRevealEngine();
+  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, facilities, homeNews, sponsors } = useContent();
   const [heroVariant, setHeroVariant] = useState(0);
 
   const teamCards = teams.map((t, i) => ({
