@@ -15,9 +15,10 @@ export function Hov({ as = 'div', style, hover, focus, children, ...rest }) {
     <El
       style={{ ...base, ...(h ? hov : {}), ...(f ? foc : {}) }}
       onMouseEnter={() => hover && setH(true)}
-      onMouseLeave={() => hover && setH(false)}
+      onMouseLeave={() => setH(false)}
+      onPointerLeave={() => setH(false)}
       onFocus={focus ? () => setF(true) : undefined}
-      onBlur={focus ? () => setF(false) : undefined}
+      onBlur={() => setF(false)}
       {...rest}
     >
       {children}
