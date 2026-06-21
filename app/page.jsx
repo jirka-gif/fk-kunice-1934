@@ -52,7 +52,14 @@ export default function Home() {
         </div>
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: '0 28px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", color: '#fff', fontSize: 'clamp(66px,11vw,168px)', lineHeight: 1.22, letterSpacing: '.5px', textTransform: 'uppercase', textShadow: '0 4px 50px rgba(0,0,0,.45)', maxWidth: 1050 }}>FK Kunice<br /><span>1934</span></h1>
+          <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", color: '#fff', fontSize: 'clamp(66px,11vw,168px)', lineHeight: 0.95, letterSpacing: '.5px', textTransform: 'uppercase', textShadow: '0 4px 50px rgba(0,0,0,.45)', maxWidth: 1050 }}>
+            FK Kunice
+            <br />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'clamp(14px,1.8vw,28px)' }}>
+              <span style={{ color: '#FF2A38', letterSpacing: '2px', textShadow: '0 0 1px rgba(255,255,255,.25), 0 6px 44px rgba(214,40,57,.6), 0 4px 40px rgba(0,0,0,.5)' }}>1934</span>
+              <span aria-hidden="true" style={{ flex: 1, height: 'clamp(4px,.5vw,7px)', background: 'linear-gradient(90deg,#FF2A38,rgba(255,42,56,0))', borderRadius: 99, minWidth: 60, maxWidth: 360, marginTop: '.18em' }} />
+            </span>
+          </h1>
           <div className="fk-rev" style={{ marginTop: 24, width: 'max-content', maxWidth: '90vw', position: 'relative', transform: 'rotate(-3.5deg)' }}>
             <span style={{ fontFamily: "'Caveat',cursive", fontWeight: 700, fontSize: 'clamp(42px,5.4vw,82px)', color: '#fff', lineHeight: .95, display: 'block', whiteSpace: 'nowrap', textShadow: '0 3px 28px rgba(0,0,0,.4)' }}>Společně silnější.</span>
             <svg viewBox="0 0 400 26" preserveAspectRatio="none" style={{ position: 'absolute', left: 6, bottom: -14, width: '94%', height: 18, overflow: 'visible' }} fill="none"><path d="M5 16 C 90 5, 180 25, 268 11 S 378 5, 395 13" stroke="#D62839" strokeWidth={5} strokeLinecap="round" /></svg>
