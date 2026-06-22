@@ -170,12 +170,6 @@ export const facilities = [
   { name: 'Umělá tráva', spec: '3G povrch · 60×40 m · LED osvětlení', price: '950 Kč', status: 'OBSAZENO', img: 'cool' },
 ];
 
-export const homeNews = [
-  { tag: 'PŘÍPRAVKA', title: 'Naši nejmenší vyhráli zimní turnaj v Říčanech', date: '10. června 2026', img: 'sunset' },
-  { tag: 'KLUB', title: 'Otevíráme nábor pro sezónu 2026/27', date: '2. června 2026', img: 'slate' },
-  { tag: 'AKCE', title: 'Den otevřených dveří se vydařil', date: '28. května 2026', img: 'dusk' },
-];
-
 export const sponsors = ['STAVOSPOL', 'ENERGY', 'KUNICE', 'SPORTISIMO', 'RAIFFEISEN', 'FORTUNA', 'KOZEL', 'ŠKODA'];
 
 // -----------------------------------------------------------------------------
@@ -261,16 +255,19 @@ export const rentalFaq = [
 ];
 
 // -----------------------------------------------------------------------------
-//  NOVINKY — magazín
+//  NOVINKY — jeden jednoduchý seznam (fotka, kategorie, titulek, text, datum).
+//  Stejná data se zobrazují na homepage (poslední 4) i v magazínu /novinky.
+//  `image` je nahraná fotka (data URL) z administrace; když chybí, web použije
+//  elegantní barevný placeholder podle pořadí.
 // -----------------------------------------------------------------------------
 export const newsCategories = ['Vše', 'Áčko', 'Mládež', 'Klub', 'Akce'];
-export const articles = [
-  { cat: 'ÁČKO', _c: 'Áčko', title: 'Áčko slaví postup do okresního přeboru', excerpt: 'Po dramatické sezóně slaví naše áčko zasloužený postup.', lead: 'Historický okamžik pro klub. Po dramatické sezóně a vítězství v posledním kole slaví naše áčko zasloužený postup.', author: 'Jan Novák', authorIni: 'JN', authorBg: '#C1121F', date: '14. 6. 2026', read: '5 min', img: 'red' },
-  { cat: 'MLÁDEŽ', _c: 'Mládež', title: 'Přípravka vyhrála zimní turnaj v Říčanech', excerpt: 'Naši nejmenší předvedli skvělý fotbal a dovezli pohár.', author: 'Eva Nová', authorIni: 'EN', authorBg: '#2d6b8a', date: '10. 6. 2026', read: '3 min', img: 'sunset' },
-  { cat: 'KLUB', _c: 'Klub', title: 'Otevíráme nábor pro sezónu 2026/27', excerpt: 'Hledáme nové talenty do všech věkových kategorií.', author: 'Petr Dvořák', authorIni: 'PD', authorBg: '#7a4a8c', date: '2. 6. 2026', read: '2 min', img: 'slate' },
-  { cat: 'AKCE', _c: 'Akce', title: 'Den otevřených dveří se vydařil', excerpt: 'Areál zaplnily desítky rodin a budoucích fotbalistů.', author: 'Jan Novák', authorIni: 'JN', authorBg: '#C1121F', date: '28. 5. 2026', read: '4 min', img: 'warm' },
-  { cat: 'MLÁDEŽ', _c: 'Mládež', title: 'Dorost postoupil do krajského finále', excerpt: 'Výborný výkon a postup přes silného soupeře.', author: 'Tomáš Beneš', authorIni: 'TB', authorBg: '#c0853c', date: '20. 5. 2026', read: '3 min', img: 'cool' },
-  { cat: 'KLUB', _c: 'Klub', title: 'Nové LED osvětlení na umělé trávě', excerpt: 'Investice do areálu, která prodlouží tréninkový čas.', author: 'Petr Dvořák', authorIni: 'PD', authorBg: '#7a4a8c', date: '12. 5. 2026', read: '2 min', img: 'char' },
+export const news = [
+  { category: 'Áčko', title: 'Áčko slaví postup do okresního přeboru', text: 'Historický okamžik pro klub. Po dramatické sezóně a vítězství v posledním kole slaví naše áčko zasloužený postup do okresního přeboru.', date: '14. 6. 2026', image: '' },
+  { category: 'Mládež', title: 'Přípravka vyhrála zimní turnaj v Říčanech', text: 'Naši nejmenší předvedli skvělý fotbal a z turnaje v Říčanech dovezli pohár.', date: '10. 6. 2026', image: '' },
+  { category: 'Klub', title: 'Otevíráme nábor pro sezónu 2026/27', text: 'Hledáme nové talenty do všech věkových kategorií. Přijď si k nám zatrénovat.', date: '2. 6. 2026', image: '' },
+  { category: 'Akce', title: 'Den otevřených dveří se vydařil', text: 'Areál zaplnily desítky rodin a budoucích fotbalistů. Děkujeme všem, kdo dorazili.', date: '28. 5. 2026', image: '' },
+  { category: 'Mládež', title: 'Dorost postoupil do krajského finále', text: 'Výborný výkon a postup přes silného soupeře. Držte nám palce ve finále.', date: '20. 5. 2026', image: '' },
+  { category: 'Klub', title: 'Nové LED osvětlení na umělé trávě', text: 'Investice do areálu, která prodlouží tréninkový čas i do večerních hodin.', date: '12. 5. 2026', image: '' },
 ];
 
 // -----------------------------------------------------------------------------

@@ -1,14 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { useData, setSection } from '@/lib/store';
-import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher } from './adminui';
+import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
 const EV_TYPE_OPTS = [{ value: 'goal', label: 'Gól' }, { value: 'yellow', label: 'Žlutá karta' }, { value: 'red', label: 'Červená karta' }];
 const EV_TEAM_OPTS = [{ value: 'h', label: 'Domácí' }, { value: 'a', label: 'Hosté' }];
 const RESULT_OPTS = ['VÝHRA', 'REMÍZA', 'PROHRA'];
 
-const IMG_HINT = 'Pozadí (gradient): dusk · slate · sunset · char · red · cool · warm · ember';
 const set = (k, v) => setSection(k, v);
 
 // ---------------------------------------------------------------- NASTAVENÍ
@@ -243,54 +242,28 @@ export function Zapasy() {
 
 // ---------------------------------------------------------------- NOVINKY
 export function Novinky() {
-  const d = useData();
+  const { news } = useData();
   return (
     <div>
-      <SectionHead title="Novinky" desc="Články magazínu a novinky na homepage" count={d.articles.length} />
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>Magazín — články (/novinky)</div>
+      <SectionHead title="Novinky" desc="Fotka, pár vět, datum — a hotovo. Zobrazí se na webu i na homepage (nejnovější nahoře)." count={news.length} />
       <ListEditor
-        items={d.articles}
-        onChange={(v) => set('articles', v)}
-        itemTitle={(a) => a.title}
-        newItem={{ cat: 'KLUB', _c: 'Klub', title: 'Nový článek', excerpt: '', author: '', authorIni: '', authorBg: '#C1121F', date: '', read: '2 min', img: 'slate' }}
-        addLabel="+ Přidat článek"
-        renderItem={(a, u) => (
-          <div>
-            <Row>
-              <Field label="Kategorie (štítek)" value={a.cat} onChange={(v) => u({ cat: v })} width="160px" />
-              <Field label="Filtr kategorie" value={a._c} onChange={(v) => u({ _c: v })} width="150px" placeholder="Áčko/Mládež/Klub/Akce" />
-              <Field label="Datum" value={a.date} onChange={(v) => u({ date: v })} width="150px" />
-              <Field label="Čtení" value={a.read} onChange={(v) => u({ read: v })} width="110px" />
-            </Row>
-            <div style={{ height: 10 }} />
-            <Field label="Titulek" value={a.title} onChange={(v) => u({ title: v })} />
-            <div style={{ height: 10 }} />
-            <Field label="Perex" textarea rows={2} value={a.excerpt} onChange={(v) => u({ excerpt: v })} />
-            <div style={{ height: 10 }} />
-            <Row>
-              <Field label="Autor" value={a.author} onChange={(v) => u({ author: v })} />
-              <Field label="Iniciály" value={a.authorIni} onChange={(v) => u({ authorIni: v })} width="110px" />
-              <Field label="Barva autora" value={a.authorBg} onChange={(v) => u({ authorBg: v })} width="140px" />
-              <Field label="Obrázek" value={a.img} onChange={(v) => u({ img: v })} width="130px" />
-            </Row>
-            <div style={{ fontSize: 11, color: '#B7BCC4', marginTop: 6 }}>{IMG_HINT}</div>
-          </div>
-        )}
-      />
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '22px 0 10px' }}>Novinky na homepage (boční výpis)</div>
-      <ListEditor
-        items={d.homeNews}
-        onChange={(v) => set('homeNews', v)}
-        itemTitle={(n) => n.title}
-        newItem={{ tag: 'KLUB', title: 'Nová novinka', date: '', img: 'slate' }}
+        items={news}
+        onChange={(v) => set('news', v)}
+        itemTitle={(n) => n.title || 'Nová novinka'}
+        newItem={{ category: 'Klub', title: 'Nová novinka', text: '', date: '', image: '' }}
         addLabel="+ Přidat novinku"
         renderItem={(n, u) => (
-          <Row>
-            <Field label="Štítek" value={n.tag} onChange={(v) => u({ tag: v })} width="150px" />
-            <Field label="Titulek" value={n.title} onChange={(v) => u({ title: v })} />
-            <Field label="Datum" value={n.date} onChange={(v) => u({ date: v })} width="150px" />
-            <Field label="Obrázek" value={n.img} onChange={(v) => u({ img: v })} width="120px" />
-          </Row>
+          <div>
+            <ImageField label="Fotka" value={n.image} onChange={(v) => u({ image: v })} />
+            <div style={{ height: 14 }} />
+            <Row>
+              <Field label="Titulek" value={n.title} onChange={(v) => u({ title: v })} />
+              <Select label="Kategorie" value={n.category} onChange={(v) => u({ category: v })} options={['Áčko', 'Mládež', 'Klub', 'Akce']} width="160px" />
+              <Field label="Datum" value={n.date} onChange={(v) => u({ date: v })} width="150px" placeholder="14. 6. 2026" />
+            </Row>
+            <div style={{ height: 12 }} />
+            <Field label="Text (pár vět)" textarea rows={3} value={n.text} onChange={(v) => u({ text: v })} />
+          </div>
         )}
       />
     </div>

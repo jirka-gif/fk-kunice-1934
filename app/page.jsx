@@ -18,7 +18,10 @@ function WhyIcon({ k }) {
 
 export default function Home() {
   useRevealEngine();
-  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, facilities, homeNews, sponsors } = useContent();
+  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, facilities, news, sponsors } = useContent();
+  const featured = news[0];
+  const sideNews = news.slice(1, 4);
+  const newsBg = (item, i) => (item && item.image ? `url(${item.image})` : PH_ARR[i % PH_ARR.length]);
   const [heroVariant, setHeroVariant] = useState(0);
 
   const teamCards = teams.map((t, i) => ({
@@ -270,21 +273,24 @@ export default function Home() {
           <Hov as={Link} href="/novinky" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:14px;cursor:pointer;background:#fff;box-shadow:0 1px 2px rgba(18,18,18,.05),0 8px 24px rgba(18,18,18,.06);transition:transform .2s,box-shadow .2s" hover="transform:translateY(-2px);box-shadow:0 14px 34px rgba(18,18,18,.12)">Magazín →</Hov>
         </div>
         <div className="fk-news-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
-          <Hov as={Link} href="/novinky" className="fk-rev fk-zoom" style="border-radius:24px;overflow:hidden;position:relative;cursor:pointer;min-height:460px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
-            <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: PH.red, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 28%,rgba(10,10,11,.92))' }} />
-            <div style={{ position: 'relative', padding: 38 }}>
-              <span style={{ background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 11, letterSpacing: '1.5px', padding: '7px 14px', borderRadius: 99 }}>REPORTÁŽ</span>
-              <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(30px,3.6vw,46px)', color: '#fff', textTransform: 'uppercase', lineHeight: 1.02, marginTop: 18, maxWidth: 580, letterSpacing: '.4px' }}>Áčko slaví postup do okresního přeboru</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18, color: 'rgba(255,255,255,.7)', fontSize: 13, fontWeight: 600 }}><span>Jan Novák</span><span>·</span><span>14. června 2026</span></div>
-            </div>
-          </Hov>
+          {featured && (
+            <Hov as={Link} href="/novinky" className="fk-rev fk-zoom" style="border-radius:24px;overflow:hidden;position:relative;cursor:pointer;min-height:460px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
+              <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: newsBg(featured, 0), backgroundSize: 'cover', backgroundPosition: 'center' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 28%,rgba(10,10,11,.92))' }} />
+              <div style={{ position: 'relative', padding: 38 }}>
+                {featured.category && <span style={{ background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 11, letterSpacing: '1.5px', padding: '7px 14px', borderRadius: 99 }}>{featured.category.toUpperCase()}</span>}
+                <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(30px,3.6vw,46px)', color: '#fff', textTransform: 'uppercase', lineHeight: 1.02, marginTop: 18, maxWidth: 580, letterSpacing: '.4px' }}>{featured.title}</div>
+                <p style={{ color: 'rgba(255,255,255,.82)', fontSize: 15, lineHeight: 1.55, marginTop: 12, maxWidth: 520 }}>{featured.text}</p>
+                <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 13, fontWeight: 600, marginTop: 14 }}>{featured.date}</div>
+              </div>
+            </Hov>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {homeNews.map((n, i) => (
+            {sideNews.map((n, i) => (
               <Hov key={i} as={Link} href="/novinky" className="fk-rev" style="background:#fff;border-radius:18px;padding:16px;display:flex;gap:16px;cursor:pointer;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05);transition:transform .25s,box-shadow .25s" hover="transform:translateX(5px);box-shadow:0 16px 34px rgba(18,18,18,.1)">
-                <div style={{ width: 100, height: 100, borderRadius: 14, flex: 'none', background: photo(n.img), backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                <div style={{ width: 100, height: 100, borderRadius: 14, flex: 'none', background: newsBg(n, i + 1), backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '1.2px', color: '#C1121F' }}>{n.tag}</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '1.2px', color: '#C1121F' }}>{(n.category || '').toUpperCase()}</span>
                   <div style={{ fontWeight: 700, fontSize: 16, lineHeight: 1.28, marginTop: 6, color: '#1E1E1E' }}>{n.title}</div>
                   <div style={{ color: '#9AA1AC', fontSize: 12, fontWeight: 600, marginTop: 8 }}>{n.date}</div>
                 </div>

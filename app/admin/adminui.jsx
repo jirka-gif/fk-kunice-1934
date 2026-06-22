@@ -1,8 +1,48 @@
 'use client';
 // Sdílená UI primitiva pro administraci FK Kunice.
+import { useRef } from 'react';
 
 const RED = '#C1121F';
 const LINE = '#ECEEF1';
+
+// Nahrání fotky → zmenší a uloží jako data URL (do localStorage). Náhled + odebrání.
+export function ImageField({ label, value, onChange }) {
+  const fileRef = useRef(null);
+  const onFile = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1100;
+        let w = img.width, h = img.height;
+        if (w > max) { h = Math.round((h * max) / w); w = max; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        onChange(c.toDataURL('image/jpeg', 0.72));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  };
+  return (
+    <div>
+      {label && <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', marginBottom: 6, textTransform: 'uppercase' }}>{label}</div>}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ width: 120, height: 78, borderRadius: 10, border: `1px solid ${LINE}`, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B7BCC4', fontSize: 11, fontWeight: 600, overflow: 'hidden', ...(value ? { backgroundImage: `url(${value})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: '#F4F5F7' }) }}>
+          {!value && 'bez fotky'}
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input ref={fileRef} type="file" accept="image/*" onChange={onFile} style={{ display: 'none' }} />
+          <Btn small kind="ghost" onClick={() => fileRef.current && fileRef.current.click()}>{value ? 'Změnit fotku' : 'Nahrát fotku'}</Btn>
+          {value && <Btn small kind="danger" onClick={() => onChange('')}>Odebrat</Btn>}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Field({ label, value, onChange, type = 'text', placeholder, textarea, rows = 3, width }) {
   const common = {
