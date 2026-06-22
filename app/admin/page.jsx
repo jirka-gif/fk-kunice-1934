@@ -98,7 +98,7 @@ export default function Admin() {
                 { n: playersTotal, l: 'Hráčů', go: 'tymy' },
                 { n: coachesTotal, l: 'Trenérů', go: 'tymy' },
                 { n: d.articles.length, l: 'Článků', go: 'novinky' },
-                { n: d.results.length, l: 'Výsledků', go: 'zapasy' },
+                { n: d.teams.reduce((s, t) => s + ((t.results && t.results.length) || 0), 0), l: 'Výsledků', go: 'zapasy' },
                 { n: d.rentalPlans.length, l: 'Ploch k pronájmu', go: 'pronajem' },
                 { n: d.sponsors.length, l: 'Partnerů', go: 'partneri' },
                 { n: d.people.length, l: 'Kontaktů', go: 'kontakt' },

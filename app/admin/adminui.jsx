@@ -21,6 +21,35 @@ export function Field({ label, value, onChange, type = 'text', placeholder, text
   );
 }
 
+export function Select({ label, value, onChange, options, width }) {
+  const opts = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o));
+  return (
+    <label style={{ display: 'block', flex: width ? `0 0 ${width}` : 1, minWidth: 0 }}>
+      {label && <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', marginBottom: 6, textTransform: 'uppercase' }}>{label}</div>}
+      <select value={value ?? ''} onChange={(e) => onChange(e.target.value)} style={{ border: `1px solid ${LINE}`, background: '#FAFBFC', borderRadius: 11, padding: '11px 13px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none', width: '100%', cursor: 'pointer' }}>
+        {opts.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+// Přepínač týmů (chips) — sdílený pro sekce editovatelné po týmech.
+export function TeamSwitcher({ teams, activeIndex, onSelect, badge }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>
+      {teams.map((tm, i) => {
+        const active = i === activeIndex;
+        return (
+          <button key={tm.id} onClick={() => onSelect(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s', border: active ? `1px solid ${RED}` : `1px solid ${LINE}`, background: active ? RED : '#fff', color: active ? '#fff' : '#3a3f47' }}>
+            {tm.name}
+            {badge != null && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{badge(tm)}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Row({ children, gap = 12, style }) {
   return <div style={{ display: 'flex', gap, flexWrap: 'wrap', alignItems: 'flex-end', ...style }}>{children}</div>;
 }

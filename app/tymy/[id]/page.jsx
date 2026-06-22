@@ -185,30 +185,54 @@ export default function TeamDetail() {
               </div>
             ))}
           </div>
+          {curTeam.results && curTeam.results.length > 0 && (
+            <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC', marginBottom: 14 }}>POSLEDNÍ VÝSLEDKY</div>
+              {curTeam.results.map((r, i) => {
+                const m = { V: { bg: '#C1121F', c: '#fff' }, R: { bg: '#EFF1F4', c: '#9AA1AC' }, P: { bg: '#F3F0E9', c: '#A98C4E' } }[r.wld] || { bg: '#C1121F', c: '#fff' };
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F2F3F5' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ width: 24, height: 24, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, background: m.bg, color: m.c }}>{r.wld}</span>
+                      <span style={{ fontWeight: 600, fontSize: 14, color: '#1E1E1E' }}>{r.opp}</span>
+                    </div>
+                    <span style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color: '#121212', letterSpacing: '1px' }}>{r.score}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC' }}>TABULKA SOUTĚŽE</span>
               <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '3px 9px', borderRadius: 99 }}>FAČR</span>
             </div>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{curTeam.comp}</div>
-            <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, margin: '4px 0 16px' }}>Načítá se z oficiálního systému FAČR</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 22, height: 10, borderRadius: 4, background: '#FBEAEC' }} />
-                <div style={{ flex: 1, height: 10, borderRadius: 4, background: '#F2F3F5' }} />
-                <div style={{ width: 30, height: 10, borderRadius: 4, background: '#FBEAEC' }} />
+            {curTeam.table && curTeam.table.length > 0 ? (
+              <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column' }}>
+                {curTeam.table.map((row, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px ' + (row.me ? '10px' : '0'), borderRadius: row.me ? 10 : 0, ...(row.me ? { background: '#FBEAEC', margin: '2px -6px' } : { borderBottom: '1px solid #F2F3F5' }) }}>
+                    <span style={{ fontFamily: "'Bebas Neue'", width: 20, fontSize: 15, color: row.me ? '#C1121F' : (row.pos <= 3 ? '#1E1E1E' : '#B7BCC4') }}>{row.pos}</span>
+                    <span style={{ flex: 1, fontWeight: row.me ? 800 : 600, fontSize: 13.5, color: '#1E1E1E' }}>{row.team}</span>
+                    <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, width: 34, textAlign: 'center' }}>{row.gp}</span>
+                    <span style={{ fontFamily: "'Bebas Neue'", fontSize: 16, width: 28, textAlign: 'right', color: row.me ? '#C1121F' : '#121212' }}>{row.pts}</span>
+                  </div>
+                ))}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 22, height: 10, borderRadius: 4, background: '#F2F3F5' }} />
-                <div style={{ flex: 1, height: 10, borderRadius: 4, background: '#F2F3F5' }} />
-                <div style={{ width: 30, height: 10, borderRadius: 4, background: '#F2F3F5' }} />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 22, height: 10, borderRadius: 4, background: '#F2F3F5' }} />
-                <div style={{ flex: 1, height: 10, borderRadius: 4, background: '#F2F3F5' }} />
-                <div style={{ width: 30, height: 10, borderRadius: 4, background: '#F2F3F5' }} />
-              </div>
-            </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, margin: '4px 0 16px' }}>Načítá se z oficiálního systému FAČR</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {[0, 1, 2].map((k) => (
+                    <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 22, height: 10, borderRadius: 4, background: k === 0 ? '#FBEAEC' : '#F2F3F5' }} />
+                      <div style={{ flex: 1, height: 10, borderRadius: 4, background: '#F2F3F5' }} />
+                      <div style={{ width: 30, height: 10, borderRadius: 4, background: k === 0 ? '#FBEAEC' : '#F2F3F5' }} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           <Hov as={Link} href="/kontakt" className="fk-rev" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:16px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Přidej se k týmu →</Hov>
         </div>
