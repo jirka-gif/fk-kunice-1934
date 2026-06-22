@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { useData, setSection } from '@/lib/store';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor } from './adminui';
 
@@ -46,49 +47,79 @@ export function Nastaveni() {
 // ---------------------------------------------------------------- TÝMY
 export function Tymy() {
   const { teams } = useData();
+  const [sel, setSel] = useState(0);
+  const idx = Math.min(sel, teams.length - 1);
+  const t = teams[idx] || teams[0];
+
+  const updateTeam = (patch) => {
+    set('teams', teams.map((tm, i) => (i === idx ? { ...tm, ...patch } : tm)));
+  };
+  const addTeam = () => {
+    set('teams', [...teams, { id: 'novy-tym-' + Date.now(), name: 'Nový tým', cat: 'Mládež · —', short: '—', comp: 'Soutěž', contact: '', coaches: [], players: [] }]);
+    setSel(teams.length);
+  };
+  const removeTeam = () => {
+    if (!confirm(`Opravdu smazat tým „${t.name}" včetně soupisky?`)) return;
+    set('teams', teams.filter((_, i) => i !== idx));
+    setSel(Math.max(0, idx - 1));
+  };
+
   return (
     <div>
-      <SectionHead title="Týmy" desc="Soupisky, realizační týmy a soutěže — vše z webu" count={teams.length} />
-      <ListEditor
-        items={teams}
-        onChange={(v) => set('teams', v)}
-        itemTitle={(t) => `${t.name} · ${t.players.length} hráčů · ${t.coaches.length} trenérů`}
-        newItem={() => ({ id: 'novy-tym-' + Date.now(), name: 'Nový tým', cat: 'Mládež · —', short: '—', comp: 'Soutěž', contact: '', coaches: [], players: [] })}
-        addLabel="+ Přidat tým"
-        renderItem={(t, update) => (
-          <div>
+      <SectionHead title="Týmy" desc="Vyber tým nahoře a uprav jeho soupisku, realizační tým a soutěž" count={teams.length} />
+
+      {/* přepínač týmů */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>
+        {teams.map((tm, i) => {
+          const active = i === idx;
+          return (
+            <button key={tm.id} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
+              {tm.name}
+              <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{tm.players.length}</span>
+            </button>
+          );
+        })}
+        <button onClick={addTeam} style={{ fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 12, cursor: 'pointer', border: '1px dashed #C1121F', background: '#FBEAEC', color: '#C1121F' }}>+ Přidat tým</button>
+      </div>
+
+      {/* editor vybraného týmu */}
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div style={{ fontFamily: "'Bebas Neue'", fontSize: 24, color: '#121212', letterSpacing: '.3px' }}>{t.name}</div>
+          <Btn kind="danger" small onClick={removeTeam}>Smazat tým</Btn>
+        </div>
+        <Row>
+          <Field label="Název" value={t.name} onChange={(v) => updateTeam({ name: v })} />
+          <Field label="Kategorie" value={t.cat} onChange={(v) => updateTeam({ cat: v })} />
+          <Field label="Zkratka" value={t.short} onChange={(v) => updateTeam({ short: v })} width="120px" />
+        </Row>
+        <div style={{ height: 10 }} />
+        <Row>
+          <Field label="Soutěž" value={t.comp} onChange={(v) => updateTeam({ comp: v })} />
+          <Field label="Kontakt" value={t.contact} onChange={(v) => updateTeam({ contact: v })} placeholder="nepovinné" />
+          <Field label="ID (URL)" value={t.id} onChange={(v) => updateTeam({ id: v })} width="160px" />
+        </Row>
+
+        <div style={{ marginTop: 20, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>REALIZAČNÍ TÝM ({t.coaches.length})</div>
+        <div style={{ height: 8 }} />
+        <ListEditor
+          items={t.coaches}
+          onChange={(v) => updateTeam({ coaches: v })}
+          itemTitle={(c) => c.n || 'Trenér'}
+          newItem={{ n: '', r: 'Trenér' }}
+          addLabel="+ Přidat člena realizačního týmu"
+          renderItem={(c, u) => (
             <Row>
-              <Field label="Název" value={t.name} onChange={(v) => update({ name: v })} />
-              <Field label="Kategorie" value={t.cat} onChange={(v) => update({ cat: v })} />
-              <Field label="Zkratka" value={t.short} onChange={(v) => update({ short: v })} width="120px" />
+              <Field label="Jméno" value={c.n} onChange={(v) => u({ n: v })} />
+              <Field label="Role" value={c.r} onChange={(v) => u({ r: v })} />
             </Row>
-            <div style={{ height: 10 }} />
-            <Row>
-              <Field label="Soutěž" value={t.comp} onChange={(v) => update({ comp: v })} />
-              <Field label="Kontakt" value={t.contact} onChange={(v) => update({ contact: v })} placeholder="nepovinné" />
-              <Field label="ID (URL)" value={t.id} onChange={(v) => update({ id: v })} width="160px" />
-            </Row>
-            <div style={{ marginTop: 16, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>REALIZAČNÍ TÝM</div>
-            <div style={{ height: 8 }} />
-            <ListEditor
-              items={t.coaches}
-              onChange={(v) => update({ coaches: v })}
-              itemTitle={(c) => c.n || 'Trenér'}
-              newItem={{ n: '', r: 'Trenér' }}
-              addLabel="+ Přidat člena realizačního týmu"
-              renderItem={(c, u) => (
-                <Row>
-                  <Field label="Jméno" value={c.n} onChange={(v) => u({ n: v })} />
-                  <Field label="Role" value={c.r} onChange={(v) => u({ r: v })} />
-                </Row>
-              )}
-            />
-            <div style={{ marginTop: 16, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>SOUPISKA ({t.players.length})</div>
-            <div style={{ height: 8 }} />
-            <StringListEditor items={t.players} onChange={(v) => update({ players: v })} placeholder="hráč" columns={2} />
-          </div>
-        )}
-      />
+          )}
+        />
+
+        <div style={{ marginTop: 20, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>SOUPISKA ({t.players.length})</div>
+        <div style={{ height: 8 }} />
+        <StringListEditor items={t.players} onChange={(v) => updateTeam({ players: v })} placeholder="hráč" columns={2} />
+      </Card>
     </div>
   );
 }
