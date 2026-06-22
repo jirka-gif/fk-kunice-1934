@@ -58,7 +58,7 @@ input, textarea, select { font-family: 'Inter', system-ui, sans-serif; }
   .fk-min [style*="1.15fr 1fr"],
   .fk-min [style*="1.1fr 1fr"],
   .fk-min [style*="280px 1fr"],
-  .fk-match-grid, .fk-news-grid, .fk-admin, .fk-admin-grid2 {
+  .fk-match-grid, .fk-news-grid, .fk-admin, .fk-admin-grid2, .fk-rent-grid {
     grid-template-columns: 1fr !important;
   }
   /* sticky sidebary uvolníme, ať nepřekrývají obsah */

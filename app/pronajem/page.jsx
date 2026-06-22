@@ -79,7 +79,7 @@ export default function Pronajem() {
       </section>
 
       {/* ============ KALENDÁŘ + FORMULÁŘ ============ */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '72px 28px 0', display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 32, alignItems: 'start' }}>
+      <section className="fk-rent-grid" style={{ maxWidth: 960, margin: '0 auto', padding: '72px 28px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
         {/* kalendář */}
         <div className="fk-rev" style={{ background: '#fff', borderRadius: 22, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -101,7 +101,7 @@ export default function Pronajem() {
                 <div
                   key={i}
                   onClick={cd.busy ? undefined : () => setSelDay(cd.day)}
-                  style={{ height: 40, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, background: bg, color, cursor: cur }}
+                  style={{ aspectRatio: '1', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, background: bg, color, cursor: cur }}
                 >
                   {cd.day}
                 </div>
