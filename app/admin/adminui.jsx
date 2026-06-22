@@ -26,7 +26,7 @@ export function Select({ label, value, onChange, options, width }) {
   return (
     <label style={{ display: 'block', flex: width ? `0 0 ${width}` : 1, minWidth: 0 }}>
       {label && <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', marginBottom: 6, textTransform: 'uppercase' }}>{label}</div>}
-      <select value={value ?? ''} onChange={(e) => onChange(e.target.value)} style={{ border: `1px solid ${LINE}`, background: '#FAFBFC', borderRadius: 11, padding: '11px 13px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none', width: '100%', cursor: 'pointer' }}>
+      <select value={value ?? ''} onChange={(e) => onChange(e.target.value)} style={{ display: 'block', boxSizing: 'border-box', border: `1px solid ${LINE}`, background: '#FAFBFC', borderRadius: 11, padding: '11px 34px 11px 13px', fontSize: 14, fontFamily: 'Inter', lineHeight: 1.2, color: '#1E1E1E', outline: 'none', width: '100%', cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', backgroundImage: "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239AA1AC' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '12px' }}>
         {opts.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>
