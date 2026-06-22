@@ -305,8 +305,10 @@ export const cmsTodayMatches = [
   { match: 'Kunice – Mukařov', team: 'Dorost', time: '10:00' },
   { match: 'Struhařov – Kunice', team: 'Žáci', time: '09:00' },
 ];
-export const cmsRentalRequests = [
-  { who: 'TJ Velké Popovice', what: 'Hlavní stadion · 22. 6. · 18:00' },
-  { who: 'Firma Stavospol', what: 'Umělá tráva · 24. 6. · 17:00' },
-  { who: 'Z. Marek', what: 'Tréninkové hřiště · 25. 6. · 19:00' },
+// Rezervace pronájmu — z webu i ručně založené (telefon/osobně).
+// status: 'nová' | 'potvrzená' | 'zamítnutá';  source: 'web' | 'telefon' | 'osobně'
+export const reservations = [
+  { name: 'TJ Velké Popovice', contact: '', area: 'Hlavní stadion', date: '22. 6. 2026', time: '18:00', note: '', source: 'web', status: 'nová' },
+  { name: 'Firma Stavospol', contact: 'stavospol@email.cz', area: 'Umělá tráva', date: '24. 6. 2026', time: '17:00', note: 'Firemní turnaj, cca 20 osob', source: 'web', status: 'nová' },
+  { name: 'Z. Marek', contact: '+420 777 000 111', area: 'Tréninkové hřiště', date: '25. 6. 2026', time: '19:00', note: 'Pravidelně každý čtvrtek', source: 'telefon', status: 'potvrzená' },
 ];

@@ -319,45 +319,110 @@ export function Kempy() {
 }
 
 // ---------------------------------------------------------------- PRONÁJEM
+const RES_STATUS = ['nová', 'potvrzená', 'zamítnutá'];
+const RES_SOURCE = ['web', 'telefon', 'osobně'];
+function statusPill(status) {
+  const map = { 'nová': { background: '#FBEAEC', color: '#C1121F' }, 'potvrzená': { background: '#EAF6EE', color: '#1F8A4C' }, 'zamítnutá': { background: '#F4F5F7', color: '#9AA1AC' } };
+  return { fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, marginLeft: 6, textTransform: 'uppercase', ...(map[status] || map['nová']) };
+}
+
+function SubTabs({ tab, setTab, tabs }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, marginBottom: 22, flexWrap: 'wrap' }}>
+      {tabs.map((t) => {
+        const active = tab === t.id;
+        return (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
+            {t.label}
+            {t.badge != null && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{t.badge}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Pronajem() {
   const d = useData();
+  const [tab, setTab] = useState('plochy');
   const busyStr = d.rentalBusyDays.map(String);
+  const areaOptions = d.rentalPlans.map((p) => p.name);
+  const newCount = d.reservations.filter((r) => r.status === 'nová').length;
+
   return (
     <div>
-      <SectionHead title="Pronájem areálu" desc="Plochy, ceník, obsazené dny, FAQ a žádosti" />
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>Plochy a ceník (/pronajem)</div>
-      <ListEditor items={d.rentalPlans} onChange={(v) => set('rentalPlans', v)} itemTitle={(p) => `${p.name} — ${p.price}`}
-        newItem={{ name: 'Nová plocha', spec: '', price: '0 Kč', status: 'VOLNO', img: 'char', features: [] }} addLabel="+ Přidat plochu"
-        renderItem={(p, u) => (
-          <div>
-            <Row>
-              <Field label="Název" value={p.name} onChange={(v) => u({ name: v })} />
-              <Field label="Specifikace" value={p.spec} onChange={(v) => u({ spec: v })} />
-              <Field label="Cena / hod" value={p.price} onChange={(v) => u({ price: v })} width="130px" />
-            </Row>
-            <div style={{ height: 10 }} />
-            <Row>
-              <Field label="Stav (VOLNO/OBSAZENO)" value={p.status} onChange={(v) => u({ status: v })} width="200px" />
-              <Field label="Obrázek" value={p.img} onChange={(v) => u({ img: v })} width="130px" />
-            </Row>
-            <div style={{ marginTop: 12, fontSize: 11, fontWeight: 800, color: '#9AA1AC' }}>VYBAVENÍ</div>
-            <div style={{ height: 6 }} />
-            <StringListEditor items={p.features} onChange={(v) => u({ features: v })} placeholder="prvek" columns={2} />
+      <SectionHead title="Pronájem areálu" desc="Nastavení pronajímaných ploch a správa rezervací" />
+      <SubTabs tab={tab} setTab={setTab} tabs={[
+        { id: 'plochy', label: 'Plochy & ceník' },
+        { id: 'rezervace', label: 'Rezervace', badge: newCount },
+      ]} />
+
+      {tab === 'plochy' ? (
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>Plochy a ceník (/pronajem)</div>
+          <ListEditor items={d.rentalPlans} onChange={(v) => set('rentalPlans', v)} itemTitle={(p) => `${p.name} — ${p.price}`}
+            newItem={{ name: 'Nová plocha', spec: '', price: '0 Kč', status: 'VOLNO', img: 'char', features: [] }} addLabel="+ Přidat plochu"
+            renderItem={(p, u) => (
+              <div>
+                <Row>
+                  <Field label="Název" value={p.name} onChange={(v) => u({ name: v })} />
+                  <Field label="Specifikace" value={p.spec} onChange={(v) => u({ spec: v })} />
+                  <Field label="Cena / hod" value={p.price} onChange={(v) => u({ price: v })} width="130px" />
+                </Row>
+                <div style={{ height: 10 }} />
+                <Row>
+                  <Select label="Stav" value={p.status} onChange={(v) => u({ status: v })} options={['VOLNO', 'OBSAZENO']} width="200px" />
+                  <Field label="Obrázek" value={p.img} onChange={(v) => u({ img: v })} width="130px" />
+                </Row>
+                <div style={{ marginTop: 12, fontSize: 11, fontWeight: 800, color: '#9AA1AC' }}>VYBAVENÍ</div>
+                <div style={{ height: 6 }} />
+                <StringListEditor items={p.features} onChange={(v) => u({ features: v })} placeholder="prvek" columns={2} />
+              </div>
+            )} />
+
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 6px' }}>Obsazené dny v kalendáři (čísla dnů)</div>
+          <Card>
+            <StringListEditor items={busyStr} onChange={(v) => set('rentalBusyDays', v.map((x) => Number(x) || 0).filter(Boolean))} placeholder="den" columns={4} />
+          </Card>
+
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Časté dotazy (pronájem)</div>
+          <ListEditor items={d.rentalFaq} onChange={(v) => set('rentalFaq', v)} itemTitle={(f) => f.q} newItem={{ q: '', a: '' }} addLabel="+ Přidat dotaz"
+            renderItem={(f, u) => (<div><Field label="Otázka" value={f.q} onChange={(v) => u({ q: v })} /><div style={{ height: 8 }} /><Field label="Odpověď" textarea rows={2} value={f.a} onChange={(v) => u({ a: v })} /></div>)} />
+        </div>
+      ) : (
+        <div>
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+            Rezervace odeslané z webu sem dorazí se stavem <b>nová</b>. Vlastní rezervaci (když někdo zavolá nebo přijde osobně) přidáš tlačítkem dole. Stav měň přes výběr u každé rezervace.
           </div>
-        )} />
-
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 6px' }}>Obsazené dny v kalendáři (čísla dnů)</div>
-      <Card>
-        <StringListEditor items={busyStr} onChange={(v) => set('rentalBusyDays', v.map((x) => Number(x) || 0).filter(Boolean))} placeholder="den" columns={4} />
-      </Card>
-
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Žádosti o pronájem (dashboard)</div>
-      <ListEditor items={d.cmsRentalRequests} onChange={(v) => set('cmsRentalRequests', v)} itemTitle={(r) => r.who} newItem={{ who: '', what: '' }} addLabel="+ Přidat žádost"
-        renderItem={(r, u) => (<Row><Field label="Kdo" value={r.who} onChange={(v) => u({ who: v })} /><Field label="Co / termín" value={r.what} onChange={(v) => u({ what: v })} /></Row>)} />
-
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Časté dotazy (pronájem)</div>
-      <ListEditor items={d.rentalFaq} onChange={(v) => set('rentalFaq', v)} itemTitle={(f) => f.q} newItem={{ q: '', a: '' }} addLabel="+ Přidat dotaz"
-        renderItem={(f, u) => (<div><Field label="Otázka" value={f.q} onChange={(v) => u({ q: v })} /><div style={{ height: 8 }} /><Field label="Odpověď" textarea rows={2} value={f.a} onChange={(v) => u({ a: v })} /></div>)} />
+          <ListEditor
+            items={d.reservations}
+            onChange={(v) => set('reservations', v)}
+            itemTitle={(r) => <>{r.name || 'Bez jména'}<span style={statusPill(r.status)}>{r.status}</span></>}
+            newItem={{ name: '', contact: '', area: areaOptions[0] || '', date: '', time: '', note: '', source: 'telefon', status: 'nová' }}
+            addLabel="+ Nová rezervace (telefon / osobně)"
+            renderItem={(r, u) => (
+              <div>
+                <Row>
+                  <Field label="Jméno / firma" value={r.name} onChange={(v) => u({ name: v })} />
+                  <Field label="Kontakt (tel. / e-mail)" value={r.contact} onChange={(v) => u({ contact: v })} />
+                </Row>
+                <div style={{ height: 10 }} />
+                <Row>
+                  <Select label="Plocha" value={r.area} onChange={(v) => u({ area: v })} options={areaOptions.length ? areaOptions : ['—']} />
+                  <Field label="Datum" value={r.date} onChange={(v) => u({ date: v })} width="160px" placeholder="22. 6. 2026" />
+                  <Field label="Čas" value={r.time} onChange={(v) => u({ time: v })} width="120px" placeholder="18:00" />
+                </Row>
+                <div style={{ height: 10 }} />
+                <Row>
+                  <Select label="Zdroj" value={r.source} onChange={(v) => u({ source: v })} options={RES_SOURCE} width="160px" />
+                  <Select label="Stav" value={r.status} onChange={(v) => u({ status: v })} options={RES_STATUS} width="180px" />
+                </Row>
+                <div style={{ height: 10 }} />
+                <Field label="Poznámka" textarea rows={2} value={r.note} onChange={(v) => u({ note: v })} />
+              </div>
+            )} />
+        </div>
+      )}
     </div>
   );
 }

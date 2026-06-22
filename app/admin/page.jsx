@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useData, resetData, exportJson } from '@/lib/store';
+import { useData, resetData, exportJson, updateData } from '@/lib/store';
 import { Card, Btn } from './adminui';
 import { Nastaveni, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace } from './sections';
 
@@ -135,14 +135,23 @@ export default function Admin() {
             </div>
 
             <Card>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}><span style={{ fontWeight: 800, fontSize: 15 }}>Žádosti o pronájem</span><span onClick={() => setSectionId('pronajem')} style={{ fontSize: 12, fontWeight: 700, color: RED, cursor: 'pointer' }}>Spravovat</span></div>
-              {d.cmsRentalRequests.map((r, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
-                  <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{r.who}</div><div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{r.what}</div></div>
-                  <span style={{ width: 30, height: 30, borderRadius: 9, background: '#EAF6EE', color: '#1F8A4C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>✓</span>
-                  <span style={{ width: 30, height: 30, borderRadius: 9, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>✕</span>
-                </div>
-              ))}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}><span style={{ fontWeight: 800, fontSize: 15 }}>Nové rezervace</span><span onClick={() => setSectionId('pronajem')} style={{ fontSize: 12, fontWeight: 700, color: RED, cursor: 'pointer' }}>Spravovat</span></div>
+              {d.reservations.filter((r) => r.status === 'nová').length === 0 && (
+                <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, padding: '8px 0' }}>Žádné nové rezervace k vyřízení.</div>
+              )}
+              {d.reservations.filter((r) => r.status === 'nová').slice(0, 6).map((r) => {
+                const idx = d.reservations.indexOf(r);
+                return (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{r.name} {r.source === 'web' ? <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC' }}>· WEB</span> : <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC' }}>· {String(r.source || '').toUpperCase()}</span>}</div>
+                      <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{[r.area, r.date, r.time].filter(Boolean).join(' · ')}</div>
+                    </div>
+                    <span title="Potvrdit" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'potvrzená'; })} style={{ width: 30, height: 30, borderRadius: 9, background: '#EAF6EE', color: '#1F8A4C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✓</span>
+                    <span title="Zamítnout" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'zamítnutá'; })} style={{ width: 30, height: 30, borderRadius: 9, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✕</span>
+                  </div>
+                );
+              })}
             </Card>
           </div>
         ) : (

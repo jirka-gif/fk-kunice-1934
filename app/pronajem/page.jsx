@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
-import { useContent } from '@/lib/store';
+import { useContent, updateData } from '@/lib/store';
 
 const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 const inputBase = 'border:1px solid #ECEEF1;background:#FAFBFC;border-radius:13px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
@@ -14,6 +14,9 @@ export default function Pronajem() {
   const { rentalPlans, rentalBusyDays, rentalFaq } = useContent();
   const [selDay, setSelDay] = useState(18);
   const [faqOpen, setFaqOpen] = useState({});
+  const [form, setForm] = useState({ name: '', phone: '', email: '', area: '', note: '' });
+  const [sent, setSent] = useState(false);
+  const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   // ===== Kalendář: 2 vodicí prázdné buňky, dny 1..31, doplnit do 35 =====
   const calendar = [];
@@ -26,6 +29,17 @@ export default function Pronajem() {
   while (calendar.length < 35) calendar.push({ day: '', busy: false, sel: false });
 
   const selDayLabel = selDay ? `${selDay}. července 2026` : '—';
+
+  const submit = () => {
+    if (!form.name.trim()) { alert('Vyplň prosím jméno.'); return; }
+    updateData((d) => {
+      d.reservations = [
+        { name: form.name.trim(), contact: [form.phone, form.email].filter(Boolean).join(' · '), area: form.area || (rentalPlans[0] && rentalPlans[0].name) || '', date: selDayLabel, time: '', note: form.note, source: 'web', status: 'nová' },
+        ...(d.reservations || []),
+      ];
+    });
+    setSent(true);
+  };
 
   return (
     <div style={{ background: '#F6F7F9' }}>
@@ -125,20 +139,27 @@ export default function Pronajem() {
         <div className="fk-rev" style={{ background: '#fff', borderRadius: 22, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#121212', marginBottom: 6 }}>Poptávka rezervace</div>
           <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginBottom: 20 }}>Vybraný termín: <span style={{ color: '#C1121F', fontWeight: 800 }}>{selDayLabel}</span></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Hov as="input" placeholder="Jméno a příjmení" style={inputBase} focus={inputFocus} />
-            <div style={{ display: 'flex', gap: 12 }}>
-              <Hov as="input" placeholder="Telefon" style={`flex:1;${inputBase}`} focus={inputFocus} />
-              <Hov as="input" placeholder="E-mail" style={`flex:1;${inputBase}`} focus={inputFocus} />
+          {sent ? (
+            <div style={{ background: '#EAF6EE', border: '1px solid #BfE6CC', borderRadius: 14, padding: 24, textAlign: 'center' }}>
+              <div style={{ fontSize: 30, marginBottom: 8 }}>✅</div>
+              <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#1F8A4C' }}>Poptávka odeslána</div>
+              <div style={{ color: '#3a3f47', fontSize: 14, fontWeight: 500, marginTop: 6, lineHeight: 1.5 }}>Děkujeme! Ozveme se vám do 24 hodin a potvrdíme dostupnost termínu.</div>
+              <div onClick={() => { setSent(false); setForm({ name: '', phone: '', email: '', area: '', note: '' }); }} style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: '#C1121F', cursor: 'pointer' }}>Odeslat další poptávku</div>
             </div>
-            <select style={{ border: '1px solid #ECEEF1', background: '#FAFBFC', borderRadius: 13, padding: '14px 16px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none' }}>
-              <option>Hlavní stadion</option>
-              <option>Tréninkové hřiště</option>
-              <option>Umělá tráva</option>
-            </select>
-            <Hov as="textarea" placeholder="Poznámka (počet osob, čas, účel)" rows={3} style={`${inputBase};resize:none`} focus={inputFocus} />
-            <Hov as="a" style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat poptávku →</Hov>
-          </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Hov as="input" value={form.name} onChange={setF('name')} placeholder="Jméno a příjmení" style={inputBase} focus={inputFocus} />
+              <div style={{ display: 'flex', gap: 12 }}>
+                <Hov as="input" value={form.phone} onChange={setF('phone')} placeholder="Telefon" style={`flex:1;${inputBase}`} focus={inputFocus} />
+                <Hov as="input" value={form.email} onChange={setF('email')} placeholder="E-mail" style={`flex:1;${inputBase}`} focus={inputFocus} />
+              </div>
+              <select value={form.area || (rentalPlans[0] && rentalPlans[0].name) || ''} onChange={setF('area')} style={{ border: '1px solid #ECEEF1', background: '#FAFBFC', borderRadius: 13, padding: '14px 16px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none' }}>
+                {rentalPlans.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
+              </select>
+              <Hov as="textarea" value={form.note} onChange={setF('note')} placeholder="Poznámka (počet osob, čas, účel)" rows={3} style={`${inputBase};resize:none`} focus={inputFocus} />
+              <Hov as="a" onClick={submit} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat poptávku →</Hov>
+            </div>
+          )}
         </div>
       </section>
 
