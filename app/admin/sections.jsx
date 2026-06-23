@@ -176,20 +176,20 @@ export function Zapasy() {
 
   const nm = t.nextMatch || {};
   const md = t.matchDetail || {};
+  const lm = t.lastMatch || {};
   const home = nm.home || {}; const away = nm.away || {};
   const mdHome = md.home || {}; const mdAway = md.away || {}; const score = md.score || {};
   const updNm = (patch) => updateTeam({ nextMatch: { ...nm, ...patch } });
   const updMd = (patch) => updateTeam({ matchDetail: { ...md, ...patch } });
+  const updLm = (patch) => updateTeam({ lastMatch: { ...lm, ...patch } });
+  const isA = t.id === 'muziA';
 
   return (
     <div>
-      <SectionHead title="Zápasy" desc="Vyber tým — uprav jeho příští zápas, výsledky, tabulku a detail zápasu" count={teams.length} />
-      <TeamSwitcher teams={teams} activeIndex={idx} onSelect={setSel} badge={(tm) => (tm.results ? tm.results.length : 0)} />
+      <SectionHead title="Zápasy" desc="Vyber tým — příští zápas, poslední zápas se střelci a tabulka" count={teams.length} />
+      <TeamSwitcher teams={teams} activeIndex={idx} onSelect={setSel} badge={null} />
 
-      <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, margin: '-8px 0 16px' }}>
-        Zápasy týmu <b style={{ color: '#C1121F' }}>{t.name}</b>. Data týmu Muži A se zobrazují na homepage a v /zapasy; ostatní týmy na svých stránkách.
-      </div>
-
+      {/* PŘÍŠTÍ ZÁPAS */}
       <Card style={{ marginBottom: 18 }}>
         <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Příští zápas</div>
         <Row>
@@ -200,28 +200,25 @@ export function Zapasy() {
         </Row>
         <div style={{ height: 10 }} />
         <Row>
-          <Field label="Kdy / soutěž" value={nm.when} onChange={(v) => updNm({ when: v })} />
-          <Field label="Místo" value={nm.venue} onChange={(v) => updNm({ venue: v })} />
+          <Field label="Kdy / soutěž" value={nm.when} onChange={(v) => updNm({ when: v })} placeholder="NE 16:30 · III. TŘÍDA" />
+          <Field label="Kde se hraje" value={nm.venue} onChange={(v) => updNm({ venue: v })} placeholder="Areál Kunice" />
         </Row>
       </Card>
 
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Poslední výsledky</div>
-      <ListEditor
-        items={t.results || []}
-        onChange={(v) => updateTeam({ results: v })}
-        itemTitle={(r) => `${r.opp} ${r.score}`}
-        newItem={{ wld: 'V', opp: 'Soupeř', score: '0:0' }}
-        addLabel="+ Přidat výsledek"
-        renderItem={(r, u) => (
-          <Row>
-            <Select label="Výsledek" value={r.wld} onChange={(v) => u({ wld: v })} options={WLD_OPTS} width="150px" />
-            <Field label="Soupeř" value={r.opp} onChange={(v) => u({ opp: v })} />
-            <Field label="Skóre" value={r.score} onChange={(v) => u({ score: v })} width="120px" />
-          </Row>
-        )}
-      />
+      {/* POSLEDNÍ ZÁPAS + STŘELCI */}
+      <Card style={{ marginBottom: 18 }}>
+        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Poslední zápas + střelci</div>
+        <Row>
+          <Field label="Soupeř" value={lm.opp} onChange={(v) => updLm({ opp: v })} />
+          <Field label="Skóre" value={lm.score} onChange={(v) => updLm({ score: v })} width="120px" placeholder="3:1" />
+          <Select label="Výsledek" value={lm.result} onChange={(v) => updLm({ result: v })} options={RESULT_OPTS} width="160px" />
+        </Row>
+        <div style={{ height: 10 }} />
+        <Field label="Střelci" value={lm.scorers} onChange={(v) => updLm({ scorers: v })} placeholder="A. Pokorný, J. Svoboda, F. Veselý" />
+      </Card>
 
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Tabulka soutěže</div>
+      {/* TABULKA */}
+      <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Tabulka soutěže</div>
       <ListEditor
         items={t.table || []}
         onChange={(v) => updateTeam({ table: v })}
@@ -241,39 +238,61 @@ export function Zapasy() {
         )}
       />
 
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Detail odehraného zápasu</div>
-      <Card style={{ marginBottom: 16 }}>
-        <Field label="Hlavička" value={md.header} onChange={(v) => updMd({ header: v })} />
-        <div style={{ height: 10 }} />
-        <Row>
-          <Field label="Kdy / místo" value={md.when} onChange={(v) => updMd({ when: v })} />
-          <Field label="Domácí" value={mdHome.name} onChange={(v) => updMd({ home: { ...mdHome, name: v } })} />
-          <Field label="Hosté" value={mdAway.name} onChange={(v) => updMd({ away: { ...mdAway, name: v } })} />
-        </Row>
-        <div style={{ height: 10 }} />
-        <Row>
-          <Field label="Skóre domácí" type="number" value={score.home} onChange={(v) => updMd({ score: { ...score, home: Number(v) || 0 } })} width="130px" />
-          <Field label="Skóre hosté" type="number" value={score.away} onChange={(v) => updMd({ score: { ...score, away: Number(v) || 0 } })} width="130px" />
-          <Select label="Výsledek" value={md.result} onChange={(v) => updMd({ result: v })} options={RESULT_OPTS} width="160px" />
-        </Row>
-      </Card>
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#9AA1AC', margin: '4px 0 8px' }}>Události zápasu</div>
-      <ListEditor
-        items={md.events || []}
-        onChange={(v) => updMd({ events: v })}
-        itemTitle={(e) => `${e.min}' ${e.player}`}
-        newItem={{ min: 0, type: 'goal', team: 'h', player: '', note: '' }}
-        addLabel="+ Přidat událost"
-        renderItem={(e, u) => (
-          <Row>
-            <Field label="Min." type="number" value={e.min} onChange={(v) => u({ min: Number(v) || 0 })} width="80px" />
-            <Select label="Typ" value={e.type} onChange={(v) => u({ type: v })} options={EV_TYPE_OPTS} width="150px" />
-            <Select label="Tým" value={e.team} onChange={(v) => u({ team: v })} options={EV_TEAM_OPTS} width="130px" />
-            <Field label="Hráč" value={e.player} onChange={(v) => u({ player: v })} />
-            <Field label="Pozn." value={e.note} onChange={(v) => u({ note: v })} width="100px" />
-          </Row>
-        )}
-      />
+      {/* POUZE A-TÝM: homepage výsledky + detailní průběh zápasu */}
+      {isA && (
+        <>
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '24px 0 10px' }}>Poslední výsledky <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(blok na homepage)</span></div>
+          <ListEditor
+            items={t.results || []}
+            onChange={(v) => updateTeam({ results: v })}
+            itemTitle={(r) => `${r.opp} ${r.score}`}
+            newItem={{ wld: 'V', opp: 'Soupeř', score: '0:0' }}
+            addLabel="+ Přidat výsledek"
+            renderItem={(r, u) => (
+              <Row>
+                <Select label="Výsledek" value={r.wld} onChange={(v) => u({ wld: v })} options={WLD_OPTS} width="150px" />
+                <Field label="Soupeř" value={r.opp} onChange={(v) => u({ opp: v })} />
+                <Field label="Skóre" value={r.score} onChange={(v) => u({ score: v })} width="120px" />
+              </Row>
+            )}
+          />
+
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '24px 0 6px' }}>Průběh zápasu (detail A-týmu)</div>
+          <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginBottom: 10 }}>Detailní časová osa s góly a kartami — zobrazí se v /zapasy u A-týmu. (Statistiky držení/střel jsme záměrně vynechali.)</div>
+          <Card style={{ marginBottom: 16 }}>
+            <Field label="Hlavička" value={md.header} onChange={(v) => updMd({ header: v })} />
+            <div style={{ height: 10 }} />
+            <Row>
+              <Field label="Kdy / místo" value={md.when} onChange={(v) => updMd({ when: v })} />
+              <Field label="Domácí" value={mdHome.name} onChange={(v) => updMd({ home: { ...mdHome, name: v } })} />
+              <Field label="Hosté" value={mdAway.name} onChange={(v) => updMd({ away: { ...mdAway, name: v } })} />
+            </Row>
+            <div style={{ height: 10 }} />
+            <Row>
+              <Field label="Skóre domácí" type="number" value={score.home} onChange={(v) => updMd({ score: { ...score, home: Number(v) || 0 } })} width="130px" />
+              <Field label="Skóre hosté" type="number" value={score.away} onChange={(v) => updMd({ score: { ...score, away: Number(v) || 0 } })} width="130px" />
+              <Select label="Výsledek" value={md.result} onChange={(v) => updMd({ result: v })} options={RESULT_OPTS} width="160px" />
+            </Row>
+          </Card>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#9AA1AC', margin: '4px 0 8px' }}>Události zápasu</div>
+          <ListEditor
+            items={md.events || []}
+            onChange={(v) => updMd({ events: v })}
+            itemTitle={(e) => `${e.min}' ${e.player}`}
+            newItem={{ min: 0, type: 'goal', team: 'h', player: '', note: '' }}
+            addLabel="+ Přidat událost"
+            renderItem={(e, u) => (
+              <Row>
+                <Field label="Min." type="number" value={e.min} onChange={(v) => u({ min: Number(v) || 0 })} width="80px" />
+                <Select label="Typ" value={e.type} onChange={(v) => u({ type: v })} options={EV_TYPE_OPTS} width="150px" />
+                <Select label="Tým" value={e.team} onChange={(v) => u({ team: v })} options={EV_TEAM_OPTS} width="130px" />
+                <Field label="Hráč" value={e.player} onChange={(v) => u({ player: v })} />
+                <Field label="Pozn." value={e.note} onChange={(v) => u({ note: v })} width="100px" />
+              </Row>
+            )}
+          />
+        </>
+      )}
     </div>
   );
 }
