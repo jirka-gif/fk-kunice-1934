@@ -60,7 +60,7 @@ export default function Zapasy() {
         <div style={{ position: 'relative', maxWidth: 1100, margin: '0 auto', padding: '0 28px' }}>
           <div className="fk-rev"><Eyebrow dark>ZÁPASY</Eyebrow></div>
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(48px,7vw,92px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>{t.name}</h1>
-          <p className="fk-rev" style={{ color: 'rgba(255,255,255,.7)', fontSize: 16, marginTop: 12, maxWidth: 560, lineHeight: 1.55 }}>Výsledkový servis, příští zápas s odpočtem a aktuální tabulka týmu {t.name}.</p>
+          <p className="fk-rev" style={{ color: 'rgba(255,255,255,.7)', fontSize: 16, marginTop: 12, maxWidth: 560, lineHeight: 1.55 }}>Výsledkový servis, příští zápas s odpočtem a aktuální tabulka týmu&nbsp;<span style={{ whiteSpace: 'nowrap' }}>{t.name}</span>.</p>
           <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginTop: 26 }}>
             {matchTeams.map((tm, i) => {
               const active = i === idx;
