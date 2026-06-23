@@ -32,7 +32,7 @@ export default function Home() {
     img: PH_ARR[i % PH_ARR.length], coachBg: t.coaches[0] ? COLORS.red : '#2a2a2a',
   }));
 
-  const table = leagueTable.map((t) => ({
+  const table = leagueTable.slice(0, 4).map((t) => ({
     ...t,
     posColor: t.me ? COLORS.red : (t.pos <= 3 ? COLORS.text : '#B7BCC4'),
     weight: t.me ? 800 : 600,

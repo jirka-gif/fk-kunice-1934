@@ -312,3 +312,88 @@ export const reservations = [
   { name: 'Firma Stavospol', contact: 'stavospol@email.cz', area: 'Umělá tráva', date: '24. 6. 2026', time: '17:00', note: 'Firemní turnaj, cca 20 osob', source: 'web', status: 'nová' },
   { name: 'Z. Marek', contact: '+420 777 000 111', area: 'Tréninkové hřiště', date: '25. 6. 2026', time: '19:00', note: 'Pravidelně každý čtvrtek', source: 'telefon', status: 'potvrzená' },
 ];
+
+// -----------------------------------------------------------------------------
+//  ZÁPASY PO TÝMECH — příští zápas (+ odpočet), poslední zápas se střelci, kompletní tabulka.
+//  Ukázková data; klub si je upraví v administraci.
+// -----------------------------------------------------------------------------
+const _nmHome = (awayShort, awayName, when, dateISO) => ({ home: { short: 'FK', name: 'KUNICE', side: 'Domácí' }, away: { short: awayShort, name: awayName, side: 'Hosté' }, when, venue: 'Areál Kunice', dateISO });
+const _nmAway = (homeShort, homeName, when, dateISO, venue) => ({ home: { short: homeShort, name: homeName, side: 'Domácí' }, away: { short: 'FK', name: 'KUNICE', side: 'Hosté' }, when, venue: venue || homeName, dateISO });
+const _lm = (opp, score, result, scorers) => ({ opp, score, result, scorers });
+// vygeneruje kompletní tabulku: vloží náš tým na pozici myPos, body sestupně
+function _table(myName, myPos, opponents, gp) {
+  const names = opponents.slice();
+  names.splice(myPos - 1, 0, myName);
+  const len = names.length;
+  return names.map((team, i) => ({ pos: i + 1, team, gp, pts: Math.max(3, (len - i) * 3 - (i % 2)), me: team === myName }));
+}
+const _local = (suf) => ['SK Mukařov', 'Sokol Struhařov', 'TJ Velké Popovice', 'TJ Mnichovice', 'SK Strančice', 'Sokol Pyšely', 'TJ Kamenice', 'SK Senohraby', 'Sokol Ondřejov'].map((n) => `${n} ${suf}`);
+const _region = (suf) => ['SK Říčany', 'FK Brandýs', 'Spartak Příbram', 'SK Kladno', 'FK Dobříš', 'Sokol Vlašim', 'TJ Benešov', 'FK Kolín'].map((n) => `${n} ${suf}`);
+
+export const teamMatches = {
+  muziA: {
+    nextMatch: _nmHome('MN', 'MNICHOVICE', 'NE 16:30 · 7. LIGA SK. D', '2026-06-28T16:30'),
+    lastMatch: _lm('TJ Mnichovice', '3:1', 'VÝHRA', 'A. Pokorný, J. Svoboda, F. Veselý'),
+    table: [
+      { pos: 1, team: 'FK Kunice', gp: 14, pts: 34, me: true },
+      { pos: 2, team: 'SK Mukařov', gp: 14, pts: 30, me: false },
+      { pos: 3, team: 'TJ Mnichovice', gp: 14, pts: 27, me: false },
+      { pos: 4, team: 'Sokol Struhařov', gp: 14, pts: 22, me: false },
+      { pos: 5, team: 'TJ Velké Popovice', gp: 14, pts: 21, me: false },
+      { pos: 6, team: 'SK Strančice', gp: 14, pts: 19, me: false },
+      { pos: 7, team: 'Sokol Pyšely', gp: 14, pts: 17, me: false },
+      { pos: 8, team: 'FK Říčany B', gp: 14, pts: 16, me: false },
+      { pos: 9, team: 'TJ Kamenice', gp: 14, pts: 14, me: false },
+      { pos: 10, team: 'Sokol Ondřejov', gp: 14, pts: 12, me: false },
+      { pos: 11, team: 'SK Senohraby', gp: 14, pts: 11, me: false },
+      { pos: 12, team: 'TJ Mrač', gp: 14, pts: 9, me: false },
+      { pos: 13, team: 'Sokol Čerčany', gp: 14, pts: 6, me: false },
+      { pos: 14, team: 'SK Čtyřkoly', gp: 14, pts: 4, me: false },
+    ],
+  },
+  muziB: {
+    nextMatch: _nmAway('VP', 'V. POPOVICE B', 'SO 17:00 · 9. LIGA', '2026-06-27T17:00', 'Velké Popovice'),
+    lastMatch: _lm('Sokol Struhařov B', '2:2', 'REMÍZA', 'M. Dolejš, J. Novák'),
+    table: _table('FK Kunice B', 6, ['Sokol Struhařov B', 'TJ Velké Popovice B', 'SK Mukařov B', 'TJ Kamenice B', 'Sokol Pyšely B', 'SK Senohraby B', 'TJ Mrač B', 'Sokol Ondřejov B', 'SK Čtyřkoly B'], 13),
+  },
+  dorostU19: {
+    nextMatch: _nmHome('ŘÍ', 'ŘÍČANY U19', 'SO 10:15 · KRAJSKÁ SOUTĚŽ', '2026-06-27T10:15'),
+    lastMatch: _lm('FK Dobříš U19', '1:3', 'PROHRA', 'T. Beneš'),
+    table: _table('FK Kunice U19', 4, _region('U19'), 18),
+  },
+  dorostU17: {
+    nextMatch: _nmAway('KL', 'KLADNO U17', 'SO 12:30 · KRAJSKÁ SOUTĚŽ', '2026-06-27T12:30', 'Kladno'),
+    lastMatch: _lm('SK Říčany U17', '2:1', 'VÝHRA', 'D. Král, M. Pošta'),
+    table: _table('FK Kunice U17', 5, _region('U17'), 16),
+  },
+  zaciU15: {
+    nextMatch: _nmHome('MU', 'MUKAŘOV U15', 'SO 10:00 · OKRESNÍ PŘEBOR', '2026-06-27T10:00'),
+    lastMatch: _lm('Sokol Struhařov U15', '4:1', 'VÝHRA', 'M. Horák 2×, A. Fiala, T. Souček'),
+    table: _table('FK Kunice U15', 1, _local('U15'), 14),
+  },
+  zaciU15B: {
+    nextMatch: _nmAway('ST', 'STRANČICE U15', 'NE 09:00 · OKRESNÍ SOUTĚŽ', '2026-06-28T09:00', 'Strančice'),
+    lastMatch: _lm('TJ Kamenice U15 B', '1:1', 'REMÍZA', 'V. Raida'),
+    table: _table('FK Kunice U15 B', 5, _local('U15 B').slice(0, 7), 12),
+  },
+  zaciU13: {
+    nextMatch: _nmHome('PY', 'PYŠELY U13', 'SO 09:00 · OKRESNÍ PŘEBOR', '2026-06-27T09:00'),
+    lastMatch: _lm('SK Mukařov U13', '5:2', 'VÝHRA', 'J. Toman 2×, P. Kočí 2×, M. Brázda'),
+    table: _table('FK Kunice U13', 3, _local('U13'), 13),
+  },
+  starsiP: {
+    nextMatch: _nmHome('ON', 'ONDŘEJOV', 'NE 10:00 · OKRESNÍ PŘEBOR', '2026-06-28T10:00'),
+    lastMatch: _lm('SK Mukařov', '6:3', 'VÝHRA', 'A. Sýkora 3×, F. Šála 2×, P. Suk'),
+    table: _table('FK Kunice St. příp.', 2, _local('příp.'), 12),
+  },
+  starsiPB: {
+    nextMatch: _nmAway('SE', 'SENOHRABY', 'NE 11:30 · OKRESNÍ SOUTĚŽ', '2026-06-28T11:30', 'Senohraby'),
+    lastMatch: _lm('Sokol Pyšely příp.', '3:4', 'PROHRA', 'M. Vaněk 2×, J. Tureček'),
+    table: _table('FK Kunice příp. B', 6, _local('příp. B').slice(0, 7), 11),
+  },
+  mladsiP: {
+    nextMatch: _nmHome('VP', 'V. POPOVICE', 'SO 09:30 · MINILIGA', '2026-06-27T09:30'),
+    lastMatch: _lm('TJ Kamenice', '4:4', 'REMÍZA', 'Hrály všechny děti — bez evidence střelců'),
+    table: [],
+  },
+};
