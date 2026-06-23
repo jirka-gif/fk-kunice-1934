@@ -154,9 +154,11 @@ export default function Pronajem() {
                 <Hov as="input" value={form.phone} onChange={setF('phone')} placeholder="Telefon" style={`flex:1;${inputBase}`} focus={inputFocus} />
                 <Hov as="input" value={form.email} onChange={setF('email')} placeholder="E-mail" style={`flex:1;${inputBase}`} focus={inputFocus} />
               </div>
-              <select value={form.area || (rentalPlans[0] && rentalPlans[0].name) || ''} onChange={setF('area')} style={{ border: '1px solid #ECEEF1', background: '#FAFBFC', borderRadius: 13, padding: '14px 16px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none' }}>
+              <Hov as="select" value={form.area || (rentalPlans[0] && rentalPlans[0].name) || ''} onChange={setF('area')}
+                style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', boxSizing: 'border-box', width: '100%', backgroundColor: '#fff', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239AA1AC' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', backgroundSize: '14px', border: '1px solid #ECEEF1', borderRadius: 13, padding: '14px 44px 14px 16px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(18,18,18,.05)' }}
+                focus={{ borderColor: '#C1121F', boxShadow: '0 2px 12px rgba(193,18,31,.14)' }}>
                 {rentalPlans.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
-              </select>
+              </Hov>
               <Hov as="textarea" value={form.note} onChange={setF('note')} placeholder="Poznámka (počet osob, čas, účel)" rows={3} style={`${inputBase};resize:none`} focus={inputFocus} />
               <Hov as="a" onClick={submit} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat poptávku →</Hov>
             </div>
