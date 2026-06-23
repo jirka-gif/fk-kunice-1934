@@ -213,6 +213,7 @@ export default function TeamDetail() {
               })}
             </div>
           )}
+          {!isSchool && (
           <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC' }}>TABULKA SOUTĚŽE</span>
@@ -245,6 +246,7 @@ export default function TeamDetail() {
               </>
             )}
           </div>
+          )}
           <Hov as={Link} href="/kontakt" className="fk-rev" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:16px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Přidej se k týmu →</Hov>
         </div>
       </section>
