@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { Hov, Eyebrow } from '@/app/components/ui';
+import { Icon } from '@/app/components/icons';
 import { COLORS, PH } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
@@ -59,13 +60,12 @@ export default function MatchDetail() {
         <div className="fk-rev" style={{ marginBottom: 24 }}><Eyebrow>PRŮBĚH ZÁPASU</Eyebrow></div>
         <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, padding: '10px 24px', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.05)' }}>
           {events.map((ev, i) => {
-            const glyph = ev.type === 'goal' ? '⚽' : '';
             const homeShow = ev.team === 'h' ? {} : { visibility: 'hidden' };
             const awayShow = ev.team === 'a' ? {} : { visibility: 'hidden' };
             return (
               <div key={i} style={{ display: 'flex', alignItems: 'center', padding: '13px 0', borderBottom: '1px solid #F2F3F5' }}>
                 <div style={{ flex: 1, textAlign: 'right', ...homeShow }}><span style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{ev.player}</span> <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{ev.note}</span></div>
-                <div style={{ flex: 'none', width: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><span style={styleObj(evIcon(ev.type))}>{glyph}</span><span style={{ fontFamily: "'Bebas Neue'", fontSize: 15, color: '#9AA1AC', width: 24, textAlign: 'center' }}>{ev.min}'</span></div>
+                <div style={{ flex: 'none', width: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><span style={styleObj(evIcon(ev.type))}>{ev.type === 'goal' ? <Icon name="ball" size={13} color="#fff" /> : null}</span><span style={{ fontFamily: "'Bebas Neue'", fontSize: 15, color: '#9AA1AC', width: 24, textAlign: 'center' }}>{ev.min}'</span></div>
                 <div style={{ flex: 1, textAlign: 'left', ...awayShow }}><span style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{ev.player}</span> <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{ev.note}</span></div>
               </div>
             );

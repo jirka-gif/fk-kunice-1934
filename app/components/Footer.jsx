@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Hov } from './ui';
+import { Icon } from './icons';
 import { useContent } from '@/lib/store';
 
 const LINKS_A = [['Týmy', '/tymy'], ['Zápasy', '/zapasy'], ['Novinky', '/novinky'], ['Galerie', '/'], ['Historie', '/']];
@@ -56,7 +57,7 @@ export default function Footer() {
             <Link href="/kontakt" style={{ marginTop: 18, height: 120, borderRadius: 14, background: 'linear-gradient(135deg,#241112,#120a0b)', border: '1px solid rgba(255,255,255,.1)', position: 'relative', overflow: 'hidden', cursor: 'pointer', display: 'block' }}>
               <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px)', backgroundSize: '24px 24px' }} />
               <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 22 }}>📍</span>
+                <Icon name="pin" size={22} color="rgba(255,255,255,.85)" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.8)' }}>Zobrazit mapu</span>
               </div>
             </Link>

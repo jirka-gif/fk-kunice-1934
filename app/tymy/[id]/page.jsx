@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Hov, Eyebrow, H2 } from '@/app/components/ui';
+import { Icon } from '@/app/components/icons';
 import { COLORS, PH, PH_ARR, photo, initials } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
@@ -93,7 +94,7 @@ export default function TeamDetail() {
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(56px,9vw,124px)', lineHeight: 1.22, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>{curTeam.name}</h1>
           <p className="fk-rev" style={{ color: 'rgba(255,255,255,.8)', fontSize: 18, marginTop: 18, maxWidth: 580, lineHeight: 1.55 }}>{teamDesc}</p>
           {teamContact && (
-            <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, marginTop: 16, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 99, padding: '9px 16px', color: '#fff', fontSize: 13, fontWeight: 600 }}>📞 {teamContact}</div>
+            <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, marginTop: 16, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 99, padding: '9px 16px', color: '#fff', fontSize: 13, fontWeight: 600 }}><Icon name="phone" size={15} /> {teamContact}</div>
           )}
           <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginTop: 28 }}>
             {teamChips.map((tc) => (
@@ -131,8 +132,8 @@ export default function TeamDetail() {
                   <div style={{ padding: 18 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{st.name}</div>
                     <div style={{ fontSize: 12, color: '#C1121F', fontWeight: 700, marginTop: 3 }}>{st.role}</div>
-                    <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>🎖 {st.licence}</div>
-                    <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 600, marginTop: 4 }}>✉ {st.contact}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}><Icon name="award" size={14} /> {st.licence}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6B7280', fontWeight: 600, marginTop: 4 }}><Icon name="mail" size={14} /> {st.contact}</div>
                   </div>
                 </div>
               ))}

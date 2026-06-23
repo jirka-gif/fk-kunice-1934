@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useData, resetData, exportJson, updateData } from '@/lib/store';
 import { Card, Btn } from './adminui';
+import { Icon } from '../components/icons';
 import { Nastaveni, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace } from './sections';
 
 const RED = '#C1121F';
@@ -16,16 +17,16 @@ export default function Admin() {
   const coachesTotal = d.teams.reduce((s, t) => s + t.coaches.length, 0);
 
   const NAV = [
-    { id: 'prehled', emoji: '📊', label: 'Přehled' },
-    { id: 'tymy', emoji: '🏃', label: 'Týmy', badge: String(d.teams.length) },
-    { id: 'zapasy', emoji: '⚽', label: 'Zápasy' },
-    { id: 'novinky', emoji: '📰', label: 'Novinky', badge: String(d.news.length) },
-    { id: 'kempy', emoji: '🏕️', label: 'Kempy' },
-    { id: 'pronajem', emoji: '🏟️', label: 'Pronájem' },
-    { id: 'kontakt', emoji: '✉️', label: 'Kontakt' },
-    { id: 'partneri', emoji: '🤝', label: 'Partneři' },
-    { id: 'registrace', emoji: '👥', label: 'Registrace', badge: String(d.cmsRegistrations.length) },
-    { id: 'nastaveni', emoji: '⚙️', label: 'Nastavení' },
+    { id: 'prehled', icon: 'dashboard', label: 'Přehled' },
+    { id: 'tymy', icon: 'teams', label: 'Týmy', badge: String(d.teams.length) },
+    { id: 'zapasy', icon: 'ball', label: 'Zápasy' },
+    { id: 'novinky', icon: 'news', label: 'Novinky', badge: String(d.news.length) },
+    { id: 'kempy', icon: 'tent', label: 'Kempy' },
+    { id: 'pronajem', icon: 'stadium', label: 'Pronájem' },
+    { id: 'kontakt', icon: 'mail', label: 'Kontakt' },
+    { id: 'partneri', icon: 'partners', label: 'Partneři' },
+    { id: 'registrace', icon: 'userplus', label: 'Registrace', badge: String(d.cmsRegistrations.length) },
+    { id: 'nastaveni', icon: 'settings', label: 'Nastavení' },
   ];
 
   const doExport = () => {
@@ -54,7 +55,7 @@ export default function Admin() {
           const active = section === n.id;
           return (
             <div key={n.id} data-sec={n.id} onClick={() => setSectionId(n.id)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 11, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 3, ...(active ? { background: '#FBEAEC', color: RED } : { color: '#3a3f47' }) }}>
-              <span>{n.emoji}</span><span>{n.label}</span>
+              <span style={{ display: 'inline-flex', width: 19, justifyContent: 'center' }}><Icon name={n.icon} size={19} /></span><span>{n.label}</span>
               {n.badge && <span style={{ marginLeft: 'auto', background: active ? RED : '#EFF1F4', color: active ? '#fff' : '#9AA1AC', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 99 }}>{n.badge}</span>}
             </div>
           );

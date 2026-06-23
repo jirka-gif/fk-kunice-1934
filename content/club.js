@@ -160,8 +160,8 @@ export const whyCards = [
 ];
 
 export const camps = [
-  { tag: '⚽ ČERVENEC', title: 'Letní fotbalový kemp', desc: 'Týden plný tréninků, her a zábavy pro děti 6–14 let. Profi trenéři, strava i dárky.', price: '4 290 Kč', term: 'týden', img: 'sunset' },
-  { tag: '🏕️ SRPEN', title: 'Příměstský kemp', desc: 'Denní program 8–16h bez přespání. Ideální pro nejmenší fotbalisty a jejich rodiče.', price: '2 990 Kč', term: 'týden', img: 'dusk' },
+  { tag: 'ČERVENEC', title: 'Letní fotbalový kemp', desc: 'Týden plný tréninků, her a zábavy pro děti 6–14 let. Profi trenéři, strava i dárky.', price: '4 290 Kč', term: 'týden', img: 'sunset' },
+  { tag: 'SRPEN', title: 'Příměstský kemp', desc: 'Denní program 8–16h bez přespání. Ideální pro nejmenší fotbalisty a jejich rodiče.', price: '2 990 Kč', term: 'týden', img: 'dusk' },
 ];
 
 export const facilities = [
@@ -204,7 +204,7 @@ export const matchDetail = {
 //  KEMP — detail letního kempu
 // -----------------------------------------------------------------------------
 export const campDetail = {
-  badge: '⚽ LETNÍ KEMP 2026 · 7.–11. ČERVENCE',
+  badge: 'LETNÍ KEMP 2026 · 7.–11. ČERVENCE',
   title: 'Léto plné fotbalu',
   lead: 'Pět dní tréninků, her a kamarádství pro děti 6–14 let pod vedením profesionálních trenérů.',
   price: '4 290 Kč',

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { Hov, Eyebrow, H2 } from './components/ui';
+import { Icon } from './components/icons';
 import { COLORS, PH, PH_ARR, HERO_BGS, photo, initials, wldBadge } from '@/lib/design';
 import { useContent } from '@/lib/store';
 
@@ -136,7 +137,7 @@ export default function Home() {
             </div>
             <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
               <Hov as={Link} href="/zapasy" style="flex:1;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:14px;border-radius:14px;cursor:pointer;transition:transform .2s,background .2s;box-shadow:0 10px 24px rgba(193,18,31,.4)" hover="transform:translateY(-2px);background:#D62839;color:#fff">Detail zápasu</Hov>
-              <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.08)', padding: '0 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.8)' }}>📍 {nextMatch.venue}</div>
+              <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.08)', padding: '0 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.8)' }}><Icon name="pin" size={15} /> {nextMatch.venue}</div>
             </div>
           </div>
 

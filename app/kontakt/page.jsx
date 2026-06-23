@@ -1,5 +1,6 @@
 'use client';
 import { Hov, Eyebrow } from '@/app/components/ui';
+import { Icon, emojiIcon } from '@/app/components/icons';
 import { COLORS } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
@@ -38,7 +39,7 @@ export default function Kontakt() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
           {quickActions.map((qa, i) => (
             <Hov key={i} className="fk-rev" style="background:#fff;border-radius:20px;padding:26px;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05);cursor:pointer;transition:transform .3s,box-shadow .3s" hover="transform:translateY(-6px);box-shadow:0 22px 44px rgba(18,18,18,.12)">
-              <div style={{ width: 46, height: 46, borderRadius: 14, background: 'rgba(193,18,31,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>{qa.emoji}</div>
+              <div style={{ width: 46, height: 46, borderRadius: 14, background: 'rgba(193,18,31,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>{emojiIcon(qa.emoji) ? <Icon name={emojiIcon(qa.emoji)} size={22} color={COLORS.red} /> : qa.emoji}</div>
               <div style={{ fontWeight: 700, fontSize: 15, color: COLORS.text }}>{qa.title}</div>
               <div style={{ fontSize: 14, color: COLORS.red, fontWeight: 600, marginTop: 4 }}>{qa.value}</div>
             </Hov>

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Hov, Eyebrow } from '@/app/components/ui';
+import { Icon, emojiIcon } from '@/app/components/icons';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
@@ -45,7 +46,7 @@ export default function Kempy() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14, marginBottom: 52 }}>
             {perks.map((cp, i) => (
               <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: cardSh, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: 22 }}>{cp.emoji}</span>
+                <span style={{ flex: 'none', width: 40, height: 40, borderRadius: 12, background: 'rgba(193,18,31,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{emojiIcon(cp.emoji) ? <Icon name={emojiIcon(cp.emoji)} size={20} color={COLORS.red} /> : <span style={{ fontSize: 20 }}>{cp.emoji}</span>}</span>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{cp.title}</div>
                   <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.5, marginTop: 3 }}>{cp.text}</div>
