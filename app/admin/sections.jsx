@@ -120,39 +120,47 @@ export function Tymy() {
           )}
         />
 
-        <div style={{ marginTop: 20, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>SOUPISKA ({t.players.length})</div>
-        <div style={{ height: 8 }} />
-        <ListEditor
-          items={t.players}
-          onChange={(v) => updateTeam({ players: v })}
-          itemTitle={(p) => `#${p.number || '?'}  ${p.name || 'Nový hráč'}${p.position ? ' · ' + p.position : ''}`}
-          newItem={() => ({ name: '', number: t.players.length + 1, position: 'ZÁL', photo: '', age: '', apps: '', goals: '', assists: '', since: '', favClub: '', favPlayer: '' })}
-          addLabel="+ Přidat hráče"
-          renderItem={(p, u) => (
-            <div>
-              <ImageField label="Fotka hráče" value={p.photo} onChange={(v) => u({ photo: v })} />
-              <div style={{ height: 12 }} />
-              <Row>
-                <Field label="Jméno a příjmení" value={p.name} onChange={(v) => u({ name: v })} />
-                <Field label="Číslo" type="number" value={p.number} onChange={(v) => u({ number: v })} width="100px" />
-                <Select label="Pozice" value={p.position} onChange={(v) => u({ position: v })} options={['GK', 'OBR', 'ZÁL', 'ÚTO', 'KŘÍ']} width="120px" />
-              </Row>
-              <div style={{ height: 10 }} />
-              <Row>
-                <Field label="Věk" type="number" value={p.age} onChange={(v) => u({ age: v })} width="100px" />
-                <Field label="Zápasy" type="number" value={p.apps} onChange={(v) => u({ apps: v })} width="110px" />
-                <Field label="Góly" type="number" value={p.goals} onChange={(v) => u({ goals: v })} width="100px" />
-                <Field label="Asistence" type="number" value={p.assists} onChange={(v) => u({ assists: v })} width="110px" />
-                <Field label="V klubu od" value={p.since} onChange={(v) => u({ since: v })} width="120px" placeholder="2019" />
-              </Row>
-              <div style={{ height: 10 }} />
-              <Row>
-                <Field label="Oblíbený klub" value={p.favClub} onChange={(v) => u({ favClub: v })} />
-                <Field label="Oblíbený hráč" value={p.favPlayer} onChange={(v) => u({ favPlayer: v })} />
-              </Row>
-            </div>
-          )}
-        />
+        {t.id === 'skolicka' ? (
+          <div style={{ marginTop: 20, background: '#FAFBFC', border: '1px solid #ECEEF1', borderRadius: 12, padding: '14px 16px', fontSize: 13, color: '#6B7280', lineHeight: 1.5 }}>
+            U <b>fotbalové školičky</b> (4–6 let) se soupiska ani statistiky nevedou — spravuj jen kontakt a realizační tým. Na webu se místo soupisky zobrazí výzva k náboru.
+          </div>
+        ) : (
+          <>
+            <div style={{ marginTop: 20, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>SOUPISKA ({t.players.length})</div>
+            <div style={{ height: 8 }} />
+            <ListEditor
+              items={t.players}
+              onChange={(v) => updateTeam({ players: v })}
+              itemTitle={(p) => `#${p.number || '?'}  ${p.name || 'Nový hráč'}${p.position ? ' · ' + p.position : ''}`}
+              newItem={() => ({ name: '', number: t.players.length + 1, position: 'ZÁL', photo: '', age: '', apps: '', goals: '', assists: '', since: '', favClub: '', favPlayer: '' })}
+              addLabel="+ Přidat hráče"
+              renderItem={(p, u) => (
+                <div>
+                  <ImageField label="Fotka hráče" value={p.photo} onChange={(v) => u({ photo: v })} />
+                  <div style={{ height: 12 }} />
+                  <Row>
+                    <Field label="Jméno a příjmení" value={p.name} onChange={(v) => u({ name: v })} />
+                    <Field label="Číslo" type="number" value={p.number} onChange={(v) => u({ number: v })} width="100px" />
+                    <Select label="Pozice" value={p.position} onChange={(v) => u({ position: v })} options={['GK', 'OBR', 'ZÁL', 'ÚTO', 'KŘÍ']} width="120px" />
+                  </Row>
+                  <div style={{ height: 10 }} />
+                  <Row>
+                    <Field label="Věk" type="number" value={p.age} onChange={(v) => u({ age: v })} width="100px" />
+                    <Field label="Zápasy" type="number" value={p.apps} onChange={(v) => u({ apps: v })} width="110px" />
+                    <Field label="Góly" type="number" value={p.goals} onChange={(v) => u({ goals: v })} width="100px" />
+                    <Field label="Asistence" type="number" value={p.assists} onChange={(v) => u({ assists: v })} width="110px" />
+                    <Field label="V klubu od" value={p.since} onChange={(v) => u({ since: v })} width="120px" placeholder="2019" />
+                  </Row>
+                  <div style={{ height: 10 }} />
+                  <Row>
+                    <Field label="Oblíbený klub" value={p.favClub} onChange={(v) => u({ favClub: v })} />
+                    <Field label="Oblíbený hráč" value={p.favPlayer} onChange={(v) => u({ favPlayer: v })} />
+                  </Row>
+                </div>
+              )}
+            />
+          </>
+        )}
       </Card>
     </div>
   );

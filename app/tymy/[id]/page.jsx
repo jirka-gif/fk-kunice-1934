@@ -28,10 +28,13 @@ export default function TeamDetail() {
         : 'background:rgba(255,255,255,.1);color:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.2)'),
   }));
 
+  const isSchool = curTeam.id === 'skolicka';
   const teamEyebrow = (curTeam.comp + ' · ' + curTeam.cat.split(' · ')[0]).toUpperCase();
-  const hasRoster = curTeam.players.length > 0;
+  const hasRoster = !isSchool && curTeam.players.length > 0;
   const hasCoaches = curTeam.coaches.length > 0;
-  const teamDesc = hasRoster
+  const teamDesc = isSchool
+    ? 'Fotbalová školička pro děti 4–6 let. Hravou formou objevujeme první fotbalové krůčky — přijďte se k nám podívat na nábor.'
+    : hasRoster
     ? 'Aktuální soupiska, realizační tým a soutěž ' + curTeam.comp + '. Sleduj zápasy, výsledky a život týmu.'
     : 'Tým ' + curTeam.name + ' je součástí naší akademie. Kompletní soupiska a rozpis se připravují — ozvi se nám pro nábor.';
   const teamContact = curTeam.contact;
@@ -147,9 +150,14 @@ export default function TeamDetail() {
           {/* SOUPISKA */}
           <div className="fk-rev" style={{ display: 'flex', alignItems: 'center', gap: 9, margin: '48px 0 22px' }}>
             <span style={{ width: 28, height: 3, background: '#C1121F', borderRadius: 2 }} />
-            <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#C1121F' }}>SOUPISKA</span>
+            <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#C1121F' }}>{isSchool ? 'NÁBOR' : 'SOUPISKA'}</span>
           </div>
-          {hasRoster ? (
+          {isSchool ? (
+            <div className="fk-rev" style={{ background: '#fff', borderRadius: 18, padding: 32, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Bebas Neue'", fontSize: 26, color: '#121212' }}>Pro naše nejmenší</div>
+              <div style={{ color: '#9AA1AC', fontSize: 14, fontWeight: 600, marginTop: 6, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>Ve fotbalové školičce (4–6 let) nevedeme soupisku ani statistiky — hrajeme si a objevujeme fotbal. Přijďte si k nám kdykoli vyzkoušet trénink.</div>
+            </div>
+          ) : hasRoster ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
               {players.map((pl, i) => (
                 <Hov key={i} className="fk-rev fk-zoom" onClick={() => setPlayer(pl)} style="background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05);cursor:pointer;transition:transform .3s,box-shadow .3s" hover="transform:translateY(-6px);box-shadow:0 22px 44px rgba(18,18,18,.14)">
