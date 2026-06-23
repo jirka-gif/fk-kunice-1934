@@ -300,7 +300,7 @@ export function Kempy() {
       <StringListEditor items={c.includes} onChange={(v) => upd({ includes: v })} placeholder="položka" columns={2} />
 
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Výhody kempu</div>
-      <ListEditor items={c.perks} onChange={(v) => upd({ perks: v })} itemTitle={(p) => p.title} newItem={{ emoji: '⭐', title: '', text: '' }} addLabel="+ Přidat výhodu"
+      <ListEditor items={c.perks} onChange={(v) => upd({ perks: v })} itemTitle={(p) => p.title} newItem={{ emoji: '🏆', title: '', text: '' }} addLabel="+ Přidat výhodu"
         renderItem={(p, u) => (<Row><Field label="Emoji" value={p.emoji} onChange={(v) => u({ emoji: v })} width="90px" /><Field label="Název" value={p.title} onChange={(v) => u({ title: v })} /><Field label="Text" value={p.text} onChange={(v) => u({ text: v })} /></Row>)} />
 
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Denní program</div>

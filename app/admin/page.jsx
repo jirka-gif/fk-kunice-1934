@@ -69,8 +69,9 @@ export default function Admin() {
 
       {/* MAIN */}
       <div style={{ minWidth: 0 }}>
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 20, lineHeight: 1.5 }}>
-          ✅ Administrace je <b>plně funkční</b> — úpravy se ukládají automaticky do prohlížeče a hned se projeví na webu. Tlačítkem <b>Export</b> stáhneš obsah jako JSON pro napojení na server / headless CMS.
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#fff', borderRadius: 14, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 20, lineHeight: 1.5 }}>
+          <span style={{ flex: 'none', color: '#1F8A4C', marginTop: 1 }}><Icon name="checkCircle" size={17} /></span>
+          <span>Administrace je <b>plně funkční</b> — úpravy se ukládají automaticky do prohlížeče a hned se projeví na webu. Tlačítkem <b>Export</b> stáhneš obsah jako JSON pro napojení na server / headless CMS.</span>
         </div>
 
         {section === 'prehled' ? (

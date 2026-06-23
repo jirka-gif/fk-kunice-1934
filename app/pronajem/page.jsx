@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
+import { Icon } from '@/app/components/icons';
 import { useContent, updateData } from '@/lib/store';
 
 const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
@@ -141,7 +142,7 @@ export default function Pronajem() {
           <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginBottom: 20 }}>Vybraný termín: <span style={{ color: '#C1121F', fontWeight: 800 }}>{selDayLabel}</span></div>
           {sent ? (
             <div style={{ background: '#EAF6EE', border: '1px solid #BfE6CC', borderRadius: 14, padding: 24, textAlign: 'center' }}>
-              <div style={{ fontSize: 30, marginBottom: 8 }}>✅</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, color: '#1F8A4C' }}><Icon name="checkCircle" size={40} strokeWidth={1.7} /></div>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#1F8A4C' }}>Poptávka odeslána</div>
               <div style={{ color: '#3a3f47', fontSize: 14, fontWeight: 500, marginTop: 6, lineHeight: 1.5 }}>Děkujeme! Ozveme se vám do 24 hodin a potvrdíme dostupnost termínu.</div>
               <div onClick={() => { setSent(false); setForm({ name: '', phone: '', email: '', area: '', note: '' }); }} style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: '#C1121F', cursor: 'pointer' }}>Odeslat další poptávku</div>

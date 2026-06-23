@@ -25,6 +25,8 @@ export function Icon({ name, size = 22, color = 'currentColor', strokeWidth = 1.
     case 'utensils': return (<svg {...c}><path d="M4 2v7a2 2 0 0 0 4 0V2M6 2v20" /><path d="M17 2a3 3 0 0 0-3 3v6h3M17 2v20" /></svg>);
     case 'gift': return (<svg {...c}><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M5 12v9h14v-9" /><path d="M12 8v13" /><path d="M12 8S11 3 8.5 3a2.5 2.5 0 0 0 0 5z" /><path d="M12 8s1-5 3.5-5a2.5 2.5 0 0 1 0 5z" /></svg>);
     case 'camera': return (<svg {...c}><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><circle cx="12" cy="13" r="4" /></svg>);
+    case 'check': return (<svg {...c}><path d="M20 6 9 17l-5-5" /></svg>);
+    case 'checkCircle': return (<svg {...c}><circle cx="12" cy="12" r="9" /><path d="M8.5 12.2l2.4 2.4 4.6-5" /></svg>);
     default: return (<svg {...c}><circle cx="12" cy="12" r="9" /></svg>);
   }
 }
