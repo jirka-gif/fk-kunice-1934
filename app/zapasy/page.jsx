@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { Icon } from '@/app/components/icons';
+import { Countdown } from '@/app/components/Countdown';
 import { COLORS, PH } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
@@ -59,7 +60,7 @@ export default function Zapasy() {
         <div style={{ position: 'relative', maxWidth: 1100, margin: '0 auto', padding: '0 28px' }}>
           <div className="fk-rev"><Eyebrow dark>ZÁPASY</Eyebrow></div>
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(48px,7vw,92px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>{t.name}</h1>
-          <p className="fk-rev" style={{ color: 'rgba(255,255,255,.7)', fontSize: 16, marginTop: 12, maxWidth: 560, lineHeight: 1.55 }}>Příští zápas, poslední výsledek se střelci a aktuální tabulka týmu {t.name}.</p>
+          <p className="fk-rev" style={{ color: 'rgba(255,255,255,.7)', fontSize: 16, marginTop: 12, maxWidth: 560, lineHeight: 1.55 }}>Výsledkový servis, příští zápas s odpočtem a aktuální tabulka týmu {t.name}.</p>
           <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginTop: 26 }}>
             {matchTeams.map((tm, i) => {
               const active = i === idx;
@@ -71,37 +72,10 @@ export default function Zapasy() {
         </div>
       </section>
 
-      {/* ============ PŘÍŠTÍ ZÁPAS ============ */}
-      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '64px 28px 0' }}>
-        <div className="fk-rev" style={{ marginBottom: 22 }}><Eyebrow>PŘÍŠTÍ ZÁPAS</Eyebrow></div>
-        {hasNext ? (
-          <div className="fk-rev" style={{ background: 'linear-gradient(155deg,#1c1c1e,#0d0d0f)', borderRadius: 24, padding: 'clamp(24px,4vw,40px)', color: '#fff', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 60px rgba(18,18,18,.28)' }}>
-            <div style={{ position: 'absolute', right: -50, top: -50, width: 220, height: 220, borderRadius: 99, background: 'radial-gradient(circle,rgba(193,18,31,.45),transparent 70%)' }} />
-            <div style={{ position: 'relative', fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: 'rgba(255,255,255,.6)' }}>{nm.when}</div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, margin: '26px 0 24px', position: 'relative' }}>
-              <div style={{ textAlign: 'center', flex: 1 }}>
-                <div style={{ width: 64, height: 64, margin: '0 auto 12px', borderRadius: 16, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 20 }}>{nmHome.short}</div>
-                <div style={{ fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: '.5px' }}>{nmHome.name}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>{nmHome.side || 'Domácí'}</div>
-              </div>
-              <div style={{ fontFamily: "'Bebas Neue'", fontSize: 32, color: 'rgba(255,255,255,.3)', flex: 'none' }}>VS</div>
-              <div style={{ textAlign: 'center', flex: 1 }}>
-                <div style={{ width: 64, height: 64, margin: '0 auto 12px', borderRadius: 16, background: 'rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 20 }}>{nmAway.short}</div>
-                <div style={{ fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: '.5px' }}>{nmAway.name}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>{nmAway.side || 'Hosté'}</div>
-              </div>
-            </div>
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.08)', padding: '10px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.85)' }}>
-              <Icon name="pin" size={15} /> {nm.venue || 'Areál Kunice'}
-            </div>
-          </div>
-        ) : placeholder('Termín dalšího zápasu zveřejníme brzy.')}
-      </section>
-
-      {/* ============ POSLEDNÍ ZÁPAS ============ */}
+      {/* ============ POSLEDNÍ ZÁPAS (výsledkový servis) ============ */}
       {isA && hasDetail ? (
         <>
-          <section style={{ maxWidth: 1100, margin: '0 auto', padding: '56px 28px 0' }}>
+          <section style={{ maxWidth: 1100, margin: '0 auto', padding: '64px 28px 0' }}>
             <div className="fk-rev" style={{ marginBottom: 22 }}><Eyebrow>POSLEDNÍ ZÁPAS</Eyebrow></div>
             <div className="fk-rev" style={{ background: 'linear-gradient(150deg,#1c1c1e,#0d0d0f)', borderRadius: 24, padding: 'clamp(28px,4vw,48px)', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(70% 80% at 50% 120%,rgba(193,18,31,.4),transparent 60%)' }} />
@@ -153,7 +127,7 @@ export default function Zapasy() {
           </section>
         </>
       ) : (
-        <section style={{ maxWidth: 1100, margin: '0 auto', padding: '56px 28px 0' }}>
+        <section style={{ maxWidth: 1100, margin: '0 auto', padding: '64px 28px 0' }}>
           <div className="fk-rev" style={{ marginBottom: 22 }}><Eyebrow>POSLEDNÍ ZÁPAS</Eyebrow></div>
           {hasLastSummary ? (
             <div className="fk-rev" style={{ ...card, padding: 'clamp(24px,4vw,32px)' }}>
@@ -168,7 +142,7 @@ export default function Zapasy() {
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(40px,6vw,56px)', color: '#C1121F', letterSpacing: '2px', lineHeight: 1 }}>{lm.score}</div>
               </div>
               {lm.scorers && lm.scorers.trim() && (
-                <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid #F2F3F5', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid #F2F3F5', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   <span style={{ width: 26, height: 26, borderRadius: 99, background: '#C1121F', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Icon name="ball" size={14} color="#fff" /></span>
                   <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '1px', color: '#9AA1AC' }}>STŘELCI:</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: '#1E1E1E' }}>{lm.scorers}</span>
@@ -178,6 +152,37 @@ export default function Zapasy() {
           ) : placeholder('Poslední zápas zatím nemáme zadaný.')}
         </section>
       )}
+
+      {/* ============ PŘÍŠTÍ ZÁPAS + ODPOČET ============ */}
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '56px 28px 0' }}>
+        <div className="fk-rev" style={{ marginBottom: 22 }}><Eyebrow>PŘÍŠTÍ ZÁPAS</Eyebrow></div>
+        {hasNext ? (
+          <div className="fk-rev" style={{ background: 'linear-gradient(155deg,#1c1c1e,#0d0d0f)', borderRadius: 24, padding: 'clamp(24px,4vw,40px)', color: '#fff', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 60px rgba(18,18,18,.28)' }}>
+            <div style={{ position: 'absolute', right: -50, top: -50, width: 220, height: 220, borderRadius: 99, background: 'radial-gradient(circle,rgba(193,18,31,.45),transparent 70%)' }} />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 99, background: '#D62839', animation: 'fkPulse 1.6s infinite' }} />
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: 'rgba(255,255,255,.65)' }}>{nm.when}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, margin: '26px 0 24px', position: 'relative' }}>
+              <div style={{ textAlign: 'center', flex: 1 }}>
+                <div style={{ width: 64, height: 64, margin: '0 auto 12px', borderRadius: 16, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 20 }}>{nmHome.short}</div>
+                <div style={{ fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: '.5px' }}>{nmHome.name}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>{nmHome.side || 'Domácí'}</div>
+              </div>
+              <div style={{ fontFamily: "'Bebas Neue'", fontSize: 32, color: 'rgba(255,255,255,.3)', flex: 'none' }}>VS</div>
+              <div style={{ textAlign: 'center', flex: 1 }}>
+                <div style={{ width: 64, height: 64, margin: '0 auto 12px', borderRadius: 16, background: 'rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 20 }}>{nmAway.short}</div>
+                <div style={{ fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: '.5px' }}>{nmAway.name}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>{nmAway.side || 'Hosté'}</div>
+              </div>
+            </div>
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.08)', padding: '10px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.85)' }}>
+              <Icon name="pin" size={15} /> {nm.venue || 'Areál Kunice'}
+            </div>
+            {nm.dateISO ? <Countdown targetISO={nm.dateISO} /> : null}
+          </div>
+        ) : placeholder('Termín dalšího zápasu zveřejníme brzy.')}
+      </section>
 
       {/* ============ TABULKA ============ */}
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '56px 28px 110px' }}>

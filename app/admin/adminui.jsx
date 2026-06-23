@@ -55,7 +55,7 @@ export function Field({ label, value, onChange, type = 'text', placeholder, text
       {textarea ? (
         <textarea value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{ ...common, resize: 'vertical' }} />
       ) : (
-        <input value={value ?? ''} onChange={(e) => onChange(type === 'number' ? e.target.value.replace(/[^0-9-]/g, '') : e.target.value)} placeholder={placeholder} inputMode={type === 'number' ? 'numeric' : undefined} style={common} />
+        <input type={type === 'number' ? 'text' : type} value={value ?? ''} onChange={(e) => onChange(type === 'number' ? e.target.value.replace(/[^0-9-]/g, '') : e.target.value)} placeholder={placeholder} inputMode={type === 'number' ? 'numeric' : undefined} style={common} />
       )}
     </label>
   );

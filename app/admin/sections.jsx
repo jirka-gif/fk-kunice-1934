@@ -200,7 +200,8 @@ export function Zapasy() {
         </Row>
         <div style={{ height: 10 }} />
         <Row>
-          <Field label="Kdy / soutěž" value={nm.when} onChange={(v) => updNm({ when: v })} placeholder="NE 16:30 · III. TŘÍDA" />
+          <Field label="Kdy / soutěž (text)" value={nm.when} onChange={(v) => updNm({ when: v })} placeholder="NE 16:30 · III. TŘÍDA" />
+          <Field label="Datum a čas (pro odpočet)" type="datetime-local" value={nm.dateISO} onChange={(v) => updNm({ dateISO: v })} width="230px" />
           <Field label="Kde se hraje" value={nm.venue} onChange={(v) => updNm({ venue: v })} placeholder="Areál Kunice" />
         </Row>
       </Card>
