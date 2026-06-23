@@ -191,7 +191,7 @@ export default function Zapasy() {
           <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '4px 11px', borderRadius: 99 }}>{t.comp}</span>
         </div>
         {table.length > 0 ? (
-          <div className="fk-rev" style={{ ...card, padding: '8px 24px', maxWidth: 720 }}>
+          <div className="fk-rev" style={{ ...card, padding: '8px 24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '2px solid #F2F3F5', fontSize: 11, fontWeight: 800, letterSpacing: '.5px', color: '#9AA1AC' }}>
               <span style={{ width: 22 }}>#</span><span style={{ flex: 1 }}>TÝM</span><span style={{ width: 40, textAlign: 'center' }}>ZÁP.</span><span style={{ width: 36, textAlign: 'right' }}>B.</span>
             </div>
