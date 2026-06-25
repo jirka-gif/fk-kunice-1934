@@ -329,6 +329,8 @@ function _table(myName, myPos, opponents, gp) {
 }
 const _local = (suf) => ['SK Mukařov', 'Sokol Struhařov', 'TJ Velké Popovice', 'TJ Mnichovice', 'SK Strančice', 'Sokol Pyšely', 'TJ Kamenice', 'SK Senohraby', 'Sokol Ondřejov'].map((n) => `${n} ${suf}`);
 const _region = (suf) => ['SK Říčany', 'FK Brandýs', 'Spartak Příbram', 'SK Kladno', 'FK Dobříš', 'Sokol Vlašim', 'TJ Benešov', 'FK Kolín'].map((n) => `${n} ${suf}`);
+// Odkaz na oficiální stránku soutěže na FAČR (klub si u každého týmu vloží přesnou URL své soutěže).
+const _FACR = 'https://www.fotbal.cz/souteze/vysledky-a-tabulky/p316';
 
 export const teamMatches = {
   muziA: {
@@ -397,3 +399,5 @@ export const teamMatches = {
     table: [],
   },
 };
+// odkaz na FAČR ke každému týmu (klub si upraví na svou konkrétní soutěž)
+Object.values(teamMatches).forEach((m) => { if (!m.facrUrl) m.facrUrl = _FACR; });

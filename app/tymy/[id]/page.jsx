@@ -245,6 +245,9 @@ export default function TeamDetail() {
                 </div>
               </>
             )}
+            {curTeam.facrUrl && (
+              <Hov as="a" href={curTeam.facrUrl} target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid #F2F3F5;font-size:13px;font-weight:700;color:#C1121F;cursor:pointer">Kompletní tabulka na FAČR →</Hov>
+            )}
           </div>
           )}
           <Hov as={Link} href="/kontakt" className="fk-rev" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:16px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Přidej se k týmu →</Hov>

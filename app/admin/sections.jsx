@@ -218,8 +218,14 @@ export function Zapasy() {
         <Field label="Střelci" value={lm.scorers} onChange={(v) => updLm({ scorers: v })} placeholder="A. Pokorný, J. Svoboda, F. Veselý" />
       </Card>
 
+      {/* ODKAZ NA FAČR */}
+      <Card style={{ marginBottom: 18 }}>
+        <Field label="Odkaz na soutěž FAČR (kompletní tabulka + výsledky)" value={t.facrUrl} onChange={(v) => updateTeam({ facrUrl: v })} placeholder="https://www.fotbal.cz/souteze/..." />
+        <div style={{ fontSize: 12, color: '#9AA1AC', marginTop: 8, lineHeight: 1.5 }}>Vlož odkaz na stránku <b>své soutěže na fotbal.cz</b> — na webu se u tohoto týmu zobrazí tlačítko „Kompletní tabulka a výsledky na FAČR". FAČR data sám aktualizuje, klub je nemusí přepisovat. Tabulka níže slouží jen jako rychlý náhled na webu (nepovinná).</div>
+      </Card>
+
       {/* TABULKA */}
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Tabulka soutěže</div>
+      <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Tabulka soutěže <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(náhled na webu — nepovinné)</span></div>
       <ListEditor
         items={t.table || []}
         onChange={(v) => updateTeam({ table: v })}

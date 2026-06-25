@@ -51,6 +51,10 @@ export default function Zapasy() {
   const galleryCells = ['grid-column:span 2;grid-row:span 2', '', '', 'grid-column:span 2', '', '', 'grid-column:span 2', ''];
   const galleryImgs = [PH.dusk, PH.sunset, PH.slate, PH.cool, PH.warm, PH.char, PH.red, PH.ember];
 
+  const facrButton = t.facrUrl ? (
+    <Hov as="a" href={t.facrUrl} target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:13px 22px;border-radius:14px;cursor:pointer;box-shadow:0 10px 24px rgba(193,18,31,.32);transition:transform .2s,background .2s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Kompletní tabulka a výsledky na FAČR →</Hov>
+  ) : null;
+
   return (
     <div style={{ background: COLORS.bg }}>
       {/* ============ HERO + PŘEPÍNAČ ============ */}
@@ -204,7 +208,19 @@ export default function Zapasy() {
               </div>
             ))}
           </div>
-        ) : placeholder('Tabulka soutěže se připravuje — načítá se z oficiálního systému FAČR.')}
+        ) : t.facrUrl ? (
+          <div className="fk-rev" style={{ ...card, padding: 'clamp(28px,4vw,36px)', textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Bebas Neue'", fontSize: 24, color: '#121212' }}>Kompletní tabulka a výsledky</div>
+            <div style={{ color: '#9AA1AC', fontSize: 14, fontWeight: 600, marginTop: 6, maxWidth: 460, margin: '6px auto 0', lineHeight: 1.6 }}>Aktuální průběžnou tabulku a výsledky najdeš v oficiálním systému FAČR — aktualizuje se po každém kole.</div>
+            <div style={{ marginTop: 18 }}>{facrButton}</div>
+          </div>
+        ) : placeholder('Tabulka soutěže se připravuje.')}
+        {table.length > 0 && t.facrUrl && (
+          <div className="fk-rev" style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {facrButton}
+            <span style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>Kompletní průběžná tabulka a všechny výsledky se aktualizují na FAČR.</span>
+          </div>
+        )}
       </section>
     </div>
   );
