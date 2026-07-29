@@ -60,14 +60,22 @@ export default function TeamDetail() {
   }));
 
   const has = (v) => v !== undefined && v !== null && v !== '';
+  const ageFromBirth = (bd) => {
+    if (!bd) return null;
+    const d = new Date(bd);
+    if (Number.isNaN(d.getTime())) return null;
+    const now = new Date();
+    let a = now.getFullYear() - d.getFullYear();
+    const m = now.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a -= 1;
+    return a >= 0 && a < 120 ? a : null;
+  };
   const players = curTeam.players.map((p, i) => {
     const pos = p.position || posCycle[i % posCycle.length];
-    const age = has(p.age) ? p.age : (ageBase[curTeam.id] || 20) + (i % 3);
-    const apps = has(p.apps) ? p.apps : 6 + ((i * 5) % 14);
-    const goals = has(p.goals) ? p.goals : (pos === 'GK' ? 0 : pos === 'ÚTO' ? (i * 3) % 11 : (i * 2) % 6);
     const num = has(p.number) ? p.number : i + 1;
+    const age = ageFromBirth(p.birthdate);
     const img = p.photo ? `url(${p.photo})` : PH_ARR[i % PH_ARR.length];
-    return { num, name: p.name, pos, age, apps, goals, img, team: curTeam.name, since: p.since, favClub: p.favClub, favPlayer: p.favPlayer, assists: p.assists };
+    return { num, name: p.name, pos, age, img, team: curTeam.name };
   });
 
   const schedule = [
@@ -166,11 +174,9 @@ export default function TeamDetail() {
                     <span style={{ position: 'absolute', top: 14, right: 12, background: 'rgba(193,18,31,.92)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '.5px', padding: '4px 9px', borderRadius: 99 }}>{pl.pos}</span>
                   </div>
                   <div style={{ padding: '14px 16px' }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{pl.name}</div>
-                    <div style={{ display: 'flex', gap: 14, marginTop: 10 }}>
-                      <div><span style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color: '#121212' }}>{pl.apps}</span><span style={{ fontSize: 11, color: '#9AA1AC', fontWeight: 600, marginLeft: 4 }}>záp.</span></div>
-                      <div><span style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color: '#C1121F' }}>{pl.goals}</span><span style={{ fontSize: 11, color: '#9AA1AC', fontWeight: 600, marginLeft: 4 }}>gólů</span></div>
-                      <div><span style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color: '#121212' }}>{pl.age}</span><span style={{ fontSize: 11, color: '#9AA1AC', fontWeight: 600, marginLeft: 4 }}>let</span></div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{pl.name}</span>
+                      {pl.age != null && <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, flex: 'none' }}><b style={{ fontFamily: "'Bebas Neue'", fontSize: 16, color: '#121212', fontWeight: 400 }}>{pl.age}</b> let</span>}
                     </div>
                     <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #F2F3F5', fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Zobrazit profil →</div>
                   </div>
@@ -281,18 +287,11 @@ export default function TeamDetail() {
               <span onClick={() => setPlayer(null)} style={{ position: 'absolute', top: 20, right: 20, width: 34, height: 34, borderRadius: 99, background: '#F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontWeight: 700, color: '#6B7280' }}>✕</span>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', color: '#C1121F' }}>{player.team}</div>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 46, color: '#121212', lineHeight: 1.04, marginTop: 6, letterSpacing: '.5px' }}>{player.name}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginTop: 22 }}>
-                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>VĚK</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.age} let</div></div>
-                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>V KLUBU OD</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.since || '—'}</div></div>
-                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>OBLÍBENÝ KLUB</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.favClub || '—'}</div></div>
-                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>OBLÍBENÝ HRÁČ</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.favPlayer || '—'}</div></div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
+                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: '14px 20px' }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>ČÍSLO</div><div style={{ fontFamily: "'Bebas Neue'", fontSize: 26, color: '#121212', marginTop: 2, lineHeight: 1 }}>{player.num}</div></div>
+                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: '14px 20px' }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>POZICE</div><div style={{ fontWeight: 700, fontSize: 18, color: '#1E1E1E', marginTop: 4 }}>{player.pos}</div></div>
+                {player.age != null && <div style={{ background: '#F6F7F9', borderRadius: 13, padding: '14px 20px' }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>VĚK</div><div style={{ fontWeight: 700, fontSize: 18, color: '#1E1E1E', marginTop: 4 }}>{player.age} let</div></div>}
               </div>
-              <div style={{ display: 'flex', gap: 28, marginTop: 22, paddingTop: 18, borderTop: '1px solid #F2F3F5' }}>
-                <div><div style={{ fontFamily: "'Bebas Neue'", fontSize: 30, color: '#121212', lineHeight: 1 }}>{player.apps}</div><div style={{ fontSize: 11, fontWeight: 700, color: '#9AA1AC', marginTop: 2 }}>ZÁPASY</div></div>
-                <div><div style={{ fontFamily: "'Bebas Neue'", fontSize: 30, color: '#C1121F', lineHeight: 1 }}>{player.goals}</div><div style={{ fontSize: 11, fontWeight: 700, color: '#9AA1AC', marginTop: 2 }}>GÓLY</div></div>
-                <div><div style={{ fontFamily: "'Bebas Neue'", fontSize: 30, color: '#121212', lineHeight: 1 }}>{(player.assists || player.assists === 0) && player.assists !== '' ? player.assists : '—'}</div><div style={{ fontSize: 11, fontWeight: 700, color: '#9AA1AC', marginTop: 2 }}>ASISTENCE</div></div>
-              </div>
-              <div style={{ marginTop: 24, fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>Statistiky i profilové údaje se plní z klubového CMS.</div>
             </div>
           </div>
         </div>

@@ -132,7 +132,7 @@ export function Tymy() {
               items={t.players}
               onChange={(v) => updateTeam({ players: v })}
               itemTitle={(p) => `#${p.number || '?'}  ${p.name || 'Nový hráč'}${p.position ? ' · ' + p.position : ''}`}
-              newItem={() => ({ name: '', number: t.players.length + 1, position: 'ZÁL', photo: '', age: '', apps: '', goals: '', assists: '', since: '', favClub: '', favPlayer: '' })}
+              newItem={() => ({ name: '', number: t.players.length + 1, position: 'ZÁL', photo: '', birthdate: '' })}
               addLabel="+ Přidat hráče"
               renderItem={(p, u) => (
                 <div>
@@ -142,20 +142,9 @@ export function Tymy() {
                     <Field label="Jméno a příjmení" value={p.name} onChange={(v) => u({ name: v })} />
                     <Field label="Číslo" type="number" value={p.number} onChange={(v) => u({ number: v })} width="100px" />
                     <Select label="Pozice" value={p.position} onChange={(v) => u({ position: v })} options={['GK', 'OBR', 'ZÁL', 'ÚTO', 'KŘÍ']} width="120px" />
+                    <Field label="Datum narození" type="date" value={p.birthdate} onChange={(v) => u({ birthdate: v })} width="180px" />
                   </Row>
-                  <div style={{ height: 10 }} />
-                  <Row>
-                    <Field label="Věk" type="number" value={p.age} onChange={(v) => u({ age: v })} width="100px" />
-                    <Field label="Zápasy" type="number" value={p.apps} onChange={(v) => u({ apps: v })} width="110px" />
-                    <Field label="Góly" type="number" value={p.goals} onChange={(v) => u({ goals: v })} width="100px" />
-                    <Field label="Asistence" type="number" value={p.assists} onChange={(v) => u({ assists: v })} width="110px" />
-                    <Field label="V klubu od" value={p.since} onChange={(v) => u({ since: v })} width="120px" placeholder="2019" />
-                  </Row>
-                  <div style={{ height: 10 }} />
-                  <Row>
-                    <Field label="Oblíbený klub" value={p.favClub} onChange={(v) => u({ favClub: v })} />
-                    <Field label="Oblíbený hráč" value={p.favPlayer} onChange={(v) => u({ favPlayer: v })} />
-                  </Row>
+                  <div style={{ fontSize: 12, color: '#9AA1AC', marginTop: 8 }}>Datum narození se na webu nezobrazuje — počítá se z něj věk hráče.</div>
                 </div>
               )}
             />
