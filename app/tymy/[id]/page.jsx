@@ -22,7 +22,7 @@ export default function TeamDetail() {
     id: t.id,
     name: t.name,
     style:
-      'font-size:13px;font-weight:700;padding:9px 16px;border-radius:99px;cursor:pointer;transition:all .2s;' +
+      'font-size:13px;font-weight:700;padding:9px 16px;border-radius:10px;cursor:pointer;transition:all .2s;' +
       (t.id === curTeam.id
         ? 'background:#C1121F;color:#fff'
         : 'background:rgba(255,255,255,.1);color:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.2)'),
@@ -99,7 +99,7 @@ export default function TeamDetail() {
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(56px,9vw,124px)', lineHeight: 1.22, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>{curTeam.name}</h1>
           <p className="fk-rev" style={{ color: 'rgba(255,255,255,.8)', fontSize: 18, marginTop: 18, maxWidth: 580, lineHeight: 1.55 }}>{teamDesc}</p>
           {teamContact && (
-            <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, marginTop: 16, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 99, padding: '9px 16px', color: '#fff', fontSize: 13, fontWeight: 600 }}><Icon name="phone" size={15} /> {teamContact}</div>
+            <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, marginTop: 16, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 10, padding: '9px 16px', color: '#fff', fontSize: 13, fontWeight: 600 }}><Icon name="phone" size={15} /> {teamContact}</div>
           )}
           <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginTop: 28 }}>
             {teamChips.map((tc) => (
@@ -163,7 +163,7 @@ export default function TeamDetail() {
                 <Hov key={i} className="fk-rev fk-zoom" onClick={() => setPlayer(pl)} style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05);cursor:pointer;transition:transform .3s,box-shadow .3s" hover="transform:translateY(-6px);box-shadow:0 22px 44px rgba(18,18,18,.14)">
                   <div className="fk-zi" style={{ height: 160, background: pl.img, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
                     <span style={{ position: 'absolute', top: 12, left: 14, fontFamily: "'Bebas Neue'", fontSize: 34, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,.4)' }}>{pl.num}</span>
-                    <span style={{ position: 'absolute', top: 14, right: 12, background: 'rgba(193,18,31,.92)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '.5px', padding: '4px 9px', borderRadius: 99 }}>{pl.pos}</span>
+                    <span style={{ position: 'absolute', top: 14, right: 12, background: 'rgba(193,18,31,.92)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '.5px', padding: '4px 9px', borderRadius: 10 }}>{pl.pos}</span>
                   </div>
                   <div style={{ padding: '14px 16px' }}>
                     <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{pl.name}</div>
@@ -217,7 +217,7 @@ export default function TeamDetail() {
           <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC' }}>TABULKA SOUTĚŽE</span>
-              <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '3px 9px', borderRadius: 99 }}>FAČR</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '3px 9px', borderRadius: 10 }}>FAČR</span>
             </div>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{curTeam.comp}</div>
             {curTeam.table && curTeam.table.length > 0 ? (
@@ -275,7 +275,7 @@ export default function TeamDetail() {
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 10, maxWidth: 740, width: '100%', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,.45)', display: 'grid', gridTemplateColumns: '280px 1fr' }}>
             <div style={{ background: player.img, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: 380, position: 'relative' }}>
               <span style={{ position: 'absolute', top: 20, left: 22, fontFamily: "'Bebas Neue'", fontSize: 60, color: '#fff', textShadow: '0 2px 14px rgba(0,0,0,.5)', lineHeight: 1 }}>{player.num}</span>
-              <span style={{ position: 'absolute', bottom: 20, left: 22, background: 'rgba(193,18,31,.95)', color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '.8px', padding: '6px 12px', borderRadius: 99 }}>{player.pos}</span>
+              <span style={{ position: 'absolute', bottom: 20, left: 22, background: 'rgba(193,18,31,.95)', color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '.8px', padding: '6px 12px', borderRadius: 10 }}>{player.pos}</span>
             </div>
             <div style={{ padding: 32, position: 'relative' }}>
               <span onClick={() => setPlayer(null)} style={{ position: 'absolute', top: 20, right: 20, width: 34, height: 34, borderRadius: 99, background: '#F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontWeight: 700, color: '#6B7280' }}>✕</span>

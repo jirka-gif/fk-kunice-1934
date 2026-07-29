@@ -79,7 +79,7 @@ export function Tymy() {
           return (
             <button key={tm.id} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
               {tm.name}
-              <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{tm.players.length}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 10, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{tm.players.length}</span>
             </button>
           );
         })}
@@ -387,7 +387,7 @@ const RES_STATUS = ['nová', 'potvrzená', 'zamítnutá'];
 const RES_SOURCE = ['web', 'telefon', 'osobně'];
 function statusPill(status) {
   const map = { 'nová': { background: '#FBEAEC', color: '#C1121F' }, 'potvrzená': { background: '#EAF6EE', color: '#1F8A4C' }, 'zamítnutá': { background: '#F4F5F7', color: '#9AA1AC' } };
-  return { fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, marginLeft: 6, textTransform: 'uppercase', ...(map[status] || map['nová']) };
+  return { fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10, marginLeft: 6, textTransform: 'uppercase', ...(map[status] || map['nová']) };
 }
 
 function SubTabs({ tab, setTab, tabs }) {
@@ -398,7 +398,7 @@ function SubTabs({ tab, setTab, tabs }) {
         return (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
             {t.label}
-            {t.badge != null && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{t.badge}</span>}
+            {t.badge != null && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 10, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{t.badge}</span>}
           </button>
         );
       })}

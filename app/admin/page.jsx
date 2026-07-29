@@ -56,7 +56,7 @@ export default function Admin() {
           return (
             <div key={n.id} data-sec={n.id} onClick={() => setSectionId(n.id)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 3, ...(active ? { background: '#FBEAEC', color: RED } : { color: '#3a3f47' }) }}>
               <span style={{ display: 'inline-flex', width: 19, justifyContent: 'center' }}><Icon name={n.icon} size={19} /></span><span>{n.label}</span>
-              {n.badge && <span style={{ marginLeft: 'auto', background: active ? RED : '#EFF1F4', color: active ? '#fff' : '#9AA1AC', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 99 }}>{n.badge}</span>}
+              {n.badge && <span style={{ marginLeft: 'auto', background: active ? RED : '#EFF1F4', color: active ? '#fff' : '#9AA1AC', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 10 }}>{n.badge}</span>}
             </div>
           );
         })}
@@ -121,7 +121,7 @@ export default function Admin() {
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
                     <div style={{ width: 36, height: 36, borderRadius: 99, background: r.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 12 }}>{r.ini}</div>
                     <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{r.name}</div><div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{r.team}</div></div>
-                    <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 99, ...(r.tg === 'new' ? { background: '#FBEAEC', color: RED } : r.tg === 'ok' ? { background: '#EAF6EE', color: '#1F8A4C' } : { background: '#F4F5F7', color: '#9AA1AC' }) }}>{r.tag}</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 10, ...(r.tg === 'new' ? { background: '#FBEAEC', color: RED } : r.tg === 'ok' ? { background: '#EAF6EE', color: '#1F8A4C' } : { background: '#F4F5F7', color: '#9AA1AC' }) }}>{r.tag}</span>
                   </div>
                 ))}
               </Card>

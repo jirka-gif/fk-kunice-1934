@@ -31,7 +31,7 @@ export default function Novinky() {
             <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: bg(featured, 0), backgroundSize: 'cover', backgroundPosition: 'center' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 28%,rgba(10,10,11,.92))' }} />
             <div style={{ position: 'relative', padding: 42, maxWidth: 680 }}>
-              {featured.category && <span style={{ background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 11, letterSpacing: '1.5px', padding: '7px 14px', borderRadius: 99 }}>{featured.category.toUpperCase()}</span>}
+              {featured.category && <span style={{ background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 11, letterSpacing: '1.5px', padding: '7px 14px', borderRadius: 10 }}>{featured.category.toUpperCase()}</span>}
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(32px,4vw,54px)', color: '#fff', textTransform: 'uppercase', lineHeight: 1.02, marginTop: 18, letterSpacing: '.4px' }}>{featured.title}</div>
               <p style={{ color: 'rgba(255,255,255,.82)', fontSize: 16, marginTop: 14, lineHeight: 1.55, maxWidth: 560 }}>{featured.text}</p>
               <div style={{ color: 'rgba(255,255,255,.65)', fontSize: 13, fontWeight: 600, marginTop: 16 }}>{featured.date}</div>
@@ -46,7 +46,7 @@ export default function Novinky() {
           {newsCategories.map((c) => {
             const active = cat === c;
             return (
-              <span key={c} onClick={() => setCat(c)} style={{ fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 99, cursor: 'pointer', transition: 'all .2s', ...(active ? { background: '#C1121F', color: '#fff' } : { background: '#fff', color: '#3a3f47', border: '1px solid #ECEEF1' }) }}>{c}</span>
+              <span key={c} onClick={() => setCat(c)} style={{ fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .2s', ...(active ? { background: '#C1121F', color: '#fff' } : { background: '#fff', color: '#3a3f47', border: '1px solid #ECEEF1' }) }}>{c}</span>
             );
           })}
         </div>

@@ -32,7 +32,7 @@ export default function Kempy() {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(150deg,#b15f2c,#291a13)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(10,10,11,.42),rgba(10,10,11,.88))' }} />
         <div style={{ position: 'relative', maxWidth: 1200, margin: '0 auto', padding: '0 28px' }}>
-          <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 12, letterSpacing: '1.5px', padding: '8px 15px', borderRadius: 99, marginBottom: 20 }}>{badge}</div>
+          <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 12, letterSpacing: '1.5px', padding: '8px 15px', borderRadius: 10, marginBottom: 20 }}>{badge}</div>
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(54px,8.5vw,118px)', lineHeight: 1.22, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px', maxWidth: 900 }}>{title}</h1>
           <p className="fk-rev" style={{ color: 'rgba(255,255,255,.85)', fontSize: 19, marginTop: 20, maxWidth: 580, lineHeight: 1.55 }}>{lead}</p>
         </div>

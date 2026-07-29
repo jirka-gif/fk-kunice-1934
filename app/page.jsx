@@ -178,7 +178,7 @@ export default function Home() {
                     <div style={{ fontFamily: "'Bebas Neue'", fontSize: 34, textTransform: 'uppercase', letterSpacing: '.5px', color: '#fff', lineHeight: .9 }}>{tm.name}</div>
                     <div style={{ color: 'rgba(255,255,255,.78)', fontSize: 13, fontWeight: 600, marginTop: 4 }}>{tm.age}</div>
                   </div>
-                  <span style={{ background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 10, letterSpacing: '.8px', padding: '6px 11px', borderRadius: 99, whiteSpace: 'nowrap' }}>{tm.league}</span>
+                  <span style={{ background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 10, letterSpacing: '.8px', padding: '6px 11px', borderRadius: 10, whiteSpace: 'nowrap' }}>{tm.league}</span>
                 </div>
               </div>
               <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -220,7 +220,7 @@ export default function Home() {
               <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: photo(c.img), backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(100deg,rgba(10,10,11,.88) 0%,rgba(10,10,11,.5) 45%,rgba(10,10,11,.05) 100%)' }} />
               <div style={{ position: 'relative', padding: 44, maxWidth: 580 }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 11, letterSpacing: '1.5px', padding: '8px 15px', borderRadius: 99, marginBottom: 18 }}>{c.tag}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 11, letterSpacing: '1.5px', padding: '8px 15px', borderRadius: 10, marginBottom: 18 }}>{c.tag}</span>
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(32px,4vw,50px)', color: '#fff', textTransform: 'uppercase', lineHeight: 1.02, letterSpacing: '.5px' }}>{c.title}</div>
                 <p style={{ color: 'rgba(255,255,255,.85)', fontSize: 16, marginTop: 14, lineHeight: 1.55 }}>{c.desc}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 26, flexWrap: 'wrap' }}>
@@ -246,7 +246,7 @@ export default function Home() {
               return (
                 <Hov key={i} as={Link} href="/pronajem" className="fk-rev fk-zoom" style={`background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;display:block;${cardSh};transition:transform .35s,box-shadow .35s`} hover="transform:translateY(-8px);box-shadow:0 30px 60px rgba(18,18,18,.16)">
                   <div className="fk-zi" style={{ height: 200, background: photo(f.img), backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
-                    <span style={{ position: 'absolute', top: 14, left: 14, background: free ? '#EAF6EE' : '#FBEAEC', color: free ? '#1F8A4C' : '#C1121F', fontWeight: 800, fontSize: 11, letterSpacing: '.5px', padding: '6px 12px', borderRadius: 99 }}>{f.status}</span>
+                    <span style={{ position: 'absolute', top: 14, left: 14, background: free ? '#EAF6EE' : '#FBEAEC', color: free ? '#1F8A4C' : '#C1121F', fontWeight: 800, fontSize: 11, letterSpacing: '.5px', padding: '6px 12px', borderRadius: 10 }}>{f.status}</span>
                   </div>
                   <div style={{ padding: 24 }}>
                     <div style={{ fontFamily: "'Bebas Neue'", fontSize: 24, textTransform: 'uppercase', letterSpacing: '.4px', color: '#121212' }}>{f.name}</div>
@@ -275,7 +275,7 @@ export default function Home() {
               <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: newsBg(featured, 0), backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 28%,rgba(10,10,11,.92))' }} />
               <div style={{ position: 'relative', padding: 38 }}>
-                {featured.category && <span style={{ background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 11, letterSpacing: '1.5px', padding: '7px 14px', borderRadius: 99 }}>{featured.category.toUpperCase()}</span>}
+                {featured.category && <span style={{ background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 11, letterSpacing: '1.5px', padding: '7px 14px', borderRadius: 10 }}>{featured.category.toUpperCase()}</span>}
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(30px,3.6vw,46px)', color: '#fff', textTransform: 'uppercase', lineHeight: 1.02, marginTop: 18, maxWidth: 580, letterSpacing: '.4px' }}>{featured.title}</div>
                 <p style={{ color: 'rgba(255,255,255,.82)', fontSize: 15, lineHeight: 1.55, marginTop: 12, maxWidth: 520 }}>{featured.text}</p>
                 <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 13, fontWeight: 600, marginTop: 14 }}>{featured.date}</div>

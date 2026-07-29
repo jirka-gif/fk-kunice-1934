@@ -70,7 +70,7 @@ export default function Pronajem() {
             return (
               <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
                 <div style={{ height: 170, background: photo(rp.img), backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
-                  <span style={{ position: 'absolute', top: 14, left: 14, background: free ? '#EAF6EE' : '#FBEAEC', color: free ? '#1F8A4C' : '#C1121F', fontWeight: 800, fontSize: 11, letterSpacing: '.5px', padding: '6px 12px', borderRadius: 99 }}>{rp.status}</span>
+                  <span style={{ position: 'absolute', top: 14, left: 14, background: free ? '#EAF6EE' : '#FBEAEC', color: free ? '#1F8A4C' : '#C1121F', fontWeight: 800, fontSize: 11, letterSpacing: '.5px', padding: '6px 12px', borderRadius: 10 }}>{rp.status}</span>
                 </div>
                 <div style={{ padding: 24 }}>
                   <div style={{ fontFamily: "'Bebas Neue'", fontSize: 24, textTransform: 'uppercase', color: '#121212' }}>{rp.name}</div>

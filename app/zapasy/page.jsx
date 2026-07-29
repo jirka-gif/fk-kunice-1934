@@ -69,7 +69,7 @@ export default function Zapasy() {
             {matchTeams.map((tm, i) => {
               const active = i === idx;
               return (
-                <span key={tm.id} onClick={() => setSel(i)} style={{ fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 99, cursor: 'pointer', transition: 'all .2s', ...(active ? { background: '#C1121F', color: '#fff' } : { background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.82)', border: '1px solid rgba(255,255,255,.2)' }) }}>{tm.name}</span>
+                <span key={tm.id} onClick={() => setSel(i)} style={{ fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .2s', ...(active ? { background: '#C1121F', color: '#fff' } : { background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.82)', border: '1px solid rgba(255,255,255,.2)' }) }}>{tm.name}</span>
               );
             })}
           </div>
@@ -92,7 +92,7 @@ export default function Zapasy() {
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(56px,10vw,104px)', color: '#fff', lineHeight: 1 }}>{mdScore.home}<span style={{ color: 'rgba(255,255,255,.35)', margin: '0 8px' }}>:</span>{mdScore.away}</div>
-                  <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 800, letterSpacing: '1px', padding: '5px 12px', borderRadius: 99, ...resultPill(md.result) }}>{md.result}</span>
+                  <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 800, letterSpacing: '1px', padding: '5px 12px', borderRadius: 10, ...resultPill(md.result) }}>{md.result}</span>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ width: 'clamp(64px,8vw,96px)', height: 'clamp(64px,8vw,96px)', margin: '0 auto 14px', borderRadius: 10, background: 'rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 'clamp(24px,3vw,36px)', color: '#fff' }}>{mdAway.short}</div>
@@ -140,7 +140,7 @@ export default function Zapasy() {
                   <div style={{ width: 54, height: 54, borderRadius: 10, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 18, color: '#fff', flex: 'none' }}>FK</div>
                   <div>
                     <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#121212', letterSpacing: '.5px' }}>FK Kunice <span style={{ color: '#9AA1AC' }}>vs</span> {lm.opp}</div>
-                    <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.5px', padding: '3px 10px', borderRadius: 99, background: '#F4F5F7', color: '#3a3f47' }}>{lm.result}</span>
+                    <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.5px', padding: '3px 10px', borderRadius: 10, background: '#F4F5F7', color: '#3a3f47' }}>{lm.result}</span>
                   </div>
                 </div>
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(40px,6vw,56px)', color: '#C1121F', letterSpacing: '2px', lineHeight: 1 }}>{lm.score}</div>
@@ -192,7 +192,7 @@ export default function Zapasy() {
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '56px 28px 110px' }}>
         <div className="fk-rev" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
           <Eyebrow>TABULKA SOUTĚŽE</Eyebrow>
-          <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '4px 11px', borderRadius: 99 }}>{t.comp}</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '4px 11px', borderRadius: 10 }}>{t.comp}</span>
         </div>
         {table.length > 0 ? (
           <div className="fk-rev" style={{ ...card, padding: '8px 24px' }}>
