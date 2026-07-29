@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="fk-foot-grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr 1.2fr', gap: 44, paddingBottom: 50, borderBottom: '1px solid rgba(255,255,255,.1)' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 22 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, flex: 'none' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 10, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, flex: 'none' }}>
                 <Image src="/logo.webp" alt="FK Kunice 1934" width={48} height={48} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
               </div>
               <div>
@@ -32,7 +32,7 @@ export default function Footer() {
             <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 14, lineHeight: 1.65, maxWidth: 320 }}>{club.description}</p>
             <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
               {[<Ig key="i" />, <Fb key="f" />, <Tw key="t" />].map((ic, i) => (
-                <Hov key={i} style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .25s" hover="background:#C1121F">{ic}</Hov>
+                <Hov key={i} style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .25s" hover="background:#C1121F">{ic}</Hov>
               ))}
             </div>
           </div>
@@ -54,7 +54,7 @@ export default function Footer() {
             <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 14, fontWeight: 500, lineHeight: 1.75 }}>
               Areál FK Kunice<br />{club.address.street}, {club.address.zip}<br />{club.email}<br />{club.phone}
             </div>
-            <Link href="/kontakt" style={{ marginTop: 18, height: 120, borderRadius: 14, background: 'linear-gradient(135deg,#241112,#120a0b)', border: '1px solid rgba(255,255,255,.1)', position: 'relative', overflow: 'hidden', cursor: 'pointer', display: 'block' }}>
+            <Link href="/kontakt" style={{ marginTop: 18, height: 120, borderRadius: 10, background: 'linear-gradient(135deg,#241112,#120a0b)', border: '1px solid rgba(255,255,255,.1)', position: 'relative', overflow: 'hidden', cursor: 'pointer', display: 'block' }}>
               <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px)', backgroundSize: '24px 24px' }} />
               <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                 <Icon name="pin" size={22} color="rgba(255,255,255,.85)" />

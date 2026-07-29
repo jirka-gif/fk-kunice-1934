@@ -111,7 +111,7 @@ export default function TeamDetail() {
 
       {/* ============ STATS ============ */}
       <section style={{ maxWidth: 1200, margin: '-36px auto 0', padding: '0 28px', position: 'relative', zIndex: 5 }}>
-        <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, boxShadow: '0 1px 2px rgba(18,18,18,.05),0 18px 44px rgba(18,18,18,.1)', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)' }}>
+        <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, boxShadow: '0 1px 2px rgba(18,18,18,.05),0 18px 44px rgba(18,18,18,.1)', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)' }}>
           {teamStats.map((ts, i) => (
             <div key={i} style={css(ts.cell)}>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 38, color: ts.color, lineHeight: 1 }}>{ts.value}</div>
@@ -132,7 +132,7 @@ export default function TeamDetail() {
           {hasCoaches ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
               {curCoaches.map((st, i) => (
-                <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 18, overflow: 'hidden', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)' }}>
+                <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)' }}>
                   <div style={{ height: 130, background: st.img, backgroundSize: 'cover', backgroundPosition: 'center' }} />
                   <div style={{ padding: 18 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{st.name}</div>
@@ -144,7 +144,7 @@ export default function TeamDetail() {
               ))}
             </div>
           ) : (
-            <div className="fk-rev" style={{ background: '#fff', borderRadius: 18, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', textAlign: 'center', color: '#9AA1AC', fontSize: 14, fontWeight: 600 }}>Realizační tým tohoto týmu připravujeme. Pro nábor a informace nás kontaktujte.</div>
+            <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', textAlign: 'center', color: '#9AA1AC', fontSize: 14, fontWeight: 600 }}>Realizační tým tohoto týmu připravujeme. Pro nábor a informace nás kontaktujte.</div>
           )}
 
           {/* SOUPISKA */}
@@ -153,14 +153,14 @@ export default function TeamDetail() {
             <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#C1121F' }}>{isSchool ? 'NÁBOR' : 'SOUPISKA'}</span>
           </div>
           {isSchool ? (
-            <div className="fk-rev" style={{ background: '#fff', borderRadius: 18, padding: 32, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', textAlign: 'center' }}>
+            <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 32, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', textAlign: 'center' }}>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 26, color: '#121212' }}>Pro naše nejmenší</div>
               <div style={{ color: '#9AA1AC', fontSize: 14, fontWeight: 600, marginTop: 6, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>Ve fotbalové školičce (4–6 let) nevedeme soupisku ani statistiky — hrajeme si a objevujeme fotbal. Přijďte si k nám kdykoli vyzkoušet trénink.</div>
             </div>
           ) : hasRoster ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
               {players.map((pl, i) => (
-                <Hov key={i} className="fk-rev fk-zoom" onClick={() => setPlayer(pl)} style="background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05);cursor:pointer;transition:transform .3s,box-shadow .3s" hover="transform:translateY(-6px);box-shadow:0 22px 44px rgba(18,18,18,.14)">
+                <Hov key={i} className="fk-rev fk-zoom" onClick={() => setPlayer(pl)} style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05);cursor:pointer;transition:transform .3s,box-shadow .3s" hover="transform:translateY(-6px);box-shadow:0 22px 44px rgba(18,18,18,.14)">
                   <div className="fk-zi" style={{ height: 160, background: pl.img, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
                     <span style={{ position: 'absolute', top: 12, left: 14, fontFamily: "'Bebas Neue'", fontSize: 34, color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,.4)' }}>{pl.num}</span>
                     <span style={{ position: 'absolute', top: 14, right: 12, background: 'rgba(193,18,31,.92)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '.5px', padding: '4px 9px', borderRadius: 99 }}>{pl.pos}</span>
@@ -178,7 +178,7 @@ export default function TeamDetail() {
               ))}
             </div>
           ) : (
-            <div className="fk-rev" style={{ background: '#fff', borderRadius: 18, padding: 32, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', textAlign: 'center' }}>
+            <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 32, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', textAlign: 'center' }}>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 26, color: '#121212' }}>Soupiska se připravuje</div>
               <div style={{ color: '#9AA1AC', fontSize: 14, fontWeight: 600, marginTop: 6 }}>Hráči tohoto týmu budou brzy doplněni z klubového systému.</div>
             </div>
@@ -187,7 +187,7 @@ export default function TeamDetail() {
 
         {/* SIDEBAR */}
         <div style={{ position: 'sticky', top: 96, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+          <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC', marginBottom: 16 }}>TRÉNINKOVÝ ROZPIS</div>
             {schedule.map((sc, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
@@ -197,14 +197,14 @@ export default function TeamDetail() {
             ))}
           </div>
           {curTeam.results && curTeam.results.length > 0 && (
-            <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+            <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC', marginBottom: 14 }}>POSLEDNÍ VÝSLEDKY</div>
               {curTeam.results.map((r, i) => {
                 const m = { V: { bg: '#C1121F', c: '#fff' }, R: { bg: '#EFF1F4', c: '#9AA1AC' }, P: { bg: '#F3F0E9', c: '#A98C4E' } }[r.wld] || { bg: '#C1121F', c: '#fff' };
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F2F3F5' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ width: 24, height: 24, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, background: m.bg, color: m.c }}>{r.wld}</span>
+                      <span style={{ width: 24, height: 24, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, background: m.bg, color: m.c }}>{r.wld}</span>
                       <span style={{ fontWeight: 600, fontSize: 14, color: '#1E1E1E' }}>{r.opp}</span>
                     </div>
                     <span style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color: '#121212', letterSpacing: '1px' }}>{r.score}</span>
@@ -214,7 +214,7 @@ export default function TeamDetail() {
             </div>
           )}
           {!isSchool && (
-          <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+          <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC' }}>TABULKA SOUTĚŽE</span>
               <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '3px 9px', borderRadius: 99 }}>FAČR</span>
@@ -250,7 +250,7 @@ export default function TeamDetail() {
             )}
           </div>
           )}
-          <Hov as={Link} href="/kontakt" className="fk-rev" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:16px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Přidej se k týmu →</Hov>
+          <Hov as={Link} href="/kontakt" className="fk-rev" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:10px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Přidej se k týmu →</Hov>
         </div>
       </section>
 
@@ -262,7 +262,7 @@ export default function TeamDetail() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gridAutoRows: 160, gap: 14 }}>
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <Hov key={i} className="fk-rev fk-zoom" style={`${galleryCells[i]};border-radius:16px;overflow:hidden;position:relative;cursor:pointer`}>
+            <Hov key={i} className="fk-rev fk-zoom" style={`${galleryCells[i]};border-radius:10px;overflow:hidden;position:relative;cursor:pointer`}>
               <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: galleryImgs[i], backgroundSize: 'cover', backgroundPosition: 'center' }} />
             </Hov>
           ))}
@@ -272,7 +272,7 @@ export default function TeamDetail() {
       {/* ============ PLAYER MODAL ============ */}
       {player && (
         <div onClick={() => setPlayer(null)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(10,10,11,.62)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 24, maxWidth: 740, width: '100%', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,.45)', display: 'grid', gridTemplateColumns: '280px 1fr' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 10, maxWidth: 740, width: '100%', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,.45)', display: 'grid', gridTemplateColumns: '280px 1fr' }}>
             <div style={{ background: player.img, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: 380, position: 'relative' }}>
               <span style={{ position: 'absolute', top: 20, left: 22, fontFamily: "'Bebas Neue'", fontSize: 60, color: '#fff', textShadow: '0 2px 14px rgba(0,0,0,.5)', lineHeight: 1 }}>{player.num}</span>
               <span style={{ position: 'absolute', bottom: 20, left: 22, background: 'rgba(193,18,31,.95)', color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '.8px', padding: '6px 12px', borderRadius: 99 }}>{player.pos}</span>
@@ -282,10 +282,10 @@ export default function TeamDetail() {
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', color: '#C1121F' }}>{player.team}</div>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 46, color: '#121212', lineHeight: 1.04, marginTop: 6, letterSpacing: '.5px' }}>{player.name}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginTop: 22 }}>
-                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>VĚK</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.age} let</div></div>
-                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>V KLUBU OD</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.since || '—'}</div></div>
-                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>OBLÍBENÝ KLUB</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.favClub || '—'}</div></div>
-                <div style={{ background: '#F6F7F9', borderRadius: 13, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>OBLÍBENÝ HRÁČ</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.favPlayer || '—'}</div></div>
+                <div style={{ background: '#F6F7F9', borderRadius: 10, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>VĚK</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.age} let</div></div>
+                <div style={{ background: '#F6F7F9', borderRadius: 10, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>V KLUBU OD</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.since || '—'}</div></div>
+                <div style={{ background: '#F6F7F9', borderRadius: 10, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>OBLÍBENÝ KLUB</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.favClub || '—'}</div></div>
+                <div style={{ background: '#F6F7F9', borderRadius: 10, padding: 14 }}><div style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.8px' }}>OBLÍBENÝ HRÁČ</div><div style={{ fontWeight: 700, fontSize: 16, color: '#1E1E1E', marginTop: 3 }}>{player.favPlayer || '—'}</div></div>
               </div>
               <div style={{ display: 'flex', gap: 28, marginTop: 22, paddingTop: 18, borderTop: '1px solid #F2F3F5' }}>
                 <div><div style={{ fontFamily: "'Bebas Neue'", fontSize: 30, color: '#121212', lineHeight: 1 }}>{player.apps}</div><div style={{ fontSize: 11, fontWeight: 700, color: '#9AA1AC', marginTop: 2 }}>ZÁPASY</div></div>

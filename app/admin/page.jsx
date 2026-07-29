@@ -44,9 +44,9 @@ export default function Admin() {
   return (
     <section className="fk-admin" style={{ maxWidth: 1320, margin: '0 auto', padding: '104px 24px 80px', display: 'grid', gridTemplateColumns: '240px 1fr', gap: 24, alignItems: 'start' }}>
       {/* SIDEBAR */}
-      <div className="fk-admin-side" style={{ position: 'sticky', top: 96, background: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+      <div className="fk-admin-side" style={{ position: 'sticky', top: 96, background: '#fff', borderRadius: 10, padding: 18, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px 16px', borderBottom: '1px solid #F2F3F5', marginBottom: 12 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: '#fff', border: '1px solid #ECEEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: '#fff', border: '1px solid #ECEEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2 }}>
             <Image src="/logo.webp" alt="" width={34} height={34} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div><div style={{ fontFamily: "'Bebas Neue'", fontSize: 14, color: '#121212', letterSpacing: '.3px' }}>FK KUNICE</div><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#9AA1AC' }}>ADMIN</div></div>
@@ -54,7 +54,7 @@ export default function Admin() {
         {NAV.map((n) => {
           const active = section === n.id;
           return (
-            <div key={n.id} data-sec={n.id} onClick={() => setSectionId(n.id)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 11, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 3, ...(active ? { background: '#FBEAEC', color: RED } : { color: '#3a3f47' }) }}>
+            <div key={n.id} data-sec={n.id} onClick={() => setSectionId(n.id)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 3, ...(active ? { background: '#FBEAEC', color: RED } : { color: '#3a3f47' }) }}>
               <span style={{ display: 'inline-flex', width: 19, justifyContent: 'center' }}><Icon name={n.icon} size={19} /></span><span>{n.label}</span>
               {n.badge && <span style={{ marginLeft: 'auto', background: active ? RED : '#EFF1F4', color: active ? '#fff' : '#9AA1AC', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 99 }}>{n.badge}</span>}
             </div>
@@ -69,7 +69,7 @@ export default function Admin() {
 
       {/* MAIN */}
       <div style={{ minWidth: 0 }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#fff', borderRadius: 14, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 20, lineHeight: 1.5 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 20, lineHeight: 1.5 }}>
           <span style={{ flex: 'none', color: '#1F8A4C', marginTop: 1 }}><Icon name="checkCircle" size={17} /></span>
           <span>Administrace je <b>plně funkční</b> — úpravy se ukládají automaticky do prohlížeče a hned se projeví na webu. Tlačítkem <b>Export</b> stáhneš obsah jako JSON pro napojení na server / headless CMS.</span>
         </div>
@@ -149,8 +149,8 @@ export default function Admin() {
                       <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{r.name} {r.source === 'web' ? <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC' }}>· WEB</span> : <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC' }}>· {String(r.source || '').toUpperCase()}</span>}</div>
                       <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{[r.area, r.date, r.time].filter(Boolean).join(' · ')}</div>
                     </div>
-                    <span title="Potvrdit" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'potvrzená'; })} style={{ width: 30, height: 30, borderRadius: 9, background: '#EAF6EE', color: '#1F8A4C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✓</span>
-                    <span title="Zamítnout" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'zamítnutá'; })} style={{ width: 30, height: 30, borderRadius: 9, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✕</span>
+                    <span title="Potvrdit" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'potvrzená'; })} style={{ width: 30, height: 30, borderRadius: 10, background: '#EAF6EE', color: '#1F8A4C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✓</span>
+                    <span title="Zamítnout" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'zamítnutá'; })} style={{ width: 30, height: 30, borderRadius: 10, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✕</span>
                   </div>
                 );
               })}

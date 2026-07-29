@@ -27,7 +27,7 @@ export default function Novinky() {
         <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(48px,7vw,96px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#121212', letterSpacing: '.5px', marginBottom: 36 }}>Ze života klubu</h1>
 
         {featured && (
-          <Hov className="fk-rev fk-zoom" style="border-radius:24px;overflow:hidden;position:relative;cursor:pointer;min-height:420px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
+          <Hov className="fk-rev fk-zoom" style="border-radius:10px;overflow:hidden;position:relative;cursor:pointer;min-height:420px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
             <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: bg(featured, 0), backgroundSize: 'cover', backgroundPosition: 'center' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 28%,rgba(10,10,11,.92))' }} />
             <div style={{ position: 'relative', padding: 42, maxWidth: 680 }}>
@@ -57,7 +57,7 @@ export default function Novinky() {
         {rest.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 22 }}>
             {rest.map((n, i) => (
-              <Hov key={i} className="fk-rev fk-zoom" style="background:#fff;border-radius:20px;overflow:hidden;cursor:pointer;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 26px rgba(18,18,18,.06);transition:transform .35s,box-shadow .35s" hover="transform:translateY(-8px);box-shadow:0 28px 56px rgba(18,18,18,.15)">
+              <Hov key={i} className="fk-rev fk-zoom" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 26px rgba(18,18,18,.06);transition:transform .35s,box-shadow .35s" hover="transform:translateY(-8px);box-shadow:0 28px 56px rgba(18,18,18,.15)">
                 <div className="fk-zi" style={{ height: 190, background: bg(n, i + 1), backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 <div style={{ padding: 22 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -71,7 +71,7 @@ export default function Novinky() {
             ))}
           </div>
         ) : (
-          !featured && <div className="fk-rev" style={{ background: '#fff', borderRadius: 20, padding: 40, textAlign: 'center', color: '#9AA1AC', fontWeight: 600 }}>V této kategorii zatím nejsou žádné novinky.</div>
+          !featured && <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 40, textAlign: 'center', color: '#9AA1AC', fontWeight: 600 }}>V této kategorii zatím nejsou žádné novinky.</div>
         )}
       </section>
     </div>

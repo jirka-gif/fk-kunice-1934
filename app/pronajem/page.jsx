@@ -7,7 +7,7 @@ import { Icon } from '@/app/components/icons';
 import { useContent, updateData } from '@/lib/store';
 
 const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
-const inputBase = 'border:1px solid #ECEEF1;background:#FAFBFC;border-radius:13px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
+const inputBase = 'border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
 const inputFocus = 'border-color:#C1121F;background:#fff';
 
 export default function Pronajem() {
@@ -68,7 +68,7 @@ export default function Pronajem() {
           {rentalPlans.map((rp, i) => {
             const free = rp.status === 'VOLNO';
             return (
-              <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+              <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
                 <div style={{ height: 170, background: photo(rp.img), backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
                   <span style={{ position: 'absolute', top: 14, left: 14, background: free ? '#EAF6EE' : '#FBEAEC', color: free ? '#1F8A4C' : '#C1121F', fontWeight: 800, fontSize: 11, letterSpacing: '.5px', padding: '6px 12px', borderRadius: 99 }}>{rp.status}</span>
                 </div>
@@ -96,7 +96,7 @@ export default function Pronajem() {
       {/* ============ KALENDÁŘ + FORMULÁŘ ============ */}
       <section className="fk-rent-grid" style={{ maxWidth: 960, margin: '0 auto', padding: '72px 28px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
         {/* kalendář */}
-        <div className="fk-rev" style={{ background: '#fff', borderRadius: 22, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+        <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <span style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#121212' }}>Červenec 2026</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#9AA1AC' }}>Vyber termín</span>
@@ -116,7 +116,7 @@ export default function Pronajem() {
                 <div
                   key={i}
                   onClick={cd.busy ? undefined : () => setSelDay(cd.day)}
-                  style={{ aspectRatio: '1', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, background: bg, color, cursor: cur }}
+                  style={{ aspectRatio: '1', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, background: bg, color, cursor: cur }}
                 >
                   {cd.day}
                 </div>
@@ -137,11 +137,11 @@ export default function Pronajem() {
         </div>
 
         {/* formulář */}
-        <div className="fk-rev" style={{ background: '#fff', borderRadius: 22, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+        <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#121212', marginBottom: 6 }}>Poptávka rezervace</div>
           <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginBottom: 20 }}>Vybraný termín: <span style={{ color: '#C1121F', fontWeight: 800 }}>{selDayLabel}</span></div>
           {sent ? (
-            <div style={{ background: '#EAF6EE', border: '1px solid #BfE6CC', borderRadius: 14, padding: 24, textAlign: 'center' }}>
+            <div style={{ background: '#EAF6EE', border: '1px solid #BfE6CC', borderRadius: 10, padding: 24, textAlign: 'center' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, color: '#1F8A4C' }}><Icon name="checkCircle" size={40} strokeWidth={1.7} /></div>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#1F8A4C' }}>Poptávka odeslána</div>
               <div style={{ color: '#3a3f47', fontSize: 14, fontWeight: 500, marginTop: 6, lineHeight: 1.5 }}>Děkujeme! Ozveme se vám do 24 hodin a potvrdíme dostupnost termínu.</div>
@@ -155,12 +155,12 @@ export default function Pronajem() {
                 <Hov as="input" value={form.email} onChange={setF('email')} placeholder="E-mail" style={`flex:1;${inputBase}`} focus={inputFocus} />
               </div>
               <Hov as="select" value={form.area || (rentalPlans[0] && rentalPlans[0].name) || ''} onChange={setF('area')}
-                style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', boxSizing: 'border-box', width: '100%', backgroundColor: '#fff', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239AA1AC' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', backgroundSize: '14px', border: '1px solid #ECEEF1', borderRadius: 13, padding: '14px 44px 14px 16px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(18,18,18,.05)' }}
+                style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', boxSizing: 'border-box', width: '100%', backgroundColor: '#fff', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239AA1AC' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', backgroundSize: '14px', border: '1px solid #ECEEF1', borderRadius: 10, padding: '14px 44px 14px 16px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(18,18,18,.05)' }}
                 focus={{ borderColor: '#C1121F', boxShadow: '0 2px 12px rgba(193,18,31,.14)' }}>
                 {rentalPlans.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
               </Hov>
               <Hov as="textarea" value={form.note} onChange={setF('note')} placeholder="Poznámka (počet osob, čas, účel)" rows={3} style={`${inputBase};resize:none`} focus={inputFocus} />
-              <Hov as="a" onClick={submit} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:14px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat poptávku →</Hov>
+              <Hov as="a" onClick={submit} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:10px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat poptávku →</Hov>
             </div>
           )}
         </div>
@@ -180,7 +180,7 @@ export default function Pronajem() {
                 key={i}
                 className="fk-rev"
                 onClick={() => setFaqOpen((s) => ({ ...s, [i]: !s[i] }))}
-                style={{ background: '#fff', borderRadius: 16, padding: '20px 22px', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05)', cursor: 'pointer' }}
+                style={{ background: '#fff', borderRadius: 10, padding: '20px 22px', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05)', cursor: 'pointer' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
                   <span style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{fq.q}</span>

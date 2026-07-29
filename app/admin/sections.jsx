@@ -77,13 +77,13 @@ export function Tymy() {
         {teams.map((tm, i) => {
           const active = i === idx;
           return (
-            <button key={tm.id} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
+            <button key={tm.id} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
               {tm.name}
               <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{tm.players.length}</span>
             </button>
           );
         })}
-        <button onClick={addTeam} style={{ fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 12, cursor: 'pointer', border: '1px dashed #C1121F', background: '#FBEAEC', color: '#C1121F' }}>+ Přidat tým</button>
+        <button onClick={addTeam} style={{ fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 10, cursor: 'pointer', border: '1px dashed #C1121F', background: '#FBEAEC', color: '#C1121F' }}>+ Přidat tým</button>
       </div>
 
       {/* editor vybraného týmu */}
@@ -121,7 +121,7 @@ export function Tymy() {
         />
 
         {t.id === 'skolicka' ? (
-          <div style={{ marginTop: 20, background: '#FAFBFC', border: '1px solid #ECEEF1', borderRadius: 12, padding: '14px 16px', fontSize: 13, color: '#6B7280', lineHeight: 1.5 }}>
+          <div style={{ marginTop: 20, background: '#FAFBFC', border: '1px solid #ECEEF1', borderRadius: 10, padding: '14px 16px', fontSize: 13, color: '#6B7280', lineHeight: 1.5 }}>
             U <b>fotbalové školičky</b> (4–6 let) se soupiska ani statistiky nevedou — spravuj jen kontakt a realizační tým. Na webu se místo soupisky zobrazí výzva k náboru.
           </div>
         ) : (
@@ -396,7 +396,7 @@ function SubTabs({ tab, setTab, tabs }) {
       {tabs.map((t) => {
         const active = tab === t.id;
         return (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
             {t.label}
             {t.badge != null && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{t.badge}</span>}
           </button>
@@ -417,7 +417,7 @@ function RezervaceTable({ reservations, areaOptions }) {
 
   return (
     <div>
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
         Rezervace odeslané z webu sem dorazí se stavem <b>nová</b>. Klikni na řádek pro detail a úpravu. Vlastní rezervaci (když někdo zavolá / přijde osobně) přidáš tlačítkem dole.
       </div>
       <Card style={{ padding: 0, overflow: 'hidden' }}>
