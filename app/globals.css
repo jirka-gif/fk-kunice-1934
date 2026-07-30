@@ -120,7 +120,7 @@ input, textarea, select { font-family: 'Inter', system-ui, sans-serif; }
 
 /* Hero foto: na úzkých displejích vyplní plochu a drží hráče v záběru */
 @media (max-width: 900px) {
-  .fk-hero-bg { background-size: auto 52% !important; background-position: right bottom !important; }
+  .fk-hero-bg { background-size: auto 52% !important; background-position: calc(100% + 50vw) bottom !important; }
   .fk-hero-veil { background: linear-gradient(180deg, rgba(5,5,6,.9) 0%, rgba(5,5,6,.62) 46%, rgba(5,5,6,.35) 70%, rgba(5,5,6,.6) 100%) !important; }
 }
 
