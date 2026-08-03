@@ -164,15 +164,17 @@ export function Socialni() {
                       <Field label="Soutěž" value={p.visual.competition} onChange={(v) => updatePost(p.id, { visual: { ...p.visual, competition: v } })} />
                       <Field label="Datum" value={p.visual.date} onChange={(v) => updatePost(p.id, { visual: { ...p.visual, date: v } })} width="160px" />
                       <Field label="Střelci" value={p.visual.scorers} onChange={(v) => updatePost(p.id, { visual: { ...p.visual, scorers: v } })} />
+                      <Field label="Hashtag ve vizuálu" value={p.visual.hashtag} onChange={(v) => updatePost(p.id, { visual: { ...p.visual, hashtag: v } })} width="230px" />
                     </Row>
 
                     <div style={{ margin: '14px 0' }}>
+                      <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 700, marginBottom: 8 }}>Náhled vizuálu — 1080 × 1350 px (4:5, formát pro Instagram i Facebook)</div>
                       {/* náhled generovaného obrázku (stejná adresa jde i na Metu) */}
                       <img
                         src={buildOgUrl(p.visual)}
                         alt="Náhled vizuálu"
                         data-og-preview={p.id}
-                        style={{ width: '100%', maxWidth: 600, borderRadius: 10, display: 'block', border: '1px solid #ECEEF1' }}
+                        style={{ width: '100%', maxWidth: 340, borderRadius: 10, display: 'block', border: '1px solid #ECEEF1' }}
                       />
                     </div>
 

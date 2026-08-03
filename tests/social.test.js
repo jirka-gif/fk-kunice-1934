@@ -58,6 +58,11 @@ describe('buildOgUrl', () => {
     expect(url).not.toContain('competition');
   });
 
+  it('předá i hashtag, který se kreslí svisle u okraje', () => {
+    const url = new URL(buildOgUrl({ ...VISUAL, hashtag: '#jednotajedeme' }, 'https://x.cz'));
+    expect(url.searchParams.get('hashtag')).toBe('#jednotajedeme');
+  });
+
   it('bez základní adresy vrátí relativní odkaz pro náhled', () => {
     expect(buildOgUrl(VISUAL).startsWith('/api/og/match?')).toBe(true);
   });
@@ -73,6 +78,7 @@ describe('postFromResult — spouštěč z potvrzeného výsledku', () => {
     expect(post.visual.title).toBe('VÝHRA');
     expect(post.visual.away).toBe('TJ MNICHOVICE');
     expect(post.visual.date).toBe('14. 06. 2026');
+    expect(post.visual.hashtag).toBe('#jednotajedeme');
     expect(post.text).toContain('3:1');
   });
 

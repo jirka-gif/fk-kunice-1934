@@ -14,3 +14,6 @@ next-env.d.ts
 /playwright-report
 /blob-report
 /.playwright
+
+# lokální testovací data (FK_LOCAL_STORE=1)
+/.data

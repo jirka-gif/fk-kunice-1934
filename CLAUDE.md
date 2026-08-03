@@ -8,6 +8,13 @@ Oficiální web fotbalového klubu **FK Kunice 1934** + vlastní administrace (C
 **Next.js 14 (App Router), React 18, čistý JavaScript (JSX) — NE TypeScript.**
 Nasazeno na **Vercelu**.
 
+## Lokální testování
+`.env.local` (není v gitu) zapíná `FK_LOCAL_STORE=1` → obsah i uživatelé se
+ukládají do složky `.data/`, takže **přežijí restart** `npm run dev`.
+Testovací data nalejeme přes `node --env-file=.env.local scripts/seed-local.mjs`.
+Smazání `.data/` = návrat na úplně čistý web. E2E testy tenhle režim schválně
+nepoužívají (Playwright si `FK_LOCAL_STORE` přebíjí na prázdno).
+
 ## Jak spustit / ověřit
 ```bash
 npm install
@@ -103,7 +110,10 @@ odolné a **vždy s ruční kontrolou**.
 
 ## Sociální sítě (Krok 4)
 - `app/api/og/match/route.js` — vizuál výsledku přes **@vercel/og** (edge).
+  **Formát 1080 × 1350 px (4:5)** — ten Instagram i Facebook zobrazí v plné výšce.
+  Široké 1200 × 630 je jen pro náhledy odkazů, ne pro příspěvky.
   Všechny texty jsou parametry adresy, takže admin mění vizuál bez zásahu do kódu.
+  Znak klubu se bere z `public/logo-og.png` (satori neumí webp).
   Pozor: satori vyžaduje `display:flex` u každého `div` s víc než jedním potomkem.
 - `lib/social.js` — čistá logika: šablona textu (`{vysledek} {domaci} {skore}…`),
   adresa vizuálu, fronta (koncept → ke schválení → odesláno / chyba) a

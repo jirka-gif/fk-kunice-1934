@@ -30,6 +30,8 @@ export default defineConfig({
       AUTH_SECRET: 'test-secret',
       MATCHES_TOKEN: 'e2e-scraper-token',
       DATABASE_URL: '',
+      // e2e běží vždy nad čistým úložištěm v paměti, ne nad lokálními soubory
+      FK_LOCAL_STORE: '',
       POSTGRES_URL: '',
     },
   },
