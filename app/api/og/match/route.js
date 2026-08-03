@@ -6,10 +6,16 @@
 // (KONEC / VÝHRA), pod ním skóre mezi znaky obou týmů, svislý hashtag u okraje.
 //
 // Všechny texty jsou parametry adresy, takže administrace mění vizuál bez zásahu
-// do kódu. Pozor: satori vyžaduje `display: flex` u každého <div> s víc potomky.
+// do kódu. Fotka na pozadí je nahraná v administraci a uložená jako data URL —
+// do adresy by se nevešla, proto se posílá jen `?post=<id>` a obsah si načteme.
+// Pozor: satori vyžaduje `display: flex` u každého <div> s víc potomky.
 import { ImageResponse } from '@vercel/og';
+import { getStoredContent } from '@/lib/db';
+import { mergeStored } from '@/lib/defaults';
 
-export const runtime = 'edge';
+// nodejs (ne edge) — potřebujeme přístup k uloženému obsahu kvůli fotce
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const RED = '#C1121F';
 const RED_BRIGHT = '#D62839';
@@ -54,17 +60,35 @@ function Crest({ name, logo }) {
   );
 }
 
-export function GET(req) {
+// Vizuál uloženého příspěvku (kvůli fotce, která se do adresy nevejde).
+async function storedVisual(postId) {
+  if (!postId) return null;
+  try {
+    const stored = await getStoredContent();
+    if (!stored) return null;
+    const post = mergeStored(stored).socialPosts.find((x) => x.id === postId);
+    return post ? post.visual : null;
+  } catch {
+    return null; // radši vizuál bez fotky než rozbitý obrázek
+  }
+}
+
+export async function GET(req) {
   const url = new URL(req.url);
   const p = url.searchParams;
-  const title = p.get('title') || 'VÝSLEDEK';
-  const home = p.get('home') || 'FK KUNICE';
-  const away = p.get('away') || 'SOUPEŘ';
-  const score = p.get('score') || '0:0';
-  const competition = p.get('competition') || '';
-  const date = p.get('date') || '';
-  const scorers = p.get('scorers') || '';
-  const hashtag = p.get('hashtag') || '#jednotajedeme';
+  const saved = (await storedVisual(p.get('post'))) || {};
+  // hodnota z adresy má přednost před uloženou (kvůli náhledům a ručním úpravám)
+  const val = (key, fallback) => p.get(key) || saved[key] || fallback;
+
+  const title = val('title', 'VÝSLEDEK');
+  const home = val('home', 'FK KUNICE');
+  const away = val('away', 'SOUPEŘ');
+  const score = val('score', '0:0');
+  const competition = val('competition', '');
+  const date = val('date', '');
+  const scorers = val('scorers', '');
+  const hashtag = val('hashtag', '#jednotajedeme');
+  const photo = val('photo', '');
 
   const goals = splitScore(score);
   const logo = `${url.origin}/logo-og.png`;
@@ -88,8 +112,24 @@ export function GET(req) {
           position: 'relative',
         }}
       >
+        {/* fotka na pozadí (nahraje se v administraci) + ztmavení kvůli čitelnosti */}
+        {!!photo && (
+          <img
+            src={photo}
+            width={W}
+            height={H}
+            style={{ position: 'absolute', top: 0, left: 0, width: `${W}px`, height: `${H}px`, objectFit: 'cover' }}
+            alt=""
+          />
+        )}
+        {!!photo && (
+          <div style={{ position: 'absolute', top: 0, left: 0, width: `${W}px`, height: `${H}px`, display: 'flex', background: 'linear-gradient(180deg, rgba(11,11,13,0.78) 0%, rgba(11,11,13,0.55) 38%, rgba(11,11,13,0.92) 78%, rgba(11,11,13,0.97) 100%)' }} />
+        )}
+
         {/* červená záře shora */}
-        <div style={{ position: 'absolute', top: -260, left: -10, width: 1100, height: 900, borderRadius: 999, background: 'radial-gradient(circle, rgba(193,18,31,0.42), rgba(11,11,13,0) 68%)', display: 'flex' }} />
+        {!photo && (
+          <div style={{ position: 'absolute', top: -260, left: -10, width: 1100, height: 900, borderRadius: 999, background: 'radial-gradient(circle, rgba(193,18,31,0.42), rgba(11,11,13,0) 68%)', display: 'flex' }} />
+        )}
 
         {/* svislý hashtag u levého okraje */}
         <div

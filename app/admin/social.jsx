@@ -6,7 +6,7 @@
 // =============================================================================
 import { useState } from 'react';
 import { useData, setSection, updateData } from '@/lib/store';
-import { Card, Btn, Field, Row, Select, SectionHead } from './adminui';
+import { Card, Btn, Field, Row, Select, SectionHead, ImageField } from './adminui';
 import { buildOgUrl, buildPostText, emptySocialPost, SOCIAL_TARGETS, DEFAULT_TEMPLATE } from '@/lib/social';
 
 const RED = '#C1121F';
@@ -167,11 +167,17 @@ export function Socialni() {
                       <Field label="Hashtag ve vizuálu" value={p.visual.hashtag} onChange={(v) => updatePost(p.id, { visual: { ...p.visual, hashtag: v } })} width="230px" />
                     </Row>
 
+                    <div style={{ height: 14 }} />
+                    <ImageField label="Fotka na pozadí (nepovinná)" value={p.visual.photo} onChange={(v) => updatePost(p.id, { visual: { ...p.visual, photo: v } })} />
+                    <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 6 }}>
+                      Fotka se ořízne na výšku a ztmaví, aby zůstaly texty čitelné. Bez fotky zůstane tmavé pozadí s klubovou červenou.
+                    </div>
+
                     <div style={{ margin: '14px 0' }}>
                       <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 700, marginBottom: 8 }}>Náhled vizuálu — 1080 × 1350 px (4:5, formát pro Instagram i Facebook)</div>
                       {/* náhled generovaného obrázku (stejná adresa jde i na Metu) */}
                       <img
-                        src={buildOgUrl(p.visual)}
+                        src={buildOgUrl(p.visual, '', p.id)}
                         alt="Náhled vizuálu"
                         data-og-preview={p.id}
                         style={{ width: '100%', maxWidth: 340, borderRadius: 10, display: 'block', border: '1px solid #ECEEF1' }}

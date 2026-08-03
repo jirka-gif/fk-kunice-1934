@@ -16,6 +16,31 @@ test('vizuál se vygeneruje i bez parametrů (výchozí šablona)', async ({ req
   expect(res.headers()['content-type']).toContain('image/png');
 });
 
+test('vizuál s nahranou fotkou se poskládá podle uloženého příspěvku', async ({ page }) => {
+  await loginToAdmin(page);
+  const content = await (await page.request.get('/api/content')).json();
+  // maličká fotka jako data URL — přesně tak ji ukládá nahrávání v administraci
+  const photo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  content.socialPosts = [{
+    id: 'e2e-fotka', createdAt: '2026-07-25T18:00:00.000Z', status: 'koncept',
+    targets: ['facebook'], text: 'test', attempts: 0, lastError: '', history: [],
+    visual: { title: 'KONEC', home: 'SK POŘÍČANY', away: 'FK KUNICE', score: '4:3', competition: '', date: '', scorers: '', hashtag: '#jednotajedeme', photo },
+  }, ...content.socialPosts];
+  expect((await page.request.put('/api/content', { data: content })).ok()).toBe(true);
+
+  // v adrese je jen id příspěvku, ne obrovská data URL
+  const res = await page.request.get('/api/og/match?post=e2e-fotka');
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/png');
+  expect((await res.body()).length).toBeGreaterThan(5000);
+});
+
+test('neznámé id příspěvku vizuál nerozbije', async ({ request }) => {
+  const res = await request.get('/api/og/match?post=takovy-neexistuje&score=1:0');
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/png');
+});
+
 test('/api/social bez přihlášení odmítne', async ({ request }) => {
   const res = await request.post('/api/social', { data: { id: 'cokoliv' } });
   expect(res.status()).toBe(401);

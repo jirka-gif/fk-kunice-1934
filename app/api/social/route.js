@@ -37,7 +37,7 @@ export async function POST(req) {
     return NextResponse.json({ error: `Příspěvek už selhal ${post.attempts}× — uprav ho a zkus znovu.` }, { status: 400 });
   }
 
-  const imageUrl = buildOgUrl(post.visual, siteUrl(req));
+  const imageUrl = buildOgUrl(post.visual, siteUrl(req), post.id);
   const { results, ok } = await publishPost(post, imageUrl);
 
   let updated = { ...post, attempts: (post.attempts || 0) + 1, status: ok ? 'odesláno' : 'chyba' };

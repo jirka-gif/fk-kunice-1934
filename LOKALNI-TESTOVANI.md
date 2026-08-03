@@ -63,6 +63,8 @@ curl -X POST http://localhost:3000/api/matches -H 'content-type: application/jso
 **Sociální sítě**
 14. **Sociální sítě** → rozklikni koncept, uprav skóre a text, náhled vizuálu
     se překreslí (formát 1080 × 1350 px, tedy 4:5 pro Instagram i Facebook).
+    Zkus i **Fotka na pozadí** — nahraj libovolný snímek ze zápasu; ořízne se
+    na výšku a ztmaví, aby zůstaly texty čitelné. Bez fotky zůstane tmavé pozadí.
 15. Klikni na *Zveřejnit*. Bez tokenů Mety to **schválně** selže a do historie
     příspěvku se zapíše, která proměnná chybí — přesně tak se to chová i ostře.
 

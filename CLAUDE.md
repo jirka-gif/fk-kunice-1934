@@ -114,6 +114,10 @@ odolné a **vždy s ruční kontrolou**.
   Široké 1200 × 630 je jen pro náhledy odkazů, ne pro příspěvky.
   Všechny texty jsou parametry adresy, takže admin mění vizuál bez zásahu do kódu.
   Znak klubu se bere z `public/logo-og.png` (satori neumí webp).
+  **Fotka na pozadí:** nahraje se v adminu a uloží jako data URL — do adresy by
+  se nevešla, proto se posílá jen `?post=<id>` a route si obsah načte sama
+  (proto běží na `nodejs`, ne na edge). Fotka se ořízne na výšku a ztmaví
+  přechodem, aby zůstaly texty čitelné.
   Pozor: satori vyžaduje `display:flex` u každého `div` s víc než jedním potomkem.
 - `lib/social.js` — čistá logika: šablona textu (`{vysledek} {domaci} {skore}…`),
   adresa vizuálu, fronta (koncept → ke schválení → odesláno / chyba) a

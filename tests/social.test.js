@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   buildPostText, buildOgUrl, postFromResult, normalizeSocial, emptySocialPost,
-  emptySocialSettings, canRetry, withHistory, DEFAULT_TEMPLATE,
+  emptySocialSettings, canRetry, withHistory, visualFingerprint, DEFAULT_TEMPLATE,
 } from '@/lib/social';
 import { DEFAULTS, mergeStored, clone } from '@/lib/defaults';
 
@@ -66,6 +66,33 @@ describe('buildOgUrl', () => {
   it('bez základní adresy vrátí relativní odkaz pro náhled', () => {
     expect(buildOgUrl(VISUAL).startsWith('/api/og/match?')).toBe(true);
   });
+
+  it('u příspěvku s nahranou fotkou posílá jen jeho id (data URL by se do adresy nevešla)', () => {
+    const photo = `data:image/jpeg;base64,${'A'.repeat(5000)}`;
+    const url = buildOgUrl({ ...VISUAL, photo }, 'https://fkkunice.cz', 'post-1');
+    expect(url.length).toBeLessThan(200);
+    expect(new URL(url).searchParams.get('post')).toBe('post-1');
+    expect(url).not.toContain('base64');
+  });
+
+  it('po úpravě vizuálu se adresa změní, aby se nezobrazil starý obrázek', () => {
+    const photo = 'data:image/jpeg;base64,AAAA';
+    const a = buildOgUrl({ ...VISUAL, photo }, '', 'post-1');
+    const b = buildOgUrl({ ...VISUAL, photo, score: '9:0' }, '', 'post-1');
+    expect(a).not.toBe(b);
+  });
+
+  it('fotka zadaná odkazem se pošle přímo v adrese', () => {
+    const url = new URL(buildOgUrl({ ...VISUAL, photo: 'https://x.cz/foto.jpg' }, 'https://x.cz'));
+    expect(url.searchParams.get('photo')).toBe('https://x.cz/foto.jpg');
+  });
+});
+
+describe('visualFingerprint', () => {
+  it('stejný vizuál dá stejný otisk, jiný jiný', () => {
+    expect(visualFingerprint(VISUAL)).toBe(visualFingerprint({ ...VISUAL }));
+    expect(visualFingerprint(VISUAL)).not.toBe(visualFingerprint({ ...VISUAL, score: '1:1' }));
+  });
 });
 
 describe('postFromResult — spouštěč z potvrzeného výsledku', () => {
@@ -79,6 +106,7 @@ describe('postFromResult — spouštěč z potvrzeného výsledku', () => {
     expect(post.visual.away).toBe('TJ MNICHOVICE');
     expect(post.visual.date).toBe('14. 06. 2026');
     expect(post.visual.hashtag).toBe('#jednotajedeme');
+    expect(post.visual.photo).toBe(''); // fotku nahraje člověk v administraci
     expect(post.text).toContain('3:1');
   });
 
