@@ -278,7 +278,7 @@ export default function Home() {
         </div>
         <div className="fk-news-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
           {featured && (
-            <Hov as={Link} href="/novinky" className="fk-rev fk-zoom" style="border-radius:10px;overflow:hidden;position:relative;cursor:pointer;min-height:460px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
+            <Hov as={Link} href={`/novinky/${featured.id}`} className="fk-rev fk-zoom" style="border-radius:10px;overflow:hidden;position:relative;cursor:pointer;min-height:460px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
               <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: newsBg(featured, 0), backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 28%,rgba(10,10,11,.92))' }} />
               <div style={{ position: 'relative', padding: 38 }}>
@@ -291,7 +291,7 @@ export default function Home() {
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {sideNews.map((n, i) => (
-              <Hov key={i} as={Link} href="/novinky" className="fk-rev" style="background:#fff;border-radius:10px;padding:16px;display:flex;gap:16px;cursor:pointer;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05);transition:transform .25s,box-shadow .25s" hover="transform:translateX(5px);box-shadow:0 16px 34px rgba(18,18,18,.1)">
+              <Hov key={n.id || i} as={Link} href={`/novinky/${n.id}`} className="fk-rev" style="background:#fff;border-radius:10px;padding:16px;display:flex;gap:16px;cursor:pointer;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05);transition:transform .25s,box-shadow .25s" hover="transform:translateX(5px);box-shadow:0 16px 34px rgba(18,18,18,.1)">
                 <div style={{ width: 100, height: 100, borderRadius: 10, flex: 'none', background: newsBg(n, i + 1), backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '1.2px', color: '#C1121F' }}>{(n.category || '').toUpperCase()}</span>

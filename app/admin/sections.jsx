@@ -1,6 +1,6 @@
 'use client';
 import { useState, Fragment } from 'react';
-import { useData, setSection, emptyCamp } from '@/lib/store';
+import { useData, setSection, emptyCamp, emptyNews, slugify } from '@/lib/store';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
@@ -488,12 +488,12 @@ export function Novinky() {
   const { news } = useData();
   return (
     <div>
-      <SectionHead title="Novinky" desc="Fotka, pár vět, datum — a hotovo. Zobrazí se na webu i na homepage (nejnovější nahoře)." count={news.length} />
+      <SectionHead title="Novinky" desc="Fotka, pár vět, datum — a hotovo. Zobrazí se na webu i na homepage (nejnovější nahoře). Delší text se ukáže na detailu článku." count={news.length} />
       <ListEditor
         items={news}
         onChange={(v) => set('news', v)}
         itemTitle={(n) => n.title || 'Nová novinka'}
-        newItem={{ category: 'Klub', title: 'Nová novinka', text: '', date: '', image: '' }}
+        newItem={() => ({ ...emptyNews(), title: 'Nová novinka', id: `novinka-${Date.now()}` })}
         addLabel="+ Přidat novinku"
         renderItem={(n, u) => (
           <div>
@@ -505,7 +505,14 @@ export function Novinky() {
               <Field label="Datum" value={n.date} onChange={(v) => u({ date: v })} width="150px" placeholder="14. 6. 2026" />
             </Row>
             <div style={{ height: 12 }} />
-            <Field label="Text (pár vět)" textarea rows={3} value={n.text} onChange={(v) => u({ text: v })} />
+            <Field label="Perex (pár vět do výpisu)" textarea rows={2} value={n.text} onChange={(v) => u({ text: v })} />
+            <div style={{ height: 12 }} />
+            <Field label="Text článku (jen na detailu — prázdný řádek dělí odstavce)" textarea rows={6} value={n.body} onChange={(v) => u({ body: v })} />
+            <div style={{ height: 12 }} />
+            <Row>
+              <Field label="Adresa detailu (/novinky/…)" value={n.id} onChange={(v) => u({ id: slugify(v) })} />
+              <a href={`/novinky/${n.id}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#C1121F', padding: '11px 0' }}>Otevřít detail →</a>
+            </Row>
           </div>
         )}
       />
