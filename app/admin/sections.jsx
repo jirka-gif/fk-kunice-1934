@@ -48,6 +48,185 @@ export function Nastaveni() {
   );
 }
 
+// ---------------------------------------------------------------- DOMŮ / TEXTY
+const WHY_ICONS = [
+  { value: 'star', label: 'Hvězda' },
+  { value: 'home', label: 'Domeček' },
+  { value: 'users', label: 'Lidé' },
+  { value: 'ball', label: 'Míč' },
+];
+
+// dvojice „nadpis sekce" (eyebrow + titulek) na hlavní stránce
+function SectionTexts({ label, value, onChange, extra }) {
+  return (
+    <Card style={{ marginBottom: 12 }}>
+      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>{label}</div>
+      <Row>
+        <Field label="Nadnadpis" value={value.eyebrow} onChange={(v) => onChange({ eyebrow: v })} width="240px" />
+        <Field label="Nadpis" value={value.title} onChange={(v) => onChange({ title: v })} />
+      </Row>
+      {extra && <><div style={{ height: 10 }} />{extra}</>}
+    </Card>
+  );
+}
+
+export function Domu() {
+  const { homeTexts, whyCards, footer } = useData();
+  const [tab, setTab] = useState('hero');
+  const setHome = (patch) => set('homeTexts', { ...homeTexts, ...patch });
+  const sec = (key) => (patch) => setHome({ [key]: { ...homeTexts[key], ...patch } });
+  const setFooter = (patch) => set('footer', { ...footer, ...patch });
+  const h = homeTexts.hero;
+
+  return (
+    <div>
+      <SectionHead title="Domů / texty" desc="Texty na hlavní stránce a v patičce — hero, nadpisy sekcí, karty „Proč my“ a odkazy v patičce" />
+      <SubTabs tab={tab} setTab={setTab} tabs={[
+        { id: 'hero', label: 'Hero' },
+        { id: 'sekce', label: 'Nadpisy sekcí' },
+        { id: 'proc', label: 'Proč my', badge: whyCards.length },
+        { id: 'paticka', label: 'Patička' },
+      ]} />
+
+      {tab === 'hero' && (
+        <div>
+          <Card style={{ marginBottom: 16 }}>
+            <Row>
+              <Field label="Hlavní nadpis" value={h.title} onChange={(v) => sec('hero')({ title: v })} />
+              <Field label="Psaný podtitulek" value={h.script} onChange={(v) => sec('hero')({ script: v })} />
+            </Row>
+            <div style={{ height: 12 }} />
+            <Field label="Odstavec (každý řádek se zalomí zvlášť)" textarea rows={3} value={h.perex} onChange={(v) => sec('hero')({ perex: v })} />
+            <div style={{ height: 12 }} />
+            <Field label="Popisek u šipky dolů" value={h.scrollLabel} onChange={(v) => sec('hero')({ scrollLabel: v })} width="220px" />
+          </Card>
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Tlačítka v hero (první je červené)</div>
+          <ListEditor
+            items={h.ctas || []}
+            onChange={(v) => sec('hero')({ ctas: v })}
+            itemTitle={(c) => c.label || 'Nové tlačítko'}
+            newItem={{ label: 'Nové tlačítko', href: '/' }}
+            addLabel="+ Přidat tlačítko"
+            renderItem={(c, u) => (
+              <Row>
+                <Field label="Text tlačítka" value={c.label} onChange={(v) => u({ label: v })} />
+                <Field label="Odkaz" value={c.href} onChange={(v) => u({ href: v })} placeholder="/kontakt" />
+              </Row>
+            )}
+          />
+        </div>
+      )}
+
+      {tab === 'sekce' && (
+        <div>
+          <SectionTexts label="Match center (zápasy)" value={homeTexts.match} onChange={sec('match')} extra={
+            <div>
+              <Row>
+                <Field label="Text odkazu" value={homeTexts.match.link} onChange={(v) => sec('match')({ link: v })} />
+                <Field label="Popisek příštího zápasu" value={homeTexts.match.nextLabel} onChange={(v) => sec('match')({ nextLabel: v })} />
+                <Field label="Tlačítko detailu" value={homeTexts.match.detailLink} onChange={(v) => sec('match')({ detailLink: v })} />
+              </Row>
+              <div style={{ height: 10 }} />
+              <Row>
+                <Field label="Nadpis výsledků" value={homeTexts.match.resultsTitle} onChange={(v) => sec('match')({ resultsTitle: v })} />
+                <Field label="Nadpis tabulky" value={homeTexts.match.tableTitle} onChange={(v) => sec('match')({ tableTitle: v })} />
+              </Row>
+            </div>
+          } />
+          <SectionTexts label="Týmy" value={homeTexts.teams} onChange={sec('teams')} />
+          <SectionTexts label="Proč my" value={homeTexts.why} onChange={sec('why')} />
+          <SectionTexts label="Kempy" value={homeTexts.camps} onChange={sec('camps')} extra={
+            <Field label="Text tlačítka u kempu" value={homeTexts.camps.ctaLabel} onChange={(v) => sec('camps')({ ctaLabel: v })} width="240px" />
+          } />
+          <SectionTexts label="Pronájem" value={homeTexts.rental} onChange={sec('rental')} extra={
+            <Row>
+              <Field label="Text odkazu" value={homeTexts.rental.link} onChange={(v) => sec('rental')({ link: v })} />
+              <Field label="Jednotka u ceny" value={homeTexts.rental.unit} onChange={(v) => sec('rental')({ unit: v })} width="180px" />
+            </Row>
+          } />
+          <SectionTexts label="Novinky" value={homeTexts.news} onChange={sec('news')} extra={
+            <Field label="Text odkazu" value={homeTexts.news.link} onChange={(v) => sec('news')({ link: v })} width="240px" />
+          } />
+          <SectionTexts label="Galerie" value={homeTexts.gallery} onChange={sec('gallery')} />
+          <Card>
+            <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>Partneři</div>
+            <Field label="Nadpis nad logy partnerů" value={homeTexts.sponsors.title} onChange={(v) => sec('sponsors')({ title: v })} width="280px" />
+          </Card>
+        </div>
+      )}
+
+      {tab === 'proc' && (
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>Karty „Proč rodiče volí nás“</div>
+          <ListEditor
+            items={whyCards}
+            onChange={(v) => set('whyCards', v)}
+            itemTitle={(w) => w.title || 'Nová karta'}
+            newItem={{ title: 'Nová karta', text: '', icon: 'star' }}
+            addLabel="+ Přidat kartu"
+            renderItem={(w, u) => (
+              <div>
+                <Row>
+                  <Field label="Nadpis" value={w.title} onChange={(v) => u({ title: v })} />
+                  <Select label="Ikona" value={w.icon} onChange={(v) => u({ icon: v })} options={WHY_ICONS} width="170px" />
+                </Row>
+                <div style={{ height: 10 }} />
+                <Field label="Text" textarea rows={2} value={w.text} onChange={(v) => u({ text: v })} />
+              </div>
+            )}
+          />
+        </div>
+      )}
+
+      {tab === 'paticka' && (
+        <div>
+          <Card style={{ marginBottom: 16 }}>
+            <Row>
+              <Field label="Nadpis kontaktu" value={footer.contactTitle} onChange={(v) => setFooter({ contactTitle: v })} />
+              <Field label="První řádek adresy" value={footer.contactLead} onChange={(v) => setFooter({ contactLead: v })} />
+              <Field label="Popisek u mapy" value={footer.mapLabel} onChange={(v) => setFooter({ mapLabel: v })} />
+            </Row>
+            <div style={{ height: 12 }} />
+            <Row>
+              <Field label="Spodní řádek (copyright)" value={footer.copyright} onChange={(v) => setFooter({ copyright: v })} />
+              <Field label="Claim vpravo dole" value={footer.claim} onChange={(v) => setFooter({ claim: v })} width="260px" />
+            </Row>
+            <div style={{ height: 12 }} />
+            <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginBottom: 8 }}>Odkazy na sociální sítě — prázdné pole ikonu skryje.</div>
+            <Row>
+              <Field label="Instagram" value={footer.social.instagram} onChange={(v) => setFooter({ social: { ...footer.social, instagram: v } })} placeholder="https://instagram.com/…" />
+              <Field label="Facebook" value={footer.social.facebook} onChange={(v) => setFooter({ social: { ...footer.social, facebook: v } })} placeholder="https://facebook.com/…" />
+              <Field label="X / Twitter" value={footer.social.twitter} onChange={(v) => setFooter({ social: { ...footer.social, twitter: v } })} placeholder="https://x.com/…" />
+            </Row>
+          </Card>
+
+          {[['columnA', 'První sloupec odkazů'], ['columnB', 'Druhý sloupec odkazů']].map(([key, label]) => (
+            <div key={key} style={{ marginBottom: 20 }}>
+              <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>{label}</div>
+              <Card style={{ marginBottom: 10 }}>
+                <Field label="Nadpis sloupce" value={footer[key].title} onChange={(v) => setFooter({ [key]: { ...footer[key], title: v } })} width="240px" />
+              </Card>
+              <ListEditor
+                items={footer[key].links || []}
+                onChange={(v) => setFooter({ [key]: { ...footer[key], links: v } })}
+                itemTitle={(l) => l.label || 'Nový odkaz'}
+                newItem={{ label: 'Nový odkaz', href: '/' }}
+                addLabel="+ Přidat odkaz"
+                renderItem={(l, u) => (
+                  <Row>
+                    <Field label="Text" value={l.label} onChange={(v) => u({ label: v })} />
+                    <Field label="Odkaz" value={l.href} onChange={(v) => u({ href: v })} placeholder="/tymy" />
+                  </Row>
+                )}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- TÝMY
 export function Tymy() {
   const { teams } = useData();

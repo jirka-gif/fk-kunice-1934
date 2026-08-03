@@ -1,4 +1,5 @@
 'use client';
+import { Fragment } from 'react';
 import Link from 'next/link';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { Hov, Eyebrow, H2 } from './components/ui';
@@ -18,7 +19,9 @@ function WhyIcon({ k }) {
 
 export default function Home() {
   useRevealEngine();
-  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, facilities, news, sponsors } = useContent();
+  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, facilities, news, sponsors, homeTexts } = useContent();
+  const T = homeTexts;
+  const heroCtas = T.hero.ctas || [];
   const featured = news[0];
   const sideNews = news.slice(1, 4);
   const newsBg = (item, i) => (item && item.image ? `url(${item.image})` : PH_ARR[i % PH_ARR.length]);
@@ -59,27 +62,31 @@ export default function Home() {
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: '0 28px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", color: '#fff', fontSize: 'clamp(64px,9.5vw,148px)', lineHeight: 0.95, letterSpacing: '.5px', textTransform: 'uppercase', textShadow: '0 4px 50px rgba(0,0,0,.55)', maxWidth: 720 }}>
-            FK Kunice
+            {T.hero.title}
           </h1>
           <div className="fk-rev" style={{ marginTop: 20, width: 'max-content', maxWidth: '90vw', position: 'relative', transform: 'rotate(-2.5deg)' }}>
-            <span style={{ fontFamily: "'Caveat',cursive", fontWeight: 700, fontSize: 'clamp(40px,4.8vw,72px)', color: '#fff', lineHeight: .95, display: 'block', whiteSpace: 'nowrap', textShadow: '0 3px 28px rgba(0,0,0,.4)' }}>Společně silnější.</span>
+            <span style={{ fontFamily: "'Caveat',cursive", fontWeight: 700, fontSize: 'clamp(40px,4.8vw,72px)', color: '#fff', lineHeight: .95, display: 'block', whiteSpace: 'nowrap', textShadow: '0 3px 28px rgba(0,0,0,.4)' }}>{T.hero.script}</span>
             <svg viewBox="0 0 400 26" preserveAspectRatio="none" style={{ position: 'absolute', left: 6, bottom: -14, width: '94%', height: 18, overflow: 'visible' }} fill="none"><path d="M5 16 C 90 5, 180 25, 268 11 S 378 5, 395 13" stroke="#D62839" strokeWidth={5} strokeLinecap="round" /></svg>
           </div>
           <p className="fk-rev" style={{ marginTop: 38, color: 'rgba(255,255,255,.72)', fontSize: 'clamp(16px,1.4vw,19px)', lineHeight: 1.65, maxWidth: 430 }}>
-            Fotbal spojuje generace.<br />Od roku 1934 vytváříme místo,<br />kde rostou hráči i přátelství.
+            {String(T.hero.perex || '').split('\n').map((line, i) => (
+              <Fragment key={i}>{i > 0 && <br />}{line}</Fragment>
+            ))}
           </p>
           <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 38 }}>
-            <Hov as={Link} href="/kontakt" style="display:inline-flex;align-items:center;gap:10px;background:#E01B24;color:#fff;font-weight:700;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;box-shadow:0 10px 28px rgba(224,27,36,.4);transition:transform .25s,box-shadow .25s,background .25s" hover="transform:translateY(-2px);box-shadow:0 16px 38px rgba(224,27,36,.55);background:#F0242D;color:#fff">
-              Přidej se do klubu
-              <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
-            </Hov>
-            <Hov as={Link} href="/kempy" style="display:inline-flex;align-items:center;background:rgba(8,8,10,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.28);color:#fff;font-weight:700;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;transition:background .25s,transform .25s,border-color .25s" hover="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.55);transform:translateY(-2px);color:#fff">Letní kempy</Hov>
-            <Hov as={Link} href="/zapasy" style="display:inline-flex;align-items:center;background:rgba(8,8,10,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.28);color:#fff;font-weight:700;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;transition:background .25s,transform .25s,border-color .25s" hover="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.55);transform:translateY(-2px);color:#fff">Rozpis zápasů</Hov>
+            {heroCtas.map((cta, i) => (i === 0 ? (
+              <Hov key={i} as={Link} href={cta.href || '/'} style="display:inline-flex;align-items:center;gap:10px;background:#E01B24;color:#fff;font-weight:700;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;box-shadow:0 10px 28px rgba(224,27,36,.4);transition:transform .25s,box-shadow .25s,background .25s" hover="transform:translateY(-2px);box-shadow:0 16px 38px rgba(224,27,36,.55);background:#F0242D;color:#fff">
+                {cta.label}
+                <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
+              </Hov>
+            ) : (
+              <Hov key={i} as={Link} href={cta.href || '/'} style="display:inline-flex;align-items:center;background:rgba(8,8,10,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.28);color:#fff;font-weight:700;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;transition:background .25s,transform .25s,border-color .25s" hover="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.55);transform:translateY(-2px);color:#fff">{cta.label}</Hov>
+            )))}
           </div>
         </div>
 
         <div style={{ position: 'absolute', zIndex: 3, bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 10, fontWeight: 700, letterSpacing: '2px' }}>SCROLL</span>
+          <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 10, fontWeight: 700, letterSpacing: '2px' }}>{T.hero.scrollLabel}</span>
           <div style={{ width: 24, height: 40, border: '2px solid rgba(255,255,255,.45)', borderRadius: 99, display: 'flex', justifyContent: 'center', paddingTop: 7 }}>
             <span style={{ width: 4, height: 8, background: '#fff', borderRadius: 99, animation: 'fkScroll 1.8s infinite' }} />
           </div>
@@ -101,15 +108,15 @@ export default function Home() {
       {/* ============ MATCH CENTER ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 28px 56px' }}>
         <div className="fk-rev fk-head" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 44, flexWrap: 'wrap' }}>
-          <div><Eyebrow>MATCH CENTER</Eyebrow><H2>Žijeme každým zápasem</H2></div>
-          <Hov as={Link} href="/zapasy" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#fff;box-shadow:0 1px 2px rgba(18,18,18,.05),0 8px 24px rgba(18,18,18,.06);transition:transform .2s,box-shadow .2s" hover="transform:translateY(-2px);box-shadow:0 14px 34px rgba(18,18,18,.12)">Všechny zápasy →</Hov>
+          <div><Eyebrow>{T.match.eyebrow}</Eyebrow><H2>{T.match.title}</H2></div>
+          <Hov as={Link} href="/zapasy" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#fff;box-shadow:0 1px 2px rgba(18,18,18,.05),0 8px 24px rgba(18,18,18,.06);transition:transform .2s,box-shadow .2s" hover="transform:translateY(-2px);box-shadow:0 14px 34px rgba(18,18,18,.12)">{T.match.link}</Hov>
         </div>
 
         <div className="fk-match-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 24 }}>
           {/* upcoming */}
           <div className="fk-rev" style={{ background: 'linear-gradient(155deg,#1c1c1e,#0d0d0f)', borderRadius: 10, padding: 32, color: '#fff', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 60px rgba(18,18,18,.28)' }}>
             <div style={{ position: 'absolute', right: -50, top: -50, width: 220, height: 220, borderRadius: 99, background: 'radial-gradient(circle,rgba(193,18,31,.5),transparent 70%)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}><span style={{ width: 8, height: 8, borderRadius: 99, background: '#D62839', animation: 'fkPulse 1.6s infinite' }} /><span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: 'rgba(255,255,255,.65)' }}>PŘÍŠTÍ ZÁPAS · {nextMatch.when}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}><span style={{ width: 8, height: 8, borderRadius: 99, background: '#D62839', animation: 'fkPulse 1.6s infinite' }} /><span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: 'rgba(255,255,255,.65)' }}>{T.match.nextLabel} · {nextMatch.when}</span></div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '30px 0 26px', position: 'relative' }}>
               <div style={{ textAlign: 'center', flex: 1 }}>
                 <div style={{ width: 72, height: 72, margin: '0 auto 14px', borderRadius: 10, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 22, boxShadow: '0 8px 20px rgba(193,18,31,.4)' }}>{nextMatch.home.short}</div>
@@ -132,7 +139,7 @@ export default function Home() {
               ))}
             </div>
             <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
-              <Hov as={Link} href="/zapasy" style="flex:1;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:14px;border-radius:10px;cursor:pointer;transition:transform .2s,background .2s;box-shadow:0 10px 24px rgba(193,18,31,.4)" hover="transform:translateY(-2px);background:#D62839;color:#fff">Detail zápasu</Hov>
+              <Hov as={Link} href="/zapasy" style="flex:1;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:14px;border-radius:10px;cursor:pointer;transition:transform .2s,background .2s;box-shadow:0 10px 24px rgba(193,18,31,.4)" hover="transform:translateY(-2px);background:#D62839;color:#fff">{T.match.detailLink}</Hov>
               <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.08)', padding: '0 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.8)' }}><Icon name="pin" size={15} /> {nextMatch.venue}</div>
             </div>
           </div>
@@ -140,7 +147,7 @@ export default function Home() {
           {/* results + table */}
           <div className="fk-rev" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div style={{ background: '#fff', borderRadius: 10, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.05)', flex: 'none' }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC', marginBottom: 16 }}>POSLEDNÍ VÝSLEDKY</div>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC', marginBottom: 16 }}>{T.match.resultsTitle}</div>
               {results.map((r, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><span style={{ display: 'inline-flex', ...cssBadge(r.wld) }}>{r.wld}</span><span style={{ fontWeight: 600, fontSize: 14, color: '#1E1E1E' }}>{r.opp}</span></div>
@@ -149,7 +156,7 @@ export default function Home() {
               ))}
             </div>
             <div style={{ background: '#fff', borderRadius: 10, padding: 24, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.05)', flex: 1 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC', marginBottom: 14 }}>TABULKA · III. TŘÍDA</div>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '2px', color: '#9AA1AC', marginBottom: 14 }}>{T.match.tableTitle}</div>
               {table.map((t, i) => (
                 <div key={i} style={styleObj(t.row)}>
                   <span style={{ fontFamily: "'Bebas Neue'", width: 22, color: t.posColor, fontSize: 16 }}>{t.pos}</span>
@@ -166,7 +173,7 @@ export default function Home() {
       {/* ============ TEAMS ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 28px 110px' }}>
         <div className="fk-rev" style={{ marginBottom: 44 }}>
-          <Eyebrow>NAŠE TÝMY</Eyebrow><H2>Od přípravky po dospělé</H2>
+          <Eyebrow>{T.teams.eyebrow}</Eyebrow><H2>{T.teams.title}</H2>
         </div>
         <div className="fk-teams" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 22 }}>
           {teamCards.map((tm) => (
@@ -196,8 +203,8 @@ export default function Home() {
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(70% 60% at 85% 0%,rgba(193,18,31,.22),transparent 58%)' }} />
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px', position: 'relative' }}>
           <div className="fk-rev" style={{ textAlign: 'center', marginBottom: 60 }}>
-            <Eyebrow center dark>PROČ RODIČE VOLÍ NÁS</Eyebrow>
-            <h2 style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(44px,5.6vw,76px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>Víc než jen fotbal</h2>
+            <Eyebrow center dark>{T.why.eyebrow}</Eyebrow>
+            <h2 style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(44px,5.6vw,76px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>{T.why.title}</h2>
           </div>
           <div className="fk-why" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
             {whyCards.map((w, i) => (
@@ -213,7 +220,7 @@ export default function Home() {
 
       {/* ============ CAMPS ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '110px 28px' }}>
-        <div className="fk-rev" style={{ marginBottom: 44 }}><Eyebrow>LETNÍ KEMPY</Eyebrow><H2>Léto plné fotbalu</H2></div>
+        <div className="fk-rev" style={{ marginBottom: 44 }}><Eyebrow>{T.camps.eyebrow}</Eyebrow><H2>{T.camps.title}</H2></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {camps.map((c, i) => (
             <Hov key={i} as={Link} href="/kempy" className="fk-rev fk-zoom" style="border-radius:10px;overflow:hidden;position:relative;cursor:pointer;min-height:340px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
@@ -224,7 +231,7 @@ export default function Home() {
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(32px,4vw,50px)', color: '#fff', textTransform: 'uppercase', lineHeight: 1.02, letterSpacing: '.5px' }}>{c.title}</div>
                 <p style={{ color: 'rgba(255,255,255,.85)', fontSize: 16, marginTop: 14, lineHeight: 1.55 }}>{c.desc}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 26, flexWrap: 'wrap' }}>
-                  <Hov style="background:#C1121F;color:#fff;font-weight:700;font-size:15px;padding:15px 28px;border-radius:10px;box-shadow:0 12px 30px rgba(193,18,31,.5);transition:transform .2s,background .2s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Registrovat →</Hov>
+                  <Hov style="background:#C1121F;color:#fff;font-weight:700;font-size:15px;padding:15px 28px;border-radius:10px;box-shadow:0 12px 30px rgba(193,18,31,.5);transition:transform .2s,background .2s" hover="transform:translateY(-2px);background:#D62839;color:#fff">{T.camps.ctaLabel}</Hov>
                   <div style={{ color: '#fff' }}><span style={{ fontFamily: "'Bebas Neue'", fontSize: 26, letterSpacing: '.5px' }}>{c.price}</span> <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 13, fontWeight: 600 }}>/ {c.term}</span></div>
                 </div>
               </div>
@@ -237,8 +244,8 @@ export default function Home() {
       <section style={{ background: '#fff', padding: '110px 0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px' }}>
           <div className="fk-rev fk-head" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 44, flexWrap: 'wrap' }}>
-            <div><Eyebrow>PRONÁJEM</Eyebrow><H2>Pronajmi si náš areál</H2></div>
-            <Hov as={Link} href="/pronajem" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#F6F7F9;transition:transform .2s,background .2s" hover="background:#EEF0F3;transform:translateY(-2px)">Rezervovat →</Hov>
+            <div><Eyebrow>{T.rental.eyebrow}</Eyebrow><H2>{T.rental.title}</H2></div>
+            <Hov as={Link} href="/pronajem" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#F6F7F9;transition:transform .2s,background .2s" hover="background:#EEF0F3;transform:translateY(-2px)">{T.rental.link}</Hov>
           </div>
           <div className="fk-teams" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 22 }}>
             {facilities.map((f, i) => {
@@ -253,7 +260,7 @@ export default function Home() {
                     <div style={{ color: '#9AA1AC', fontSize: 13, fontWeight: 600, marginTop: 5 }}>{f.spec}</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 18, paddingTop: 16, borderTop: '1px solid #F2F3F5' }}>
                       <span style={{ fontFamily: "'Bebas Neue'", fontSize: 27, color: '#C1121F', letterSpacing: '.5px' }}>{f.price}</span>
-                      <span style={{ color: '#9AA1AC', fontSize: 13, fontWeight: 600 }}>/ hodina</span>
+                      <span style={{ color: '#9AA1AC', fontSize: 13, fontWeight: 600 }}>{T.rental.unit}</span>
                     </div>
                   </div>
                 </Hov>
@@ -266,8 +273,8 @@ export default function Home() {
       {/* ============ NEWS ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '110px 28px' }}>
         <div className="fk-rev fk-head" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 44, flexWrap: 'wrap' }}>
-          <div><Eyebrow>NOVINKY</Eyebrow><H2>Ze života klubu</H2></div>
-          <Hov as={Link} href="/novinky" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#fff;box-shadow:0 1px 2px rgba(18,18,18,.05),0 8px 24px rgba(18,18,18,.06);transition:transform .2s,box-shadow .2s" hover="transform:translateY(-2px);box-shadow:0 14px 34px rgba(18,18,18,.12)">Magazín →</Hov>
+          <div><Eyebrow>{T.news.eyebrow}</Eyebrow><H2>{T.news.title}</H2></div>
+          <Hov as={Link} href="/novinky" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#fff;box-shadow:0 1px 2px rgba(18,18,18,.05),0 8px 24px rgba(18,18,18,.06);transition:transform .2s,box-shadow .2s" hover="transform:translateY(-2px);box-shadow:0 14px 34px rgba(18,18,18,.12)">{T.news.link}</Hov>
         </div>
         <div className="fk-news-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
           {featured && (
@@ -299,7 +306,7 @@ export default function Home() {
 
       {/* ============ GALLERY ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '44px 28px 110px' }}>
-        <div className="fk-rev" style={{ marginBottom: 38 }}><Eyebrow>GALERIE</Eyebrow><H2>Momenty</H2></div>
+        <div className="fk-rev" style={{ marginBottom: 38 }}><Eyebrow>{T.gallery.eyebrow}</Eyebrow><H2>{T.gallery.title}</H2></div>
         <div className="fk-gallery" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gridAutoRows: 172, gap: 14 }}>
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
             const cells = ['grid-column:span 2;grid-row:span 2', '', '', 'grid-column:span 2', '', '', 'grid-column:span 2', ''];
@@ -317,7 +324,7 @@ export default function Home() {
       {/* ============ SPONSORS ============ */}
       <section style={{ background: '#fff', borderTop: '1px solid #ECEEF1', padding: '80px 0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px' }}>
-          <div className="fk-rev" style={{ textAlign: 'center', marginBottom: 40 }}><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#9AA1AC' }}>PARTNEŘI KLUBU</div></div>
+          <div className="fk-rev" style={{ textAlign: 'center', marginBottom: 40 }}><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#9AA1AC' }}>{T.sponsors.title}</div></div>
           <div className="fk-sponsors" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
             {sponsors.map((sp, i) => (
               <Hov key={i} className="fk-rev" style="background:#fff;border:1px solid #ECEEF1;border-radius:10px;height:96px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s,box-shadow .3s,border-color .3s;color:#B7BCC4" hover="transform:translateY(-5px);box-shadow:0 18px 40px rgba(18,18,18,.1);border-color:#fff;color:#C1121F">

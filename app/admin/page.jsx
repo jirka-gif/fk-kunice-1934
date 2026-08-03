@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useData, resetData, exportJson, updateData } from '@/lib/store';
 import { Card, Btn } from './adminui';
 import { Icon } from '../components/icons';
-import { Nastaveni, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace } from './sections';
+import { Nastaveni, Domu, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace } from './sections';
 
 const RED = '#C1121F';
 
@@ -18,6 +18,7 @@ export default function Admin() {
 
   const NAV = [
     { id: 'prehled', icon: 'dashboard', label: 'Přehled' },
+    { id: 'domu', icon: 'news', label: 'Domů / texty' },
     { id: 'tymy', icon: 'teams', label: 'Týmy', badge: String(d.teams.length) },
     { id: 'zapasy', icon: 'ball', label: 'Zápasy' },
     { id: 'novinky', icon: 'news', label: 'Novinky', badge: String(d.news.length) },
@@ -38,7 +39,7 @@ export default function Admin() {
   };
   const doReset = () => { if (confirm('Obnovit veškerý obsah na původní (z webu)? Tvoje úpravy budou ztraceny.')) resetData(); };
 
-  const SECTIONS = { tymy: Tymy, zapasy: Zapasy, novinky: Novinky, kempy: Kempy, pronajem: Pronajem, kontakt: Kontakt, partneri: Partneri, registrace: Registrace, nastaveni: Nastaveni };
+  const SECTIONS = { domu: Domu, tymy: Tymy, zapasy: Zapasy, novinky: Novinky, kempy: Kempy, pronajem: Pronajem, kontakt: Kontakt, partneri: Partneri, registrace: Registrace, nastaveni: Nastaveni };
   const Current = SECTIONS[section];
 
   return (

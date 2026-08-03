@@ -401,3 +401,69 @@ export const teamMatches = {
 };
 // odkaz na FAČR ke každému týmu (klub si upraví na svou konkrétní soutěž)
 Object.values(teamMatches).forEach((m) => { if (!m.facrUrl) m.facrUrl = _FACR; });
+
+// -----------------------------------------------------------------------------
+//  DOMŮ — texty na hlavní stránce (hero, nadpisy sekcí, odkazy).
+//  Dřív byly napsané natvrdo v app/page.jsx; teď jsou editovatelné v adminu
+//  (sekce „Domů / texty"). Web bere hodnoty odsud, tohle je jen výchozí obsah.
+// -----------------------------------------------------------------------------
+export const homeTexts = {
+  hero: {
+    title: 'FK Kunice',
+    script: 'Společně silnější.',
+    perex: 'Fotbal spojuje generace.\nOd roku 1934 vytváříme místo,\nkde rostou hráči i přátelství.',
+    scrollLabel: 'SCROLL',
+    ctas: [
+      { label: 'Přidej se do klubu', href: '/kontakt' },
+      { label: 'Letní kempy', href: '/kempy' },
+      { label: 'Rozpis zápasů', href: '/zapasy' },
+    ],
+  },
+  match: {
+    eyebrow: 'MATCH CENTER',
+    title: 'Žijeme každým zápasem',
+    link: 'Všechny zápasy →',
+    nextLabel: 'PŘÍŠTÍ ZÁPAS',
+    resultsTitle: 'POSLEDNÍ VÝSLEDKY',
+    tableTitle: 'TABULKA · III. TŘÍDA',
+    detailLink: 'Detail zápasu',
+  },
+  teams: { eyebrow: 'NAŠE TÝMY', title: 'Od přípravky po dospělé' },
+  why: { eyebrow: 'PROČ RODIČE VOLÍ NÁS', title: 'Víc než jen fotbal' },
+  camps: { eyebrow: 'LETNÍ KEMPY', title: 'Léto plné fotbalu', ctaLabel: 'Registrovat →' },
+  rental: { eyebrow: 'PRONÁJEM', title: 'Pronajmi si náš areál', link: 'Rezervovat →', unit: '/ hodina' },
+  news: { eyebrow: 'NOVINKY', title: 'Ze života klubu', link: 'Magazín →' },
+  gallery: { eyebrow: 'GALERIE', title: 'Momenty' },
+  sponsors: { title: 'PARTNEŘI KLUBU' },
+};
+
+// -----------------------------------------------------------------------------
+//  PATIČKA — sloupce s odkazy, kontakt a spodní řádek.
+// -----------------------------------------------------------------------------
+export const footer = {
+  columnA: {
+    title: 'KLUB',
+    links: [
+      { label: 'Týmy', href: '/tymy' },
+      { label: 'Zápasy', href: '/zapasy' },
+      { label: 'Novinky', href: '/novinky' },
+      { label: 'Galerie', href: '/' },
+      { label: 'Historie', href: '/' },
+    ],
+  },
+  columnB: {
+    title: 'SLUŽBY',
+    links: [
+      { label: 'Letní kempy', href: '/kempy' },
+      { label: 'Pronájem areálu', href: '/pronajem' },
+      { label: 'Nábor dětí', href: '/kontakt' },
+      { label: 'Admin / CMS', href: '/admin' },
+    ],
+  },
+  contactTitle: 'KONTAKT',
+  contactLead: 'Areál FK Kunice',
+  mapLabel: 'Zobrazit mapu',
+  copyright: '© 2026 FK Kunice 1934. Všechna práva vyhrazena.',
+  claim: 'SPOLEČNĚ SILNĚJŠÍ.',
+  social: { instagram: '', facebook: '', twitter: '' },
+};

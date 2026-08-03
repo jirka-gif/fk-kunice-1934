@@ -24,3 +24,28 @@ test('úprava nastavení klubu přetrvá po reloadu i na webu', async ({ page })
   await openAdminSection(page, 'nastaveni');
   await expect(page.getByLabel('Motto')).toHaveValue(motto);
 });
+
+test('text hero na hlavní stránce se dá upravit v adminu a projeví se na webu', async ({ page }) => {
+  const title = `Hero ${Date.now()}`;
+
+  await loginToAdmin(page);
+  await openAdminSection(page, 'domu');
+  await page.getByLabel('Hlavní nadpis').fill(title);
+  await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
+
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
+});
+
+test('text v patičce se dá upravit v adminu a projeví se na webu', async ({ page }) => {
+  const claim = `CLAIM ${Date.now()}`;
+
+  await loginToAdmin(page);
+  await openAdminSection(page, 'domu');
+  await page.getByRole('button', { name: 'Patička' }).click();
+  await page.getByLabel('Claim vpravo dole').fill(claim);
+  await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
+
+  await page.goto('/');
+  await expect(page.getByText(claim)).toBeVisible();
+});
