@@ -1,6 +1,6 @@
 'use client';
 import { useState, Fragment } from 'react';
-import { useData, setSection } from '@/lib/store';
+import { useData, setSection, emptyCamp } from '@/lib/store';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
@@ -515,14 +515,66 @@ export function Novinky() {
 
 // ---------------------------------------------------------------- KEMPY
 export function Kempy() {
-  const { campDetail } = useData();
-  const upd = (patch) => set('campDetail', { ...campDetail, ...patch });
-  const c = campDetail;
+  const { camps } = useData();
+  const [sel, setSel] = useState(0);
+  const idx = Math.min(sel, Math.max(0, camps.length - 1));
+  const c = camps[idx];
+
+  const upd = (patch) => set('camps', camps.map((cm, i) => (i === idx ? { ...cm, ...patch } : cm)));
+  const addCamp = () => {
+    const id = `kemp-${Date.now()}`;
+    set('camps', [...camps, { ...emptyCamp(), id, title: 'Nový kemp', tag: 'NOVÝ', badge: 'NOVÝ KEMP', img: 'sunset' }]);
+    setSel(camps.length);
+  };
+  const removeCamp = () => {
+    if (!confirm(`Opravdu smazat kemp „${c.title}“? Tuto akci nelze vrátit zpět.`)) return;
+    set('camps', camps.filter((_, i) => i !== idx));
+    setSel(0);
+  };
+
+  if (!c) {
+    return (
+      <div>
+        <SectionHead title="Kempy" desc="Zatím nemáš vypsaný žádný kemp" />
+        <Card><Btn kind="primary" onClick={addCamp}>+ Přidat kemp</Btn></Card>
+      </div>
+    );
+  }
+
+  const activeCount = camps.filter((cm) => !cm.archived).length;
+
   return (
     <div>
-      <SectionHead title="Kempy" desc="Letní kemp — informace, program, FAQ" />
+      <SectionHead title="Kempy" desc="Vypsané kempy — informace, program, trenéři, FAQ. Archivovaný kemp zůstane v adminu, ale zmizí z webu." count={`${activeCount} / ${camps.length}`} />
+
+      {/* přepínač kempů + přidání */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+        {camps.map((cm, i) => {
+          const on = i === idx;
+          return (
+            <button key={cm.id || i} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: on ? '1px solid #C1121F' : '1px solid #ECEEF1', background: on ? '#C1121F' : '#fff', color: on ? '#fff' : (cm.archived ? '#9AA1AC' : '#3a3f47') }}>
+              {cm.title || 'Bez názvu'}
+              {cm.archived && <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: on ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: on ? '#fff' : '#9AA1AC' }}>ARCHIV</span>}
+            </button>
+          );
+        })}
+        <Btn kind="primary" small onClick={addCamp}>+ Přidat kemp</Btn>
+      </div>
+
       <Card style={{ marginBottom: 16 }}>
-        <Field label="Odznak (badge)" value={c.badge} onChange={(v) => upd({ badge: v })} />
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F2F3F5' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: c.archived ? '#9AA1AC' : '#1F8A4C' }}>
+            {c.archived ? 'Archivovaný — na webu se nezobrazuje' : 'Aktivní — zobrazuje se na webu'}
+          </span>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <Btn small kind="ghost" onClick={() => upd({ archived: !c.archived })}>{c.archived ? 'Vrátit na web' : 'Archivovat'}</Btn>
+            <Btn small kind="danger" onClick={removeCamp}>Smazat kemp</Btn>
+          </div>
+        </div>
+        <Row>
+          <Field label="Odznak (badge)" value={c.badge} onChange={(v) => upd({ badge: v })} />
+          <Field label="Štítek na homepage" value={c.tag} onChange={(v) => upd({ tag: v })} width="180px" />
+        </Row>
         <div style={{ height: 10 }} />
         <Row>
           <Field label="Titulek" value={c.title} onChange={(v) => upd({ title: v })} />
@@ -530,12 +582,15 @@ export function Kempy() {
           <Field label="Termín" value={c.term} onChange={(v) => upd({ term: v })} />
         </Row>
         <div style={{ height: 10 }} />
-        <Field label="Úvodní text" textarea rows={2} value={c.lead} onChange={(v) => upd({ lead: v })} />
+        <Field label="Popis na homepage" textarea rows={2} value={c.desc} onChange={(v) => upd({ desc: v })} />
+        <div style={{ height: 10 }} />
+        <Field label="Úvodní text (detail kempu)" textarea rows={2} value={c.lead} onChange={(v) => upd({ lead: v })} />
         <div style={{ height: 10 }} />
         <Row>
           <Field label="Obsazeno (počet)" type="number" value={c.capacity.taken} onChange={(v) => upd({ capacity: { ...c.capacity, taken: Number(v) || 0 } })} width="160px" />
           <Field label="Kapacita celkem" type="number" value={c.capacity.total} onChange={(v) => upd({ capacity: { ...c.capacity, total: Number(v) || 0 } })} width="160px" />
-          <Field label="Start (ISO pro odpočet)" value={c.startISO} onChange={(v) => upd({ startISO: v })} />
+          <Field label="Start (ISO pro odpočet)" value={c.startISO} onChange={(v) => upd({ startISO: v })} placeholder="2026-07-07T08:00:00" />
+          <Field label="Obrázek" value={c.img} onChange={(v) => upd({ img: v })} width="130px" />
         </Row>
       </Card>
 

@@ -222,8 +222,8 @@ export default function Home() {
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '110px 28px' }}>
         <div className="fk-rev" style={{ marginBottom: 44 }}><Eyebrow>{T.camps.eyebrow}</Eyebrow><H2>{T.camps.title}</H2></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {camps.map((c, i) => (
-            <Hov key={i} as={Link} href="/kempy" className="fk-rev fk-zoom" style="border-radius:10px;overflow:hidden;position:relative;cursor:pointer;min-height:340px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
+          {camps.filter((c) => !c.archived).map((c, i) => (
+            <Hov key={c.id || i} as={Link} href="/kempy" className="fk-rev fk-zoom" style="border-radius:10px;overflow:hidden;position:relative;cursor:pointer;min-height:340px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
               <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: photo(c.img), backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(100deg,rgba(10,10,11,.88) 0%,rgba(10,10,11,.5) 45%,rgba(10,10,11,.05) 100%)' }} />
               <div style={{ position: 'relative', padding: 44, maxWidth: 580 }}>

@@ -16,7 +16,7 @@ describe('buildDefaults / DEFAULTS', () => {
   it('obsahuje všechny hlavní sekce webu', () => {
     for (const key of [
       'club', 'teams', 'whyCards', 'camps', 'facilities', 'news', 'sponsors',
-      'campDetail', 'rentalPlans', 'rentalFaq', 'quickActions', 'people',
+      'rentalPlans', 'rentalFaq', 'quickActions', 'people',
       'reservations', 'messages',
     ]) {
       expect(DEFAULTS, `chybí sekce ${key}`).toHaveProperty(key);

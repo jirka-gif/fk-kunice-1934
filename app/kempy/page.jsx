@@ -19,11 +19,28 @@ const cdBoxesCamp = [
 export default function Kempy() {
   useRevealEngine();
   const [faqOpen, setFaqOpen] = useState({});
+  const [sel, setSel] = useState(0);
 
-  const { campDetail } = useContent();
-  const { badge, title, lead, price, term, capacity, perks, program, includes, coaches, faq } = campDetail;
-  const remaining = capacity.total - capacity.taken;
-  const barWidth = (capacity.taken / capacity.total) * 100;
+  const { camps } = useContent();
+  // archivované kempy se na webu nezobrazují (zůstávají jen v administraci)
+  const active = camps.filter((c) => !c.archived);
+
+  if (active.length === 0) {
+    return (
+      <div style={{ background: '#F6F7F9', minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '160px 28px 110px' }}>
+        <div style={{ background: '#fff', borderRadius: 10, padding: 40, textAlign: 'center', maxWidth: 560, boxShadow: cardSh }}>
+          <div style={{ fontFamily: "'Bebas Neue'", fontSize: 34, color: '#121212' }}>Zatím nemáme vypsaný žádný kemp</div>
+          <p style={{ color: '#6B7280', fontSize: 15, marginTop: 10, lineHeight: 1.6 }}>Sledujte nás — nové termíny vypisujeme před každou sezónou. Rádi vám dáme vědět.</p>
+          <Hov as={Link} href="/kontakt" style="display:inline-block;margin-top:18px;background:#C1121F;color:#fff;font-weight:700;font-size:15px;padding:14px 26px;border-radius:10px;cursor:pointer" hover="background:#D62839;color:#fff">Napsat nám →</Hov>
+        </div>
+      </div>
+    );
+  }
+
+  const camp = active[Math.min(sel, active.length - 1)];
+  const { badge, title, lead, price, term, capacity, perks, program, includes, coaches, faq } = camp;
+  const remaining = Math.max(0, (capacity.total || 0) - (capacity.taken || 0));
+  const barWidth = capacity.total ? Math.min(100, (capacity.taken / capacity.total) * 100) : 0;
 
   return (
     <div style={{ background: '#F6F7F9' }}>
@@ -35,6 +52,18 @@ export default function Kempy() {
           <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#C1121F', color: '#fff', fontWeight: 800, fontSize: 12, letterSpacing: '1.5px', padding: '8px 15px', borderRadius: 10, marginBottom: 20 }}>{badge}</div>
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(54px,8.5vw,118px)', lineHeight: 1.22, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px', maxWidth: 900 }}>{title}</h1>
           <p className="fk-rev" style={{ color: 'rgba(255,255,255,.85)', fontSize: 19, marginTop: 20, maxWidth: 580, lineHeight: 1.55 }}>{lead}</p>
+
+          {/* přepínač, když je vypsaných kempů víc */}
+          {active.length > 1 && (
+            <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 26 }}>
+              {active.map((c, i) => {
+                const on = c.id === camp.id;
+                return (
+                  <span key={c.id} onClick={() => { setSel(i); setFaqOpen({}); }} style={{ fontSize: 13, fontWeight: 700, padding: '10px 18px', borderRadius: 10, cursor: 'pointer', transition: 'all .2s', ...(on ? { background: '#C1121F', color: '#fff' } : { background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.8)', border: '1px solid rgba(255,255,255,.2)' }) }}>{c.title}</span>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -42,7 +71,7 @@ export default function Kempy() {
       <section className="fk-camp-grid" style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 28px 110px', display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: 48, alignItems: 'start' }}>
         <div>
           {/* PROČ NÁŠ KEMP */}
-          <div className="fk-rev"><Eyebrow>PROČ NÁŠ KEMP</Eyebrow></div>
+          {perks.length > 0 && <div className="fk-rev"><Eyebrow>PROČ NÁŠ KEMP</Eyebrow></div>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14, marginBottom: 52 }}>
             {perks.map((cp, i) => (
               <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 20, boxShadow: cardSh, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
@@ -56,7 +85,7 @@ export default function Kempy() {
           </div>
 
           {/* DENNÍ PROGRAM */}
-          <div className="fk-rev"><Eyebrow>DENNÍ PROGRAM</Eyebrow></div>
+          {program.length > 0 && <div className="fk-rev"><Eyebrow>DENNÍ PROGRAM</Eyebrow></div>}
           <div style={{ position: 'relative', paddingLeft: 30, marginBottom: 52 }}>
             <div style={{ position: 'absolute', left: 7, top: 6, bottom: 6, width: 2, background: '#ECEEF1' }} />
             {program.map((pr, i) => (
@@ -69,7 +98,7 @@ export default function Kempy() {
           </div>
 
           {/* TRENÉŘI KEMPU */}
-          <div className="fk-rev"><Eyebrow>TRENÉŘI KEMPU</Eyebrow></div>
+          {coaches.length > 0 && <div className="fk-rev"><Eyebrow>TRENÉŘI KEMPU</Eyebrow></div>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 52 }}>
             {coaches.map((st, i) => (
               <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)' }}>
@@ -83,7 +112,7 @@ export default function Kempy() {
           </div>
 
           {/* ČASTÉ DOTAZY */}
-          <div className="fk-rev"><Eyebrow>ČASTÉ DOTAZY</Eyebrow></div>
+          {faq.length > 0 && <div className="fk-rev"><Eyebrow>ČASTÉ DOTAZY</Eyebrow></div>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {faq.map((fq, i) => {
               const open = !!faqOpen[i];
@@ -108,25 +137,29 @@ export default function Kempy() {
               <span style={{ color: '#9AA1AC', fontSize: 14, fontWeight: 600 }}>/ dítě</span>
             </div>
             <div style={{ color: '#6B7280', fontSize: 13, fontWeight: 600, marginTop: 4 }}>{term}</div>
-            <div style={{ margin: '22px 0 18px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
-                <span style={{ color: '#C1121F' }}>Zbývá {remaining} míst</span>
-                <span style={{ color: '#9AA1AC' }}>{capacity.taken} / {capacity.total} obsazeno</span>
-              </div>
-              <div style={{ height: 9, borderRadius: 99, background: '#EFF1F4', overflow: 'hidden' }}>
-                <div style={{ width: `${barWidth}%`, height: '100%', background: 'linear-gradient(90deg,#C1121F,#D62839)' }} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-              {cdBoxesCamp.map((cb) => (
-                <div key={cb.key} style={{ flex: 1, background: '#F6F7F9', borderRadius: 10, padding: '11px 4px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: "'Bebas Neue'", fontSize: 24, color: '#121212' }}><span data-cd-camp={cb.key}>{cb.init}</span></div>
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.5px', color: '#9AA1AC', marginTop: 3 }}>{cb.label}</div>
+            {capacity.total > 0 && (
+              <div style={{ margin: '22px 0 18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
+                  <span style={{ color: '#C1121F' }}>Zbývá {remaining} míst</span>
+                  <span style={{ color: '#9AA1AC' }}>{capacity.taken} / {capacity.total} obsazeno</span>
                 </div>
-              ))}
-            </div>
+                <div style={{ height: 9, borderRadius: 99, background: '#EFF1F4', overflow: 'hidden' }}>
+                  <div style={{ width: `${barWidth}%`, height: '100%', background: 'linear-gradient(90deg,#C1121F,#D62839)' }} />
+                </div>
+              </div>
+            )}
+            {!!camp.startISO && (
+              <div data-camp-start={camp.startISO} style={{ display: 'flex', gap: 8, margin: '20px 0' }}>
+                {cdBoxesCamp.map((cb) => (
+                  <div key={cb.key} style={{ flex: 1, background: '#F6F7F9', borderRadius: 10, padding: '11px 4px', textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Bebas Neue'", fontSize: 24, color: '#121212' }}><span data-cd-camp={cb.key}>{cb.init}</span></div>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.5px', color: '#9AA1AC', marginTop: 3 }}>{cb.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
             <Hov as={Link} href="/kontakt" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:10px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Registrovat dítě →</Hov>
-            <div style={{ marginTop: 22, paddingTop: 20, borderTop: '1px solid #F2F3F5' }}>
+            <div style={{ marginTop: 22, paddingTop: 20, borderTop: '1px solid #F2F3F5', display: includes.length ? 'block' : 'none' }}>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', color: '#9AA1AC', marginBottom: 12 }}>V CENĚ JE</div>
               {includes.map((ci, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
