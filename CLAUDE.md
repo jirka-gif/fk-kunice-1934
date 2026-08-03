@@ -51,6 +51,26 @@ Jeden zdroj obsahu, který čte web i admin:
 **Pravidlo:** komponenty nikdy nesahají na DB ani API napřímo kvůli obsahu —
 vždy přes `useContent()` / `useData()` / `setSection` / `updateData`.
 
+## Uživatelé, role a oprávnění (Krok 2)
+Přihlášení je **na uživatele** (e-mail + heslo), ne na jedno sdílené heslo.
+- `lib/permissions.js` — seznam sekcí adminu (`ADMIN_SECTIONS`), úrovně
+  `none / view / edit`, mapa `SECTION_CONTENT_KEYS` (která sekce vlastní které
+  klíče obsahu) a `canSaveContent()` — podle ní server pozná, jestli uživatel
+  smí uložit konkrétní změnu. Běží na serveru i klientu.
+- `lib/users.js` (server only) — hesla jen jako **PBKDF2-SHA256 hash** (Web Crypto,
+  bez další závislosti), přihlášení, správa uživatelů a rolí.
+- **Úložiště:** uživatelé a role jsou v **oddělené tabulce `site_auth`**, ne
+  v `site_content`. Důvod: obsah je veřejný přes `GET /api/content`, hesla se do
+  něj nesmí dostat. Prisma jsme nepoužili záměrně — vyžadovala by běžící databázi
+  a rozbila guardrail „web musí jet i bez `DATABASE_URL`"; stejný JSONB záznam
+  s fallbackem do paměti drží obojí konzistentní.
+- `lib/apiauth.js` — `requireUser()` / `requireEdit(sekce)` pro chráněná API.
+- API: `/api/login` (e-mail + heslo), `/api/me` (kdo jsem + změna hesla),
+  `/api/users`, `/api/roles`. `PUT /api/content` porovná starý a nový obsah
+  a odmítne (403) změny v sekcích, na které uživatel nemá `edit`.
+- Middleware ověřuje jen podpis cookie (edge nemá přístup k DB); platnost účtu
+  se kontroluje v API a na `/api/me`.
+
 ## Backend (testovací verze — už hotová)
 Obsah je uložený jako **jeden JSON záznam** (řádek `id=1` v tabulce `site_content`).
 - `lib/db.js` — `getStoredContent()`, `saveStoredContent(obj)`, `hasDatabase()`.
@@ -61,25 +81,30 @@ Obsah je uložený jako **jeden JSON záznam** (řádek `id=1` v tabulce `site_c
   `PUT` (jen přihlášený, uloží obsah).
 - `app/api/submit/route.js` — veřejné odeslání formulářů (`reservation` / `registration`
   / `message`); jen **přidává** položku, nikdy nepřepisuje celý obsah.
-- `lib/auth.js` — **zatím jedno sdílené heslo** (`ADMIN_PASSWORD`) + podepsaná cookie
-  (Web Crypto HMAC). `app/api/login`, `app/api/logout`.
+- `lib/auth.js` — podepsaná cookie (Web Crypto HMAC) s id přihlášeného uživatele.
+  `app/api/login`, `app/api/logout`. Uživatele a role řeší `lib/users.js` (viz výš).
 - `middleware.js` — chrání `/admin` (kromě `/admin/login`).
 
 ## Administrace
 `app/admin/page.jsx` (layout + přehled) + `app/admin/sections.jsx` (sekce)
-+ `app/admin/adminui.jsx` (prvky). Sekce v levém menu: Přehled, Domů / texty, Týmy,
-Zápasy, Novinky, Kempy, Pronájem, Kontakt, Zprávy, Partneři, Registrace, Nastavení.
++ `app/admin/adminui.jsx` (prvky) + `app/admin/users.jsx` (uživatelé a role)
++ `app/admin/account.jsx` (změna vlastního hesla). Sekce v levém menu: Přehled,
+Domů / texty, Týmy, Zápasy, Novinky, Kempy, Pronájem, Kontakt, Zprávy, Partneři,
+Registrace, Nastavení, Uživatelé a role — **menu se skládá podle oprávnění role**.
 Přehled ukazuje **reálné počty** z obsahu (nové zprávy, rezervace, registrace,
 vypsané kempy, nejbližší zápasy) — žádná vymyšlená čísla.
 
 ## Proměnné prostředí
-`DATABASE_URL` (Postgres), `ADMIN_PASSWORD` (heslo do adminu), `AUTH_SECRET`
-(podpis cookie). Vzor v `.env.example`. Podrobnosti v `README-BACKEND.md`.
+`DATABASE_URL` (Postgres), `ADMIN_EMAIL` + `ADMIN_PASSWORD` (první správce,
+založí se při prvním spuštění), `AUTH_SECRET` (podpis cookie).
+Vzor v `.env.example`. Podrobnosti v `README-BACKEND.md`.
 
 ## Guardraily (co NErozbít)
 1. Web musí běžet i **bez** `DATABASE_URL` (fallback na `DEFAULTS`).
 2. Obsah teče **jen** přes store a `/api/content`. Neobcházej to.
-3. `PUT /api/content` a admin akce **musí zůstat chráněné** přihlášením.
+3. `PUT /api/content` a admin akce **musí zůstat chráněné** přihlášením —
+   a navíc oprávněním role (server kontroluje, ne jen frontend).
+   Hesla ani uživatelé se **nikdy** nesmí dostat do obsahu webu.
 4. Zachovej JS (žádný TS), inline styly, české texty, klubové barvy.
 5. Pracuj **po malých modulech**, každý samostatně nasaditelný. Po každém `npm run build`.
 6. Neměň `content/club.js` jako způsob úprav dat — je to jen výchozí seed.

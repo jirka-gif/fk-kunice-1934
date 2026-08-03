@@ -136,3 +136,64 @@ Podrobný plán dalších fází (plný admin, role a přístupy, zápasy z fotb
 ---
 
 *Připraveno 31. 7. 2026 · FK Kunice 1934*
+
+---
+
+## Uživatelé, role a oprávnění (Krok 2)
+
+Do administrace se přihlašuje **e-mailem a heslem**, ne jedním sdíleným heslem.
+
+### Kde jsou uložení
+V **samostatné tabulce `site_auth`** (jeden JSONB řádek `id=1`), ne v `site_content`.
+Obsah webu je veřejný přes `GET /api/content` — hesla se do něj nesmí dostat.
+Bez `DATABASE_URL` funguje stejný fallback do paměti jako u obsahu.
+
+**Proč ne Prisma:** Prisma by přinesla migrace, generovaného klienta a hlavně
+nutnost mít vždy běžící databázi. To by rozbilo pravidlo „web musí jet i bez
+`DATABASE_URL`". Jeden JSONB záznam se stejným fallbackem drží obě úložiště
+konzistentní a bez další závislosti. Až bude potřeba relační model, stačí
+přepsat `getStoredAuth` / `saveStoredAuth` — zbytek aplikace se nemění.
+
+**Proč ne Auth.js (NextAuth):** zadání ji doporučovalo, ale nepoužili jsme žádného
+z jejích providerů ani adaptérů — potřebujeme jen e-mail + heslo proti vlastnímu
+úložišti. Přihlášení stojí na podepsané cookie (Web Crypto HMAC), kterou umí ověřit
+i edge middleware, a hesla se hashují PBKDF2-SHA256. Žádná nová závislost.
+
+### První spuštění
+Z `ADMIN_EMAIL` a `ADMIN_PASSWORD` se založí účet správce. Další uživatele
+zakládá on sám v sekci **Uživatelé a role**; heslo se vygeneruje a zobrazí
+jednou — správce ho předá uživateli, ten si ho změní v sekci **Můj účet**.
+
+### Model oprávnění
+Oprávnění se nastavuje po **sekcích administrace** ve třech úrovních:
+
+| Úroveň | Co znamená |
+|---|---|
+| `none` | sekce se v menu vůbec nezobrazí |
+| `view` | uživatel ji vidí, ale nic neuloží (formuláře jsou vypnuté) |
+| `edit` | plný přístup |
+
+Výchozí role: **Správce** (vše, nelze oslabit), **Redaktor**, **Trenér**,
+**Sekretariát**. Matice se edituje v adminu, role se dají přidávat i mazat
+(kromě Správce a rolí, které někdo používá).
+
+### Vynucení na serveru
+`PUT /api/content` porovná uložený a nový obsah, zjistí **které klíče se změnily**
+a podle mapy `SECTION_CONTENT_KEYS` ověří, že na každý z nich má uživatel `edit`.
+Když ne, vrátí **403** se seznamem odmítnutých klíčů a **neuloží nic**.
+`/api/users` a `/api/roles` vyžadují `edit` na sekci „Uživatelé a role".
+
+Middleware ověřuje jen podpis cookie (edge nemá přístup k databázi). Platnost
+účtu — deaktivace, smazání, změna role — se kontroluje v API a na `/api/me`,
+takže deaktivovaný uživatel sice projde middlewarem, ale administrace ho vyhodí
+na přihlášení a žádné API mu nic neuloží.
+
+### API přehled
+| Endpoint | Kdo | Co dělá |
+|---|---|---|
+| `POST /api/login` | veřejné | přihlášení e-mailem a heslem |
+| `POST /api/logout` | veřejné | odhlášení |
+| `GET /api/me` | přihlášený | kdo jsem + moje oprávnění |
+| `PUT /api/me` | přihlášený | změna vlastního hesla |
+| `GET/POST/PUT/DELETE /api/users` | sekce „Uživatelé a role" | správa uživatelů |
+| `GET/PUT /api/roles` | sekce „Uživatelé a role" | matice oprávnění |

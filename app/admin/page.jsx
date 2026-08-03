@@ -1,17 +1,56 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useData, resetData, exportJson, updateData } from '@/lib/store';
+import { useData, resetData, exportJson, updateData, onSaveStatus } from '@/lib/store';
 import { Card, Btn } from './adminui';
 import { Icon } from '../components/icons';
 import { Nastaveni, Domu, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace, Zpravy } from './sections';
+import { Uzivatele } from './users';
+import { ZmenaHesla } from './account';
+import { ADMIN_SECTIONS, canView, canEdit } from '@/lib/permissions';
 
 const RED = '#C1121F';
 
 export default function Admin() {
   const d = useData();
   const [section, setSectionId] = useState('prehled');
+  const [me, setMe] = useState(null);
+  const [loadingMe, setLoadingMe] = useState(true);
+  const [saveStatus, setSaveStatus] = useState(null);
+
+  // kdo je přihlášený a co smí — bez toho administraci nevykreslujeme
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/me', { cache: 'no-store' });
+        if (res.status === 401) { window.location.href = '/admin/login?from=%2Fadmin'; return; }
+        const data = await res.json();
+        if (alive) setMe(data.user);
+      } catch {
+        // necháme prázdné — zobrazí se hláška níž
+      } finally {
+        if (alive) setLoadingMe(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  // hlášky o ukládání (např. odmítnutá změna kvůli oprávnění)
+  useEffect(() => onSaveStatus(setSaveStatus), []);
+
+  const perms = me ? me.permissions : null;
+  const visibleSections = ADMIN_SECTIONS.filter((s) => canView(perms, s.id));
+  // „ucet" (změna vlastního hesla) je dostupný vždy, bez ohledu na roli
+  const allowedIds = [...visibleSections.map((s) => s.id), 'ucet'].join(',');
+
+  // když uživatel na aktuální sekci nemá právo, přepneme ho na první dostupnou
+  useEffect(() => {
+    if (!me) return;
+    const ids = allowedIds.split(',');
+    if (!ids.includes(section)) setSectionId(ids[0] || '');
+  }, [me, section, allowedIds]);
 
   const playersTotal = d.teams.reduce((s, t) => s + t.players.length, 0);
   const coachesTotal = d.teams.reduce((s, t) => s + t.coaches.length, 0);
@@ -36,20 +75,13 @@ export default function Admin() {
     { label: 'Vypsané kempy', value: activeCamps, go: 'kempy', hint: `${d.camps.length - activeCamps} v archivu` },
   ];
 
-  const NAV = [
-    { id: 'prehled', icon: 'dashboard', label: 'Přehled' },
-    { id: 'domu', icon: 'news', label: 'Domů / texty' },
-    { id: 'tymy', icon: 'teams', label: 'Týmy', badge: String(d.teams.length) },
-    { id: 'zapasy', icon: 'ball', label: 'Zápasy' },
-    { id: 'novinky', icon: 'news', label: 'Novinky', badge: String(d.news.length) },
-    { id: 'kempy', icon: 'tent', label: 'Kempy' },
-    { id: 'pronajem', icon: 'stadium', label: 'Pronájem' },
-    { id: 'kontakt', icon: 'mail', label: 'Kontakt' },
-    { id: 'zpravy', icon: 'mail', label: 'Zprávy', badge: String(d.messages.filter((m) => m.status !== 'vyřízená').length) },
-    { id: 'partneri', icon: 'partners', label: 'Partneři' },
-    { id: 'registrace', icon: 'userplus', label: 'Registrace', badge: String(d.cmsRegistrations.length) },
-    { id: 'nastaveni', icon: 'settings', label: 'Nastavení' },
-  ];
+  const BADGES = {
+    tymy: String(d.teams.length),
+    novinky: String(d.news.length),
+    zpravy: String(d.messages.filter((m) => m.status !== 'vyřízená').length),
+    registrace: String(d.cmsRegistrations.length),
+  };
+  const NAV = visibleSections.map((s) => ({ ...s, badge: BADGES[s.id] }));
 
   const doExport = () => {
     const blob = new Blob([exportJson()], { type: 'application/json' });
@@ -59,9 +91,30 @@ export default function Admin() {
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   };
   const doReset = () => { if (confirm('Obnovit veškerý obsah na původní (z webu)? Tvoje úpravy budou ztraceny.')) resetData(); };
+  const doLogout = async () => {
+    try { await fetch('/api/logout', { method: 'POST' }); } catch {}
+    window.location.href = '/admin/login';
+  };
 
-  const SECTIONS = { domu: Domu, zpravy: Zpravy, tymy: Tymy, zapasy: Zapasy, novinky: Novinky, kempy: Kempy, pronajem: Pronajem, kontakt: Kontakt, partneri: Partneri, registrace: Registrace, nastaveni: Nastaveni };
+  const SECTIONS = { domu: Domu, zpravy: Zpravy, tymy: Tymy, zapasy: Zapasy, novinky: Novinky, kempy: Kempy, pronajem: Pronajem, kontakt: Kontakt, partneri: Partneri, registrace: Registrace, nastaveni: Nastaveni, uzivatele: Uzivatele };
   const Current = SECTIONS[section];
+  const readOnly = !canEdit(perms, section);
+  const canEditReservations = canEdit(perms, 'pronajem');
+
+  if (loadingMe) {
+    return <section className="fk-admin" style={{ maxWidth: 1320, margin: '0 auto', padding: '140px 24px 80px', color: '#9AA1AC', fontWeight: 600 }}>Načítám administraci…</section>;
+  }
+  if (!me) {
+    return (
+      <section className="fk-admin" style={{ maxWidth: 720, margin: '0 auto', padding: '140px 24px 80px' }}>
+        <Card>
+          <div style={{ fontFamily: "'Bebas Neue'", fontSize: 28, color: '#121212' }}>Administrace se nenačetla</div>
+          <div style={{ fontSize: 14, color: '#6B7280', marginTop: 8, lineHeight: 1.6 }}>Nepodařilo se ověřit přihlášení. Zkus to prosím znovu.</div>
+          <div style={{ marginTop: 14 }}><Link href="/admin/login" style={{ fontWeight: 700, color: RED, fontSize: 14 }}>Přejít na přihlášení →</Link></div>
+        </Card>
+      </section>
+    );
+  }
 
   return (
     <section className="fk-admin" style={{ maxWidth: 1320, margin: '0 auto', padding: '104px 24px 80px', display: 'grid', gridTemplateColumns: '240px 1fr', gap: 24, alignItems: 'start' }}>
@@ -83,18 +136,34 @@ export default function Admin() {
           );
         })}
         <div style={{ borderTop: '1px solid #F2F3F5', marginTop: 12, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Btn kind="dark" onClick={doExport}>⤓ Export dat (JSON)</Btn>
-          <Btn kind="ghost" small onClick={doReset}>Obnovit původní</Btn>
+          <div style={{ padding: '2px 4px 8px' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#1E1E1E', overflow: 'hidden', textOverflow: 'ellipsis' }}>{me.name || me.email}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9AA1AC' }}>{me.roleName}</div>
+          </div>
+          <Btn kind="ghost" small onClick={() => setSectionId('ucet')}>Změnit heslo</Btn>
+          {canEdit(perms, 'nastaveni') && <Btn kind="dark" onClick={doExport}>⤓ Export dat (JSON)</Btn>}
+          {canEdit(perms, 'nastaveni') && <Btn kind="ghost" small onClick={doReset}>Obnovit původní</Btn>}
+          <Btn kind="ghost" small onClick={doLogout}>Odhlásit se</Btn>
           <Link href="/" style={{ fontSize: 12, fontWeight: 700, color: '#9AA1AC', textAlign: 'center', padding: 6 }}>← Zpět na web</Link>
         </div>
       </div>
 
       {/* MAIN */}
       <div style={{ minWidth: 0 }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 20, lineHeight: 1.5 }}>
-          <span style={{ flex: 'none', color: '#1F8A4C', marginTop: 1 }}><Icon name="checkCircle" size={17} /></span>
-          <span>Administrace je <b>plně funkční</b> — úpravy se ukládají automaticky do prohlížeče a hned se projeví na webu. Tlačítkem <b>Export</b> stáhneš obsah jako JSON pro napojení na server / headless CMS.</span>
-        </div>
+        {saveStatus && saveStatus.state === 'error' ? (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#FBEAEC', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: RED, fontWeight: 700, marginBottom: 20, lineHeight: 1.5 }}>
+            <span>{saveStatus.message} Změna zůstala jen v tomto prohlížeči — po obnovení stránky zmizí.</span>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 20, lineHeight: 1.5 }}>
+            <span style={{ flex: 'none', color: '#1F8A4C', marginTop: 1 }}><Icon name="checkCircle" size={17} /></span>
+            <span>
+              {saveStatus && saveStatus.state === 'saving' ? 'Ukládám změny…'
+                : saveStatus && saveStatus.state === 'saved' ? 'Změny uloženy na server.'
+                : 'Administrace je plně funkční — úpravy se ukládají automaticky a hned se projeví na webu.'}
+            </span>
+          </div>
+        )}
 
         {section === 'prehled' ? (
           <div>
@@ -176,12 +245,33 @@ export default function Admin() {
                       <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{r.name} {r.source === 'web' ? <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC' }}>· WEB</span> : <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC' }}>· {String(r.source || '').toUpperCase()}</span>}</div>
                       <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{[r.area, r.date, r.time].filter(Boolean).join(' · ')}</div>
                     </div>
-                    <span title="Potvrdit" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'potvrzená'; })} style={{ width: 30, height: 30, borderRadius: 10, background: '#EAF6EE', color: '#1F8A4C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✓</span>
-                    <span title="Zamítnout" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'zamítnutá'; })} style={{ width: 30, height: 30, borderRadius: 10, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✕</span>
+                    {canEditReservations && (
+                      <>
+                        <span title="Potvrdit" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'potvrzená'; })} style={{ width: 30, height: 30, borderRadius: 10, background: '#EAF6EE', color: '#1F8A4C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✓</span>
+                        <span title="Zamítnout" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'zamítnutá'; })} style={{ width: 30, height: 30, borderRadius: 10, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✕</span>
+                      </>
+                    )}
                   </div>
                 );
               })}
             </Card>
+          </div>
+        ) : section === 'ucet' ? (
+          <ZmenaHesla me={me} />
+        ) : !Current ? (
+          <Card>
+            <div style={{ fontFamily: "'Bebas Neue'", fontSize: 26, color: '#121212' }}>Tady zatím nic není</div>
+            <div style={{ fontSize: 14, color: '#6B7280', marginTop: 8 }}>Tvoje role nemá přístup k žádné sekci administrace. Ozvi se správci webu.</div>
+          </Card>
+        ) : readOnly ? (
+          <div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', background: '#F4F5F7', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: '#6B7280', fontWeight: 700, marginBottom: 16 }}>
+              Tuhle sekci máš jen pro čtení — úpravy ti server neuloží.
+            </div>
+            {/* fieldset s disabled vypne všechna pole i tlačítka uvnitř */}
+            <fieldset disabled style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
+              <Current />
+            </fieldset>
           </div>
         ) : (
           <Current />

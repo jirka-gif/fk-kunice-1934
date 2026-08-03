@@ -1,4 +1,4 @@
-// Testy přihlašování: kontrola hesla, podpis a ověření session cookie.
+// Testy přihlašovací session: podpis, expirace a id uživatele v cookie.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 const ORIGINAL_ENV = { ...process.env };
@@ -19,55 +19,44 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('checkPassword', () => {
-  it('přijme správné heslo', async () => {
-    const { checkPassword } = await loadAuth();
-    expect(checkPassword('tajne-heslo')).toBe(true);
-  });
-
-  it('odmítne špatné, prázdné i nestringové heslo', async () => {
-    const { checkPassword } = await loadAuth();
-    expect(checkPassword('spatne')).toBe(false);
-    expect(checkPassword('')).toBe(false);
-    expect(checkPassword(null)).toBe(false);
-    expect(checkPassword(undefined)).toBe(false);
-    expect(checkPassword(123)).toBe(false);
-  });
-
-  it('bez ADMIN_PASSWORD použije výchozí vývojové heslo', async () => {
-    delete process.env.ADMIN_PASSWORD;
-    const { checkPassword } = await loadAuth();
-    expect(checkPassword('fkkunice')).toBe(true);
-    expect(checkPassword('cokoliv')).toBe(false);
-  });
-});
-
 describe('session token', () => {
-  it('vytvořený token projde ověřením', async () => {
-    const { createSessionToken, verifySessionToken } = await loadAuth();
-    const token = await createSessionToken();
+  it('vytvořený token projde ověřením a nese id uživatele', async () => {
+    const { createSessionToken, verifySessionToken, sessionUserId } = await loadAuth();
+    const token = await createSessionToken('uzivatel-1');
     expect(token).toContain('.');
     expect(await verifySessionToken(token)).toBe(true);
+    expect(await sessionUserId(token)).toBe('uzivatel-1');
   });
 
   it('odmítne chybějící nebo poškozený token', async () => {
-    const { verifySessionToken } = await loadAuth();
+    const { verifySessionToken, sessionUserId } = await loadAuth();
     expect(await verifySessionToken(undefined)).toBe(false);
     expect(await verifySessionToken('')).toBe(false);
     expect(await verifySessionToken('bez-tecky')).toBe(false);
     expect(await verifySessionToken(42)).toBe(false);
+    expect(await sessionUserId('bez-tecky')).toBe(null);
   });
 
   it('odmítne token s podvrženým podpisem', async () => {
     const { createSessionToken, verifySessionToken } = await loadAuth();
-    const token = await createSessionToken();
+    const token = await createSessionToken('uzivatel-1');
     const [body] = token.split('.');
     expect(await verifySessionToken(`${body}.podvrzeny-podpis`)).toBe(false);
   });
 
+  it('nejde podvrhnout cizí id — podpis přestane sedět', async () => {
+    const { createSessionToken, sessionUserId, verifySessionToken } = await loadAuth();
+    const token = await createSessionToken('uzivatel-1');
+    const [, sig] = token.split('.');
+    const fakeBody = btoa(JSON.stringify({ uid: 'spravce', exp: Math.floor(Date.now() / 1000) + 999 }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    expect(await verifySessionToken(`${fakeBody}.${sig}`)).toBe(false);
+    expect(await sessionUserId(`${fakeBody}.${sig}`)).toBe(null);
+  });
+
   it('odmítne token podepsaný jiným tajemstvím', async () => {
     const a = await loadAuth();
-    const token = await a.createSessionToken();
+    const token = await a.createSessionToken('uzivatel-1');
     process.env.AUTH_SECRET = 'uplne-jiny-podpis';
     const b = await loadAuth();
     expect(await b.verifySessionToken(token)).toBe(false);
@@ -75,7 +64,7 @@ describe('session token', () => {
 
   it('odmítne token po vypršení platnosti', async () => {
     const { createSessionToken, verifySessionToken } = await loadAuth();
-    const token = await createSessionToken();
+    const token = await createSessionToken('uzivatel-1');
     // posuneme čas o 8 dní (platnost je 7 dní)
     const realNow = Date.now;
     Date.now = () => realNow() + 8 * 24 * 60 * 60 * 1000;

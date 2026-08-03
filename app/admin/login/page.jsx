@@ -5,6 +5,7 @@ import Image from 'next/image';
 const RED = '#C1121F';
 
 export default function AdminLogin() {
+  const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,13 +18,14 @@ export default function AdminLogin() {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw }),
+        body: JSON.stringify({ email, password: pw }),
       });
       if (res.ok) {
         const params = new URLSearchParams(window.location.search);
         window.location.href = params.get('from') || '/admin';
       } else {
-        setErr('Nesprávné heslo. Zkus to prosím znovu.');
+        const data = await res.json().catch(() => ({}));
+        setErr(data.error || 'Nesprávný e-mail nebo heslo. Zkus to prosím znovu.');
       }
     } catch {
       setErr('Přihlášení se nezdařilo. Zkontroluj připojení.');
@@ -44,13 +46,22 @@ export default function AdminLogin() {
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#9AA1AC' }}>ADMINISTRACE</div>
           </div>
         </div>
-        <div style={{ fontSize: 14, color: '#6B7280', marginBottom: 16 }}>Zadej heslo pro přístup do správy webu.</div>
+        <div style={{ fontSize: 14, color: '#6B7280', marginBottom: 16 }}>Přihlas se svým e-mailem a heslem.</div>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="E-mail"
+          autoComplete="username"
+          autoFocus
+          style={{ width: '100%', border: '1px solid #ECEEF1', background: '#FAFBFC', borderRadius: 10, padding: '13px 15px', fontSize: 15, fontFamily: 'inherit', color: '#1E1E1E', outline: 'none', marginBottom: 10 }}
+        />
         <input
           type="password"
           value={pw}
           onChange={(e) => setPw(e.target.value)}
           placeholder="Heslo"
-          autoFocus
+          autoComplete="current-password"
           style={{ width: '100%', border: '1px solid #ECEEF1', background: '#FAFBFC', borderRadius: 10, padding: '13px 15px', fontSize: 15, fontFamily: 'inherit', color: '#1E1E1E', outline: 'none', marginBottom: 12 }}
         />
         {err && <div style={{ fontSize: 13, color: RED, fontWeight: 600, marginBottom: 12 }}>{err}</div>}

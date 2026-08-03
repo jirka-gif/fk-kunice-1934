@@ -25,6 +25,7 @@ export default defineConfig({
     timeout: 180_000,
     env: {
       // Testovací prostředí: bez databáze (fallback do paměti) a se známým heslem.
+      ADMIN_EMAIL: 'spravce@fkkunice.cz',
       ADMIN_PASSWORD: 'test-heslo',
       AUTH_SECRET: 'test-secret',
       DATABASE_URL: '',
