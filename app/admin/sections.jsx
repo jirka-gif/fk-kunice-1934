@@ -623,6 +623,81 @@ export function Kempy() {
   );
 }
 
+// ---------------------------------------------------------------- ZPRÁVY
+// datum ve tvaru „14. 6. 2026 18:05"; když chybí nebo je poškozené, vrátí „—"
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return String(iso);
+  return `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+export function Zpravy() {
+  const { messages } = useData();
+  const [tab, setTab] = useState('nove');
+  const [open, setOpen] = useState(null);
+
+  const newCount = messages.filter((m) => m.status !== 'vyřízená').length;
+  const shown = messages
+    .map((m, i) => ({ ...m, _i: i }))
+    .filter((m) => (tab === 'vse' ? true : tab === 'nove' ? m.status !== 'vyřízená' : m.status === 'vyřízená'));
+
+  const update = (i, patch) => set('messages', messages.map((m, idx) => (idx === i ? { ...m, ...patch } : m)));
+  const remove = (i) => {
+    if (!confirm('Opravdu smazat tuto zprávu? Tuto akci nelze vrátit zpět.')) return;
+    set('messages', messages.filter((_, idx) => idx !== i));
+    setOpen(null);
+  };
+
+  return (
+    <div>
+      <SectionHead title="Zprávy" desc="Zprávy odeslané z kontaktního formuláře na webu" count={newCount} />
+      <SubTabs tab={tab} setTab={setTab} tabs={[
+        { id: 'nove', label: 'Nové', badge: newCount },
+        { id: 'vyrizene', label: 'Vyřízené', badge: messages.length - newCount },
+        { id: 'vse', label: 'Vše', badge: messages.length },
+      ]} />
+
+      {shown.length === 0 ? (
+        <Card><div style={{ padding: 8, textAlign: 'center', color: '#9AA1AC', fontWeight: 600, fontSize: 14 }}>Žádné zprávy v této složce.</div></Card>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {shown.map((m) => {
+            const done = m.status === 'vyřízená';
+            const isOpen = open === m._i;
+            return (
+              <Card key={m._i} style={{ padding: 0, overflow: 'hidden' }}>
+                <div onClick={() => setOpen(isOpen ? null : m._i)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', cursor: 'pointer', background: isOpen ? '#FBF6F6' : '#fff' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>
+                      {m.name || <span style={{ color: '#C7CCD3' }}>Bez jména</span>}
+                      <span style={statusPill(done ? 'potvrzená' : 'nová')}>{done ? 'vyřízená' : 'nová'}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {[m.email, formatDate(m.date)].filter(Boolean).join(' · ')}
+                    </div>
+                  </div>
+                  <span style={{ color: '#C1121F', fontWeight: 700, fontSize: 12, flex: 'none' }}>Detail {isOpen ? '▲' : '▾'}</span>
+                </div>
+                {isOpen && (
+                  <div style={{ padding: 18, background: '#FBF6F6', borderTop: '1px solid #F2F3F5' }}>
+                    <div style={{ background: '#fff', borderRadius: 10, padding: 16, fontSize: 14, color: '#3a3f47', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text || 'Bez textu.'}</div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <Btn small onClick={() => update(m._i, { status: done ? 'nová' : 'vyřízená' })}>{done ? 'Vrátit mezi nové' : 'Označit jako vyřízenou'}</Btn>
+                      {m.email && <a href={`mailto:${m.email}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem →</a>}
+                      <span style={{ marginLeft: 'auto' }}><Btn small kind="danger" onClick={() => remove(m._i)}>Smazat zprávu</Btn></span>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- PRONÁJEM
 const RES_STATUS = ['nová', 'potvrzená', 'zamítnutá'];
 const RES_SOURCE = ['web', 'telefon', 'osobně'];

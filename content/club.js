@@ -288,22 +288,11 @@ export const people = [
 // -----------------------------------------------------------------------------
 //  CMS / ADMIN — dashboard přehled (z designu)
 // -----------------------------------------------------------------------------
-export const cmsStats = [
-  { label: 'Členové', value: '342', trend: '↑ +12 tento měsíc', up: true },
-  { label: 'Návštěvy webu', value: '8 420', trend: '↑ +18 % týdně', up: true },
-  { label: 'Rezervace', value: '27', trend: '↑ +4 tento týden', up: true },
-  { label: 'Příjmy (Kč)', value: '64 300', trend: '↑ +9 % měsíc', up: true },
-];
 export const cmsRegistrations = [
   { name: 'Tobiáš Malý', team: 'Přípravka U9', ini: 'TM', bg: '#C1121F', tag: 'Nová', tg: 'new' },
   { name: 'Eliška Horká', team: 'Žáci U13', ini: 'EH', bg: '#2d6b8a', tag: 'Nová', tg: 'new' },
   { name: 'Matěj Dušek', team: 'Dorost U17', ini: 'MD', bg: '#7a4a8c', tag: 'Čeká', tg: 'wait' },
   { name: 'Klára Veselá', team: 'Školička', ini: 'KV', bg: '#c0853c', tag: 'Schváleno', tg: 'ok' },
-];
-export const cmsTodayMatches = [
-  { match: 'Kunice – Mnichovice', team: 'A-tým', time: '16:30' },
-  { match: 'Kunice – Mukařov', team: 'Dorost', time: '10:00' },
-  { match: 'Struhařov – Kunice', team: 'Žáci', time: '09:00' },
 ];
 // Rezervace pronájmu — z webu i ručně založené (telefon/osobně).
 // status: 'nová' | 'potvrzená' | 'zamítnutá';  source: 'web' | 'telefon' | 'osobně'

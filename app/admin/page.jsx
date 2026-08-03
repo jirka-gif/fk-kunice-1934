@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useData, resetData, exportJson, updateData } from '@/lib/store';
 import { Card, Btn } from './adminui';
 import { Icon } from '../components/icons';
-import { Nastaveni, Domu, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace } from './sections';
+import { Nastaveni, Domu, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace, Zpravy } from './sections';
 
 const RED = '#C1121F';
 
@@ -16,6 +16,26 @@ export default function Admin() {
   const playersTotal = d.teams.reduce((s, t) => s + t.players.length, 0);
   const coachesTotal = d.teams.reduce((s, t) => s + t.coaches.length, 0);
 
+  // reálné počty toho, co čeká na vyřízení (dřív tu byla vymyšlená čísla)
+  const newMessages = d.messages.filter((m) => m.status !== 'vyřízená').length;
+  const newReservations = d.reservations.filter((r) => r.status === 'nová').length;
+  const newRegistrations = d.cmsRegistrations.filter((r) => r.tg === 'new').length;
+  const activeCamps = d.camps.filter((c) => !c.archived).length;
+  // nejbližší zápasy podle termínů vyplněných u týmů (dřív tu byl vymyšlený seznam)
+  const upcoming = d.teams
+    .filter((t) => t.nextMatch && t.nextMatch.dateISO && !isNaN(new Date(t.nextMatch.dateISO)))
+    .map((t) => ({ team: t.name, when: new Date(t.nextMatch.dateISO), match: `${t.nextMatch.home.name} – ${t.nextMatch.away.name}` }))
+    .sort((a, b) => a.when - b.when)
+    .slice(0, 5)
+    .map((m) => ({ ...m, time: `${m.when.getDate()}. ${m.when.getMonth() + 1}. ${String(m.when.getHours()).padStart(2, '0')}:${String(m.when.getMinutes()).padStart(2, '0')}` }));
+
+  const todo = [
+    { label: 'Nové zprávy', value: newMessages, go: 'zpravy', hint: 'z kontaktního formuláře' },
+    { label: 'Nové rezervace', value: newReservations, go: 'pronajem', hint: 'poptávky pronájmu' },
+    { label: 'Nové registrace', value: newRegistrations, go: 'registrace', hint: 'přihlášky do klubu' },
+    { label: 'Vypsané kempy', value: activeCamps, go: 'kempy', hint: `${d.camps.length - activeCamps} v archivu` },
+  ];
+
   const NAV = [
     { id: 'prehled', icon: 'dashboard', label: 'Přehled' },
     { id: 'domu', icon: 'news', label: 'Domů / texty' },
@@ -25,6 +45,7 @@ export default function Admin() {
     { id: 'kempy', icon: 'tent', label: 'Kempy' },
     { id: 'pronajem', icon: 'stadium', label: 'Pronájem' },
     { id: 'kontakt', icon: 'mail', label: 'Kontakt' },
+    { id: 'zpravy', icon: 'mail', label: 'Zprávy', badge: String(d.messages.filter((m) => m.status !== 'vyřízená').length) },
     { id: 'partneri', icon: 'partners', label: 'Partneři' },
     { id: 'registrace', icon: 'userplus', label: 'Registrace', badge: String(d.cmsRegistrations.length) },
     { id: 'nastaveni', icon: 'settings', label: 'Nastavení' },
@@ -39,7 +60,7 @@ export default function Admin() {
   };
   const doReset = () => { if (confirm('Obnovit veškerý obsah na původní (z webu)? Tvoje úpravy budou ztraceny.')) resetData(); };
 
-  const SECTIONS = { domu: Domu, tymy: Tymy, zapasy: Zapasy, novinky: Novinky, kempy: Kempy, pronajem: Pronajem, kontakt: Kontakt, partneri: Partneri, registrace: Registrace, nastaveni: Nastaveni };
+  const SECTIONS = { domu: Domu, zpravy: Zpravy, tymy: Tymy, zapasy: Zapasy, novinky: Novinky, kempy: Kempy, pronajem: Pronajem, kontakt: Kontakt, partneri: Partneri, registrace: Registrace, nastaveni: Nastaveni };
   const Current = SECTIONS[section];
 
   return (
@@ -82,13 +103,15 @@ export default function Admin() {
               <div style={{ width: 38, height: 38, borderRadius: 99, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 13 }}>PD</div>
             </div>
 
-            {/* marketingové metriky */}
+            {/* co čeká na vyřízení — reálné počty z obsahu webu */}
             <div className="fk-admin-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
-              {d.cmsStats.map((c, i) => (
-                <Card key={i}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#9AA1AC', letterSpacing: '.5px' }}>{c.label}</div>
-                  <div style={{ fontFamily: "'Bebas Neue'", fontSize: 34, color: '#121212', marginTop: 8, lineHeight: 1 }}>{c.value}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6, color: c.up ? '#1F8A4C' : RED }}>{c.trend}</div>
+              {todo.map((c, i) => (
+                <Card key={i} style={{ cursor: 'pointer' }}>
+                  <div onClick={() => setSectionId(c.go)}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#9AA1AC', letterSpacing: '.5px' }}>{c.label}</div>
+                    <div style={{ fontFamily: "'Bebas Neue'", fontSize: 34, color: c.value > 0 ? RED : '#121212', marginTop: 8, lineHeight: 1 }}>{c.value}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6, color: '#9AA1AC' }}>{c.hint}</div>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -127,11 +150,14 @@ export default function Admin() {
                 ))}
               </Card>
               <Card>
-                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Dnešní zápasy</div>
-                {d.cmsTodayMatches.map((m, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #F2F3F5' }}>
-                    <div><div style={{ fontWeight: 700, fontSize: 13, color: '#1E1E1E' }}>{m.match}</div><div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{m.team}</div></div>
-                    <span style={{ fontFamily: "'Bebas Neue'", fontSize: 15, color: RED }}>{m.time}</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}><span style={{ fontWeight: 800, fontSize: 15 }}>Nejbližší zápasy</span><span onClick={() => setSectionId('zapasy')} style={{ fontSize: 12, fontWeight: 700, color: RED, cursor: 'pointer' }}>Upravit</span></div>
+                {upcoming.length === 0 && (
+                  <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, padding: '8px 0' }}>Žádný tým nemá vyplněný termín příštího zápasu.</div>
+                )}
+                {upcoming.map((m, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '12px 0', borderBottom: '1px solid #F2F3F5' }}>
+                    <div style={{ minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 13, color: '#1E1E1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.match}</div><div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{m.team}</div></div>
+                    <span style={{ fontFamily: "'Bebas Neue'", fontSize: 15, color: RED, flex: 'none' }}>{m.time}</span>
                   </div>
                 ))}
               </Card>

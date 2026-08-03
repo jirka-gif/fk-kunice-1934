@@ -34,9 +34,15 @@ ochrana `/admin`). Před prvním e2e během: `npx playwright install chromium`.
 ## Datový tok (klíčové — pochop před úpravami)
 Jeden zdroj obsahu, který čte web i admin:
 - `content/club.js` — výchozí obsah (seed): klub, 11 týmů, soupisky, zápasy, novinky,
-  kempy, pronájem, kontakty, partneři. **Needituj tu ručně data, je to jen seed.**
-- `lib/defaults.js` — sestaví z club.js objekt `DEFAULTS` a normalizuje týmy
-  (`mergeStored`, `normalizeTeams`, `toPlayer`). Běží na serveru i klientu (bez Reactu).
+  kempy, pronájem, kontakty, partneři, texty homepage (`homeTexts`) a patičky (`footer`).
+  **Needituj tu ručně data, je to jen seed.**
+- `lib/defaults.js` — sestaví z club.js objekt `DEFAULTS` a normalizuje data
+  (`mergeStored`, `normalizeTeams`, `normalizeCamps`, `normalizeNews`, `fillDefaults`,
+  `toPlayer`). Běží na serveru i klientu (bez Reactu).
+  - **kempy** jsou seznam (karta + detail v jednom objektu, `archived` je schová z webu),
+  - **novinky** mají `id` (adresa detailu `/novinky/<id>`) a delší text `body`,
+  - `fillDefaults` doplní chybějící vnořené klíče, aby starý uložený obsah
+    nepřišel o nově přidané texty.
 - `lib/store.js` (`'use client'`) — React Context. Web čte přes `useContent()`,
   admin přes `useData()`. Zápis přes `setSection(key, value)` a `updateData(mutator)`
   → interní `commit()` uloží do localStorage (cache) a **debounced PUT `/api/content`**.
@@ -61,8 +67,10 @@ Obsah je uložený jako **jeden JSON záznam** (řádek `id=1` v tabulce `site_c
 
 ## Administrace
 `app/admin/page.jsx` (layout + přehled) + `app/admin/sections.jsx` (sekce)
-+ `app/admin/adminui.jsx` (prvky). Sekce v levém menu: Přehled, Týmy, Zápasy, Novinky,
-Kempy, Pronájem, Kontakt, Partneři, Registrace, Nastavení.
++ `app/admin/adminui.jsx` (prvky). Sekce v levém menu: Přehled, Domů / texty, Týmy,
+Zápasy, Novinky, Kempy, Pronájem, Kontakt, Zprávy, Partneři, Registrace, Nastavení.
+Přehled ukazuje **reálné počty** z obsahu (nové zprávy, rezervace, registrace,
+vypsané kempy, nejbližší zápasy) — žádná vymyšlená čísla.
 
 ## Proměnné prostředí
 `DATABASE_URL` (Postgres), `ADMIN_PASSWORD` (heslo do adminu), `AUTH_SECRET`
