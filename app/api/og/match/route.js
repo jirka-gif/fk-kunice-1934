@@ -55,7 +55,7 @@ export function GET(req) {
 
         {/* skóre */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', paddingRight: 40 }}>
+          <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingRight: 40 }}>
             <div style={{ fontSize: 54, fontWeight: 800, textAlign: 'right', lineHeight: 1.1, maxWidth: 380, display: 'flex' }}>{home}</div>
           </div>
           <div
@@ -74,7 +74,7 @@ export function GET(req) {
           >
             {score}
           </div>
-          <div style={{ display: 'flex', flex: 1, paddingLeft: 40 }}>
+          <div style={{ display: 'flex', flex: 1, alignItems: 'center', paddingLeft: 40 }}>
             <div style={{ fontSize: 54, fontWeight: 800, lineHeight: 1.1, maxWidth: 380, display: 'flex' }}>{away}</div>
           </div>
         </div>
