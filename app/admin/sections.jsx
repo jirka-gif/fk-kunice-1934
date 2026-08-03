@@ -1,6 +1,6 @@
 'use client';
 import { useState, Fragment } from 'react';
-import { useData, setSection, emptyCamp, emptyNews, slugify } from '@/lib/store';
+import { useData, setSection, updateData, emptyCamp, emptyNews, slugify } from '@/lib/store';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
@@ -347,11 +347,14 @@ export function Tymy() {
 
 // ---------------------------------------------------------------- ZÁPASY
 export function Zapasy() {
-  const { teams } = useData();
+  const d = useData();
+  const { teams, matchProposals, matchesSync } = d;
   const [sel, setSel] = useState(0);
+  const [tab, setTab] = useState('rucne');
   const idx = Math.min(sel, teams.length - 1);
   const t = teams[idx] || teams[0];
   const updateTeam = (patch) => set('teams', teams.map((tm, i) => (i === idx ? { ...tm, ...patch } : tm)));
+  const newProposals = matchProposals.filter((p) => p.status === 'nová');
 
   const nm = t.nextMatch || {};
   const md = t.matchDetail || {};
@@ -366,7 +369,27 @@ export function Zapasy() {
   return (
     <div>
       <SectionHead title="Zápasy" desc="Vyber tým — příští zápas, poslední zápas se střelci a tabulka" count={teams.length} />
+      <SyncStav sync={matchesSync} />
+      <SubTabs tab={tab} setTab={setTab} tabs={[
+        { id: 'rucne', label: 'Ruční úprava' },
+        { id: 'navrhy', label: 'Návrhy z fotbal.cz', badge: newProposals.length },
+      ]} />
+
+      {tab === 'navrhy' ? (
+        <Navrhy proposals={matchProposals} teams={teams} />
+      ) : (
+      <>
       <TeamSwitcher teams={teams} activeIndex={idx} onSelect={setSel} badge={null} />
+      <Card style={{ marginBottom: 18 }}>
+        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Zdroj dat pro automatické stahování</div>
+        <Row>
+          <Field label="Adresa soutěže na fotbal.cz" value={t.sourceUrl} onChange={(v) => updateTeam({ sourceUrl: v })} placeholder="https://www.fotbal.cz/souteze/turnaje/…" />
+          <Field label="Odkaz na FAČR (zobrazí se na webu)" value={t.facrUrl} onChange={(v) => updateTeam({ facrUrl: v })} />
+        </Row>
+        <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
+          Z této adresy se 4× týdně stahují návrhy zápasů. Prázdné pole = tým se nestahuje.
+        </div>
+      </Card>
 
       {/* PŘÍŠTÍ ZÁPAS */}
       <Card style={{ marginBottom: 18 }}>
@@ -479,6 +502,179 @@ export function Zapasy() {
           />
         </>
       )}
+      </>
+      )}
+    </div>
+  );
+}
+
+// --- návrhy zápasů stažené z fotbal.cz --------------------------------------
+// Stav automatického stahování. Když poslední běh selhal nebo je dávno,
+// admin to hned vidí — web mezitím ukazuje poslední ručně potvrzená data.
+function SyncStav({ sync }) {
+  if (!sync || sync.status === 'nikdy') {
+    return (
+      <div style={{ background: '#fff', border: '1px solid #ECEEF1', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+        Automatické stahování zápasů zatím neproběhlo. Vyplň u týmů adresu soutěže a nastav v repozitáři tajný klíč <b>MATCHES_TOKEN</b>.
+      </div>
+    );
+  }
+  const failed = sync.status === 'chyba';
+  const staleDays = sync.lastOkAt ? Math.floor((Date.now() - new Date(sync.lastOkAt)) / 86400000) : null;
+  const stale = staleDays !== null && staleDays > 7;
+  const warn = failed || stale;
+  return (
+    <div style={{ background: warn ? '#FBEAEC' : '#EAF6EE', color: warn ? '#C1121F' : '#1F8A4C', borderRadius: 10, padding: '12px 16px', fontSize: 13, fontWeight: 700, marginBottom: 16, lineHeight: 1.5 }}>
+      {failed ? 'Poslední stahování selhalo. ' : 'Poslední stahování proběhlo v pořádku. '}
+      Naposledy: {formatDate(sync.lastRunAt)}
+      {sync.lastOkAt ? ` · úspěšně: ${formatDate(sync.lastOkAt)}` : ''}
+      {sync.message ? ` · ${sync.message}` : ''}
+      {stale && ' — data jsou starší než týden, radši je zkontroluj ručně.'}
+    </div>
+  );
+}
+
+// Přehled tabulky v návrhu (jen pro čtení)
+function TabulkaNahled({ rows }) {
+  if (!rows || !rows.length) return <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>Tabulka se nestáhla.</div>;
+  return (
+    <div style={{ background: '#FAFBFC', borderRadius: 10, padding: 12 }}>
+      {rows.slice(0, 8).map((r, i) => (
+        <div key={i} style={{ display: 'flex', gap: 10, fontSize: 13, padding: '4px 0', color: r.me ? '#C1121F' : '#3a3f47', fontWeight: r.me ? 800 : 600 }}>
+          <span style={{ width: 22 }}>{r.pos}.</span>
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.team}</span>
+          <span style={{ width: 34, textAlign: 'right' }}>{r.gp}</span>
+          <span style={{ width: 34, textAlign: 'right' }}>{r.pts}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function Navrhy({ proposals, teams }) {
+  const [open, setOpen] = useState(null);
+  const [draft, setDraft] = useState(null); // rozpracovaná úprava návrhu
+
+  const nove = proposals.filter((p) => p.status === 'nová');
+  const setStatus = (id, status) => set('matchProposals', proposals.map((p) => (p.id === id ? { ...p, status } : p)));
+
+  // Potvrzení = data z návrhu se zapíšou do týmu a návrh se označí za schválený.
+  const potvrdit = (p, data) => {
+    const payload = data || p.data;
+    updateData((d) => {
+      const team = d.teams.find((t) => t.id === p.teamId);
+      if (!team) return;
+      if (payload.nextMatch) team.nextMatch = { ...team.nextMatch, ...payload.nextMatch };
+      if (payload.lastMatch) team.lastMatch = { ...team.lastMatch, ...payload.lastMatch };
+      if (payload.table && payload.table.length) team.table = payload.table;
+      d.matchProposals = d.matchProposals.map((x) => (x.id === p.id ? { ...x, status: 'schválená', data: payload } : x));
+    });
+    setOpen(null);
+    setDraft(null);
+  };
+
+  const zahodit = (p) => {
+    if (!confirm('Opravdu zahodit tento návrh? Data týmu zůstanou beze změny.')) return;
+    setStatus(p.id, 'zahozená');
+    setOpen(null);
+    setDraft(null);
+  };
+
+  if (!nove.length) {
+    return (
+      <Card>
+        <div style={{ padding: 8, textAlign: 'center', color: '#9AA1AC', fontWeight: 600, fontSize: 14 }}>
+          Žádné nevyřízené návrhy. Nové se objeví po dalším automatickém stažení.
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+        Návrhy stažené z fotbal.cz se na web <b>nedostanou samy</b>. Zkontroluj je a potvrď — teprve pak se zapíšou k týmu.
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {nove.map((p) => {
+          const isOpen = open === p.id;
+          const team = teams.find((t) => t.id === p.teamId);
+          const d = (isOpen && draft) || p.data;
+          const nm = d.nextMatch || {};
+          const lm = d.lastMatch || {};
+          const updDraft = (patch) => setDraft({ ...d, ...patch });
+          return (
+            <Card key={p.id} style={{ padding: 0, overflow: 'hidden' }}>
+              <div onClick={() => { setOpen(isOpen ? null : p.id); setDraft(isOpen ? null : p.data); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', cursor: 'pointer', background: isOpen ? '#FBF6F6' : '#fff' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>
+                    {p.teamName || (team ? team.name : p.teamId)}
+                    {!team && <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', marginLeft: 8 }}>TÝM NEEXISTUJE</span>}
+                    {p.warnings.length > 0 && <span style={{ fontSize: 10, fontWeight: 800, color: '#A98C4E', marginLeft: 8 }}>{p.warnings.length}× VAROVÁNÍ</span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2 }}>
+                    Staženo {formatDate(p.createdAt)}
+                    {lm.score ? ` · poslední ${lm.opp} ${lm.score}` : ''}
+                    {nm.when ? ` · příští ${nm.when}` : ''}
+                  </div>
+                </div>
+                <span style={{ color: '#C1121F', fontWeight: 700, fontSize: 12, flex: 'none' }}>Zkontrolovat {isOpen ? '▲' : '▾'}</span>
+              </div>
+
+              {isOpen && (
+                <div style={{ padding: 18, background: '#FBF6F6', borderTop: '1px solid #F2F3F5' }}>
+                  {p.warnings.length > 0 && (
+                    <div style={{ background: '#F3F0E9', color: '#A98C4E', borderRadius: 10, padding: '10px 14px', fontSize: 12, fontWeight: 700, marginBottom: 12 }}>
+                      {p.warnings.join(' · ')}
+                    </div>
+                  )}
+
+                  <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 8 }}>Příští zápas</div>
+                  {nm.home ? (
+                    <>
+                      <Row>
+                        <Field label="Domácí" value={nm.home.name} onChange={(v) => updDraft({ nextMatch: { ...nm, home: { ...nm.home, name: v } } })} />
+                        <Field label="Hosté" value={nm.away.name} onChange={(v) => updDraft({ nextMatch: { ...nm, away: { ...nm.away, name: v } } })} />
+                      </Row>
+                      <div style={{ height: 10 }} />
+                      <Row>
+                        <Field label="Kdy (text)" value={nm.when} onChange={(v) => updDraft({ nextMatch: { ...nm, when: v } })} />
+                        <Field label="Datum a čas" value={nm.dateISO} onChange={(v) => updDraft({ nextMatch: { ...nm, dateISO: v } })} width="220px" />
+                        <Field label="Kde" value={nm.venue} onChange={(v) => updDraft({ nextMatch: { ...nm, venue: v } })} />
+                      </Row>
+                    </>
+                  ) : <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>Příští zápas se nestáhl.</div>}
+
+                  <div style={{ fontWeight: 800, fontSize: 14, margin: '18px 0 8px' }}>Poslední výsledek</div>
+                  {lm.score ? (
+                    <Row>
+                      <Field label="Soupeř" value={lm.opp} onChange={(v) => updDraft({ lastMatch: { ...lm, opp: v } })} />
+                      <Field label="Skóre" value={lm.score} onChange={(v) => updDraft({ lastMatch: { ...lm, score: v } })} width="120px" />
+                      <Select label="Výsledek" value={lm.result} onChange={(v) => updDraft({ lastMatch: { ...lm, result: v } })} options={RESULT_OPTS} width="160px" />
+                      <Field label="Střelci (doplň ručně)" value={lm.scorers} onChange={(v) => updDraft({ lastMatch: { ...lm, scorers: v } })} />
+                    </Row>
+                  ) : <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>Poslední výsledek se nestáhl.</div>}
+
+                  <div style={{ fontWeight: 800, fontSize: 14, margin: '18px 0 8px' }}>Tabulka ({(d.table || []).length} řádků)</div>
+                  <TabulkaNahled rows={d.table} />
+
+                  <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Btn kind="primary" onClick={() => potvrdit(p, d)}>Potvrdit a zapsat k týmu</Btn>
+                    <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>Změny v polích výš se uloží spolu s potvrzením.</span>
+                    <span style={{ marginLeft: 'auto' }}><Btn kind="danger" small onClick={() => zahodit(p)}>Zahodit</Btn></span>
+                  </div>
+                  {p.sourceUrl && (
+                    <div style={{ marginTop: 10 }}>
+                      <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Otevřít zdroj na fotbal.cz →</a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

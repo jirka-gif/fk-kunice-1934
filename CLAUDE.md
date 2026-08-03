@@ -85,6 +85,22 @@ Obsah je uložený jako **jeden JSON záznam** (řádek `id=1` v tabulce `site_c
   `app/api/login`, `app/api/logout`. Uživatele a role řeší `lib/users.js` (viz výš).
 - `middleware.js` — chrání `/admin` (kromě `/admin/login`).
 
+## Zápasy z fotbal.cz (Krok 3)
+fotbal.cz nemá veřejné API a scraping blokuje (403), HTML se mění → řešení je
+odolné a **vždy s ruční kontrolou**.
+- `scripts/parse-fotbal.mjs` — čistý parser HTML (žádná síť). Nehledá CSS třídy,
+  ale tvar dat (datum + skóre = odehráno, datum + čas = plánováno). Testuje se
+  na uloženém vzorku `tests/fixtures/fotbal-sample.html`.
+- `scripts/scrape-matches.mjs` — Playwright headless: projde týmy s vyplněným
+  `sourceUrl`, HTML pošle parseru a výsledek odešle jako **návrh** na
+  `POST /api/matches` (hlavička `x-scraper-token`, proměnná `MATCHES_TOKEN`).
+- `.github/workflows/matches.yml` — cron 4× týdně (St/Pá/So/Ne). Na Vercelu to
+  nejde, Playwright potřebuje skutečný prohlížeč. Při selhání založí issue.
+- Obsah: `matchProposals` (návrhy) + `matchesSync` (stav posledního běhu).
+  **Návrh se na web nikdy nepropíše sám** — v adminu (Zápasy → Návrhy) ho člověk
+  potvrdí, upraví nebo zahodí. Web tak nikdy neukazuje neověřená data a při
+  selhání stahování svítí v adminu varování.
+
 ## Administrace
 `app/admin/page.jsx` (layout + přehled) + `app/admin/sections.jsx` (sekce)
 + `app/admin/adminui.jsx` (prvky) + `app/admin/users.jsx` (uživatelé a role)
@@ -96,7 +112,8 @@ vypsané kempy, nejbližší zápasy) — žádná vymyšlená čísla.
 
 ## Proměnné prostředí
 `DATABASE_URL` (Postgres), `ADMIN_EMAIL` + `ADMIN_PASSWORD` (první správce,
-založí se při prvním spuštění), `AUTH_SECRET` (podpis cookie).
+založí se při prvním spuštění), `AUTH_SECRET` (podpis cookie),
+`MATCHES_TOKEN` (+ `SITE_URL` v GitHub Actions) pro stahování zápasů.
 Vzor v `.env.example`. Podrobnosti v `README-BACKEND.md`.
 
 ## Guardraily (co NErozbít)

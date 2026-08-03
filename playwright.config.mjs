@@ -28,6 +28,7 @@ export default defineConfig({
       ADMIN_EMAIL: 'spravce@fkkunice.cz',
       ADMIN_PASSWORD: 'test-heslo',
       AUTH_SECRET: 'test-secret',
+      MATCHES_TOKEN: 'e2e-scraper-token',
       DATABASE_URL: '',
       POSTGRES_URL: '',
     },
