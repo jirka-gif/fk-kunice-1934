@@ -101,19 +101,36 @@ odolné a **vždy s ruční kontrolou**.
   potvrdí, upraví nebo zahodí. Web tak nikdy neukazuje neověřená data a při
   selhání stahování svítí v adminu varování.
 
+## Sociální sítě (Krok 4)
+- `app/api/og/match/route.js` — vizuál výsledku přes **@vercel/og** (edge).
+  Všechny texty jsou parametry adresy, takže admin mění vizuál bez zásahu do kódu.
+  Pozor: satori vyžaduje `display:flex` u každého `div` s víc než jedním potomkem.
+- `lib/social.js` — čistá logika: šablona textu (`{vysledek} {domaci} {skore}…`),
+  adresa vizuálu, fronta (koncept → ke schválení → odesláno / chyba) a
+  `postFromResult()` — spouštěč z potvrzeného výsledku (Krok 3).
+- `lib/meta.js` (server only) — Graph API: FB `/{page}/photos`, IG
+  `/{ig}/media` → `/{ig}/media_publish`. Tokeny **jen z prostředí**, nikdy v kódu
+  ani v administraci. Chyby se vrací čitelně a zapisují do historie příspěvku.
+- `app/api/social/route.js` — publikace (vyžaduje `edit` na sekci Sociální sítě);
+  počítá pokusy, při chybě vrací 502 a stav uloží.
+- Obsah: `socialPosts` (fronta + historie) a `socialSettings`
+  (ruční / automatické schvalování, sítě, šablona, počet opakování).
+
 ## Administrace
 `app/admin/page.jsx` (layout + přehled) + `app/admin/sections.jsx` (sekce)
 + `app/admin/adminui.jsx` (prvky) + `app/admin/users.jsx` (uživatelé a role)
 + `app/admin/account.jsx` (změna vlastního hesla). Sekce v levém menu: Přehled,
 Domů / texty, Týmy, Zápasy, Novinky, Kempy, Pronájem, Kontakt, Zprávy, Partneři,
-Registrace, Nastavení, Uživatelé a role — **menu se skládá podle oprávnění role**.
+Registrace, Sociální sítě, Nastavení, Uživatelé a role —
+**menu se skládá podle oprávnění role**.
 Přehled ukazuje **reálné počty** z obsahu (nové zprávy, rezervace, registrace,
 vypsané kempy, nejbližší zápasy) — žádná vymyšlená čísla.
 
 ## Proměnné prostředí
 `DATABASE_URL` (Postgres), `ADMIN_EMAIL` + `ADMIN_PASSWORD` (první správce,
 založí se při prvním spuštění), `AUTH_SECRET` (podpis cookie),
-`MATCHES_TOKEN` (+ `SITE_URL` v GitHub Actions) pro stahování zápasů.
+`MATCHES_TOKEN` (+ `SITE_URL` v GitHub Actions) pro stahování zápasů,
+`META_PAGE_ID` / `META_PAGE_TOKEN` / `META_IG_USER_ID` pro sociální sítě.
 Vzor v `.env.example`. Podrobnosti v `README-BACKEND.md`.
 
 ## Guardraily (co NErozbít)

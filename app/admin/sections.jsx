@@ -1,6 +1,7 @@
 'use client';
 import { useState, Fragment } from 'react';
 import { useData, setSection, updateData, emptyCamp, emptyNews, slugify } from '@/lib/store';
+import { postFromResult } from '@/lib/social';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
@@ -558,7 +559,8 @@ export function Navrhy({ proposals, teams }) {
   const nove = proposals.filter((p) => p.status === 'nová');
   const setStatus = (id, status) => set('matchProposals', proposals.map((p) => (p.id === id ? { ...p, status } : p)));
 
-  // Potvrzení = data z návrhu se zapíšou do týmu a návrh se označí za schválený.
+  // Potvrzení = data z návrhu se zapíšou do týmu, návrh se označí za schválený
+  // a z výsledku rovnou vznikne koncept příspěvku na sociální sítě (Krok 4).
   const potvrdit = (p, data) => {
     const payload = data || p.data;
     updateData((d) => {
@@ -568,6 +570,18 @@ export function Navrhy({ proposals, teams }) {
       if (payload.lastMatch) team.lastMatch = { ...team.lastMatch, ...payload.lastMatch };
       if (payload.table && payload.table.length) team.table = payload.table;
       d.matchProposals = d.matchProposals.map((x) => (x.id === p.id ? { ...x, status: 'schválená', data: payload } : x));
+
+      if (payload.lastMatch && payload.lastMatch.score) {
+        const post = postFromResult({
+          teamName: team.name,
+          lastMatch: payload.lastMatch,
+          competition: team.comp,
+          settings: d.socialSettings,
+        });
+        // stejný výsledek nezakládá druhý příspěvek
+        const same = d.socialPosts.some((x) => x.visual.score === post.visual.score && x.visual.away === post.visual.away && x.visual.home === post.visual.home);
+        if (!same) d.socialPosts = [post, ...d.socialPosts];
+      }
     });
     setOpen(null);
     setDraft(null);

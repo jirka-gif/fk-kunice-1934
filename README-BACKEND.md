@@ -197,3 +197,62 @@ na přihlášení a žádné API mu nic neuloží.
 | `PUT /api/me` | přihlášený | změna vlastního hesla |
 | `GET/POST/PUT/DELETE /api/users` | sekce „Uživatelé a role" | správa uživatelů |
 | `GET/PUT /api/roles` | sekce „Uživatelé a role" | matice oprávnění |
+
+---
+
+## Zápasy z fotbal.cz (Krok 3)
+
+fotbal.cz nemá veřejné API a scraping blokuje (403), HTML se navíc mění.
+Řešení je proto postavené tak, aby **selhání nikdy nerozbilo web**:
+
+1. `scripts/parse-fotbal.mjs` — čistý parser, žádná síť. Nehledá CSS třídy,
+   ale tvar dat (datum + skóre = odehráno, datum + čas = plánováno). Testuje se
+   nad uloženým vzorkem `tests/fixtures/fotbal-sample.html`.
+2. `scripts/scrape-matches.mjs` — Playwright headless projde týmy s vyplněným
+   `sourceUrl` a výsledek pošle jako **návrh** na `POST /api/matches`
+   (hlavička `x-scraper-token`). Bez tokenu API vrátí 401.
+3. `.github/workflows/matches.yml` — cron 4× týdně (St/Pá/So/Ne). Vercel by
+   Playwright neutáhl. Při selhání workflow založí issue.
+4. **Návrh se nikdy nepropíše sám.** V adminu (Zápasy → Návrhy) ho člověk
+   zkontroluje, případně upraví a potvrdí — teprve pak se zapíše k týmu.
+5. Monitoring: `matchesSync` drží stav posledního běhu. Admin ukáže červený pruh
+   při chybě i když jsou data starší než týden.
+
+### Co nastavit
+| Kde | Co |
+|---|---|
+| Vercel / `.env.local` | `MATCHES_TOKEN` |
+| GitHub → Secrets | `MATCHES_TOKEN` (stejná hodnota), `SITE_URL` |
+| Administrace | u týmu „Adresa soutěže na fotbal.cz" |
+
+---
+
+## Sociální sítě — Meta Business (Krok 4)
+
+### Co musí udělat člověk mimo kód
+1. Založit aplikaci v **Meta for Developers** a propojit ji s FB stránkou klubu.
+2. Propojit instagramový profil klubu (Business / Creator) s touto stránkou.
+3. Nechat schválit oprávnění `pages_manage_posts` a `instagram_content_publish`.
+4. Vygenerovat **dlouhodobý token stránky**.
+
+### Co doplnit do proměnných prostředí
+| Proměnná | K čemu |
+|---|---|
+| `META_PAGE_ID` | id facebookové stránky klubu |
+| `META_PAGE_TOKEN` | dlouhodobý token stránky (platí pro FB i IG) |
+| `META_IG_USER_ID` | id instagramového business účtu |
+| `META_GRAPH_VERSION` | volitelně, výchozí `v21.0` |
+| `SITE_URL` | veřejná adresa webu — Meta si z ní stahuje obrázek |
+
+Bez nich se nic neodešle a v administraci se ukáže, která proměnná chybí.
+
+### Jak to funguje
+- Vizuál výsledku vzniká na `/api/og/match` (@vercel/og) — klubové barvy, skóre,
+  soupeř, střelci. Všechno jsou parametry adresy, takže se dá měnit z adminu.
+- Po potvrzení výsledku zápasu vznikne **koncept** příspěvku. V nastavení jde
+  přepnout na „rovnou dát ke schválení".
+- Publikace: Facebook `/{page}/photos` (fotka + popisek), Instagram nejdřív
+  `media` container a pak `media_publish`. Instagram proto potřebuje obrázek
+  na veřejné adrese — proto `SITE_URL`.
+- Fronta drží stav (`koncept`, `ke schválení`, `odesláno`, `chyba`), počet pokusů
+  a historii. Chyba z Mety se uloží čitelně a jde zkusit znovu.

@@ -7,6 +7,7 @@ import { Card, Btn } from './adminui';
 import { Icon } from '../components/icons';
 import { Nastaveni, Domu, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace, Zpravy } from './sections';
 import { Uzivatele } from './users';
+import { Socialni } from './social';
 import { ZmenaHesla } from './account';
 import { ADMIN_SECTIONS, canView, canEdit } from '@/lib/permissions';
 
@@ -80,6 +81,7 @@ export default function Admin() {
     novinky: String(d.news.length),
     zpravy: String(d.messages.filter((m) => m.status !== 'vyřízená').length),
     registrace: String(d.cmsRegistrations.length),
+    socialni: String(d.socialPosts.filter((p) => p.status !== 'odesláno').length),
   };
   const NAV = visibleSections.map((s) => ({ ...s, badge: BADGES[s.id] }));
 
@@ -96,7 +98,7 @@ export default function Admin() {
     window.location.href = '/admin/login';
   };
 
-  const SECTIONS = { domu: Domu, zpravy: Zpravy, tymy: Tymy, zapasy: Zapasy, novinky: Novinky, kempy: Kempy, pronajem: Pronajem, kontakt: Kontakt, partneri: Partneri, registrace: Registrace, nastaveni: Nastaveni, uzivatele: Uzivatele };
+  const SECTIONS = { domu: Domu, zpravy: Zpravy, tymy: Tymy, zapasy: Zapasy, novinky: Novinky, kempy: Kempy, pronajem: Pronajem, kontakt: Kontakt, partneri: Partneri, registrace: Registrace, socialni: Socialni, nastaveni: Nastaveni, uzivatele: Uzivatele };
   const Current = SECTIONS[section];
   const readOnly = !canEdit(perms, section);
   const canEditReservations = canEdit(perms, 'pronajem');
