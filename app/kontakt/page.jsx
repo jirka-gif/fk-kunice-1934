@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { Icon, emojiIcon } from '@/app/components/icons';
 import { COLORS } from '@/lib/design';
@@ -8,6 +9,22 @@ import { useContent } from '@/lib/store';
 export default function Kontakt() {
   useRevealEngine();
   const { quickActions, people } = useContent();
+  const [msg, setMsg] = useState({ name: '', email: '', text: '' });
+  const [sent, setSent] = useState(false);
+  const setM = (k) => (e) => setMsg((m) => ({ ...m, [k]: e.target.value }));
+  const sendMsg = async () => {
+    if (!msg.name.trim() || !msg.text.trim()) { alert('Vyplň prosím jméno a zprávu.'); return; }
+    setSent(true);
+    try {
+      await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'message', payload: { name: msg.name.trim(), email: msg.email.trim(), text: msg.text.trim() } }),
+      });
+    } catch (e) {
+      console.warn('[kontakt] odeslání se nezdařilo:', e?.message);
+    }
+  };
 
   return (
     <div style={{ background: '#F6F7F9' }}>
@@ -75,12 +92,21 @@ export default function Kontakt() {
         {/* right: form */}
         <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: COLORS.ink, marginBottom: 18 }}>Napište nám</div>
+          {sent ? (
+            <div style={{ background: '#EAF6EE', border: '1px solid #BfE6CC', borderRadius: 10, padding: 24, textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, color: '#1F8A4C' }}><Icon name="checkCircle" size={40} strokeWidth={1.7} /></div>
+              <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#1F8A4C' }}>Zpráva odeslána</div>
+              <div style={{ color: '#3a3f47', fontSize: 14, fontWeight: 500, marginTop: 6, lineHeight: 1.5 }}>Děkujeme! Ozveme se vám co nejdříve.</div>
+              <div onClick={() => { setSent(false); setMsg({ name: '', email: '', text: '' }); }} style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: COLORS.red, cursor: 'pointer' }}>Napsat další zprávu</div>
+            </div>
+          ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Hov as="input" placeholder="Jméno a příjmení" style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none" focus="border-color:#C1121F;background:#fff" />
-            <Hov as="input" placeholder="E-mail" style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none" focus="border-color:#C1121F;background:#fff" />
-            <Hov as="textarea" placeholder="Vaše zpráva" rows={4} style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none;resize:none" focus="border-color:#C1121F;background:#fff" />
-            <Hov as="a" style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:10px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat zprávu →</Hov>
+            <Hov as="input" value={msg.name} onChange={setM('name')} placeholder="Jméno a příjmení" style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none" focus="border-color:#C1121F;background:#fff" />
+            <Hov as="input" value={msg.email} onChange={setM('email')} placeholder="E-mail" style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none" focus="border-color:#C1121F;background:#fff" />
+            <Hov as="textarea" value={msg.text} onChange={setM('text')} placeholder="Vaše zpráva" rows={4} style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none;resize:none" focus="border-color:#C1121F;background:#fff" />
+            <Hov as="a" onClick={sendMsg} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:10px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat zprávu →</Hov>
           </div>
+          )}
         </div>
       </section>
     </div>

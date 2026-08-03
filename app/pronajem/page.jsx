@@ -4,7 +4,7 @@ import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { Icon } from '@/app/components/icons';
-import { useContent, updateData } from '@/lib/store';
+import { useContent } from '@/lib/store';
 
 const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 const inputBase = 'border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
@@ -31,15 +31,29 @@ export default function Pronajem() {
 
   const selDayLabel = selDay ? `${selDay}. července 2026` : '—';
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.name.trim()) { alert('Vyplň prosím jméno.'); return; }
-    updateData((d) => {
-      d.reservations = [
-        { name: form.name.trim(), contact: [form.phone, form.email].filter(Boolean).join(' · '), area: form.area || (rentalPlans[0] && rentalPlans[0].name) || '', date: selDayLabel, time: '', note: form.note, source: 'web', status: 'nová' },
-        ...(d.reservations || []),
-      ];
-    });
+    // optimisticky zobrazíme potvrzení; odeslání běží na server
     setSent(true);
+    try {
+      await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'reservation',
+          payload: {
+            name: form.name.trim(),
+            contact: [form.phone, form.email].filter(Boolean).join(' · '),
+            area: form.area || (rentalPlans[0] && rentalPlans[0].name) || '',
+            date: selDayLabel,
+            time: '',
+            note: form.note,
+          },
+        }),
+      });
+    } catch (e) {
+      console.warn('[pronájem] odeslání se nezdařilo:', e?.message);
+    }
   };
 
   return (
