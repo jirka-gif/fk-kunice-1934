@@ -35,6 +35,27 @@ test('vizuál s nahranou fotkou se poskládá podle uloženého příspěvku', a
   expect((await res.body()).length).toBeGreaterThan(5000);
 });
 
+test('nahraný znak soupeře se použije podle názvu týmu', async ({ page }) => {
+  await loginToAdmin(page);
+  const logo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  const content = await (await page.request.get('/api/content')).json();
+  content.opponents = [{ id: 'poricany', name: 'SK Poříčany', logo }];
+  expect((await page.request.put('/api/content', { data: content })).ok()).toBe(true);
+
+  // uloží se s dopočítaným id a najde se i při jiném zápisu názvu
+  const after = await (await page.request.get('/api/content')).json();
+  expect(after.opponents[0].id).toBe('poricany');
+
+  const res = await page.request.get('/api/og/match?home=SK%20PO%C5%98%C3%8D%C4%8CANY&away=FK%20KUNICE&score=4:3');
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/png');
+  expect((await res.body()).length).toBeGreaterThan(5000);
+
+  // úklid, ať další testy vidí výchozí stav
+  content.opponents = [];
+  await page.request.put('/api/content', { data: content });
+});
+
 test('neznámé id příspěvku vizuál nerozbije', async ({ request }) => {
   const res = await request.get('/api/og/match?post=takovy-neexistuje&score=1:0');
   expect(res.status()).toBe(200);

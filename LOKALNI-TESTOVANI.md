@@ -11,6 +11,11 @@ npm run dev
 ```
 
 Web běží na <http://localhost:3000>, administrace na <http://localhost:3000/admin>.
+Když je port 3000 obsazený, Next si vezme první volný a vypíše ho do terminálu.
+
+> **Pozor:** nespouštěj `npm run build`, dokud běží `npm run dev` — oba zapisují
+> do složky `.next` a build dev serveru podtrhne nohy (`Cannot find module './379.js'`).
+> Když se to stane: zastav server, `rm -rf .next` a spusť `npm run dev` znovu.
 
 Naplnění testovacími daty (při běžícím serveru, v druhém okně terminálu):
 
@@ -65,7 +70,11 @@ curl -X POST http://localhost:3000/api/matches -H 'content-type: application/jso
     se překreslí (formát 1080 × 1350 px, tedy 4:5 pro Instagram i Facebook).
     Zkus i **Fotka na pozadí** — nahraj libovolný snímek ze zápasu; ořízne se
     na výšku a ztmaví, aby zůstaly texty čitelné. Bez fotky zůstane tmavé pozadí.
-15. Klikni na *Zveřejnit*. Bez tokenů Mety to **schválně** selže a do historie
+15. **Znaky soupeřů** (v téže sekci) → *Spravovat znaky* → přidej soupeře
+    a nahraj jeho znak. Použije se automaticky u každého dalšího zápasu proti
+    němu; název se páruje bez ohledu na diakritiku a zkratku („SK Poříčany"
+    sedne i na „Poříčany").
+16. Klikni na *Zveřejnit*. Bez tokenů Mety to **schválně** selže a do historie
     příspěvku se zapíše, která proměnná chybí — přesně tak se to chová i ostře.
 
 Vizuál se dá zkoušet i přímo v prohlížeči:

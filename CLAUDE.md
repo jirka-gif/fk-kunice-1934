@@ -113,7 +113,10 @@ odolné a **vždy s ruční kontrolou**.
   **Formát 1080 × 1350 px (4:5)** — ten Instagram i Facebook zobrazí v plné výšce.
   Široké 1200 × 630 je jen pro náhledy odkazů, ne pro příspěvky.
   Všechny texty jsou parametry adresy, takže admin mění vizuál bez zásahu do kódu.
-  Znak klubu se bere z `public/logo-og.png` (satori neumí webp).
+  Znak klubu se bere z `public/logo-og.png` (satori neumí webp), znak soupeře
+  z registru `opponents` — páruje se podle názvu přes `opponentKey()`
+  (bez diakritiky, velikosti písmen a zkratky klubu na začátku). Soupeř bez
+  znaku dostane dlaždici se zkratkou.
   **Fotka na pozadí:** nahraje se v adminu a uloží jako data URL — do adresy by
   se nevešla, proto se posílá jen `?post=<id>` a route si obsah načte sama
   (proto běží na `nodejs`, ne na edge). Fotka se ořízne na výšku a ztmaví

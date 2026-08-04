@@ -11,7 +11,7 @@
 // Pozor: satori vyžaduje `display: flex` u každého <div> s víc potomky.
 import { ImageResponse } from '@vercel/og';
 import { getStoredContent } from '@/lib/db';
-import { mergeStored } from '@/lib/defaults';
+import { mergeStored, findOpponentLogo } from '@/lib/defaults';
 
 // nodejs (ne edge) — potřebujeme přístup k uloženému obsahu kvůli fotce
 export const runtime = 'nodejs';
@@ -60,23 +60,25 @@ function Crest({ name, logo }) {
   );
 }
 
-// Vizuál uloženého příspěvku (kvůli fotce, která se do adresy nevejde).
-async function storedVisual(postId) {
-  if (!postId) return null;
+// Obsah webu potřebujeme kvůli fotce (ta se do adresy nevejde) a kvůli znakům
+// soupeřů. Když se načíst nepovede, vykreslíme aspoň vizuál z parametrů.
+async function loadContent() {
   try {
     const stored = await getStoredContent();
-    if (!stored) return null;
-    const post = mergeStored(stored).socialPosts.find((x) => x.id === postId);
-    return post ? post.visual : null;
+    return stored ? mergeStored(stored) : null;
   } catch {
-    return null; // radši vizuál bez fotky než rozbitý obrázek
+    return null;
   }
 }
 
 export async function GET(req) {
   const url = new URL(req.url);
   const p = url.searchParams;
-  const saved = (await storedVisual(p.get('post'))) || {};
+  const content = await loadContent();
+  const postId = p.get('post');
+  const post = postId && content ? content.socialPosts.find((x) => x.id === postId) : null;
+  const saved = post ? post.visual : {};
+  const opponents = content ? content.opponents : [];
   // hodnota z adresy má přednost před uloženou (kvůli náhledům a ručním úpravám)
   const val = (key, fallback) => p.get(key) || saved[key] || fallback;
 
@@ -90,11 +92,15 @@ export async function GET(req) {
   const hashtag = val('hashtag', '#jednotajedeme');
   const photo = val('photo', '');
 
+  // Znak týmu: nahraný u příspěvku → z registru soupeřů → náš klub podle názvu.
+  const clubLogo = `${url.origin}/logo-og.png`;
+  const isUs = (name) => name.toLowerCase().includes('kunice');
+  const logoFor = (name, override) => override || (isUs(name) ? clubLogo : findOpponentLogo(opponents, name));
+  const homeLogo = logoFor(home, val('homeLogo', ''));
+  const awayLogo = logoFor(away, val('awayLogo', ''));
+
   const goals = splitScore(score);
-  const logo = `${url.origin}/logo-og.png`;
-  // znak dáme tomu týmu, který je opravdu náš
-  const homeIsUs = home.toLowerCase().includes('kunice');
-  const awayIsUs = away.toLowerCase().includes('kunice');
+  const logo = clubLogo;
 
   return new ImageResponse(
     (
@@ -166,13 +172,13 @@ export async function GET(req) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 46, width: '100%' }}>
-            <Crest name={home} logo={homeIsUs ? logo : ''} />
+            <Crest name={home} logo={homeLogo} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 34px' }}>
               <div style={{ display: 'flex', fontSize: 150, fontWeight: 800, lineHeight: 1 }}>{goals.home}</div>
               <div style={{ display: 'flex', fontSize: 92, fontWeight: 800, color: RED_BRIGHT, padding: '0 22px' }}>×</div>
               <div style={{ display: 'flex', fontSize: 150, fontWeight: 800, lineHeight: 1 }}>{goals.away}</div>
             </div>
-            <Crest name={away} logo={awayIsUs ? logo : ''} />
+            <Crest name={away} logo={awayLogo} />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', marginTop: 26, width: '100%' }}>

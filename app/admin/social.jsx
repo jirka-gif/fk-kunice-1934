@@ -5,8 +5,8 @@
 //  z /api/og/match, úprava textu i proměnných vizuálu a odeslání přes Metu.
 // =============================================================================
 import { useState } from 'react';
-import { useData, setSection, updateData } from '@/lib/store';
-import { Card, Btn, Field, Row, Select, SectionHead, ImageField } from './adminui';
+import { useData, setSection, updateData, emptyOpponent, opponentKey } from '@/lib/store';
+import { Card, Btn, Field, Row, Select, SectionHead, ImageField, ListEditor } from './adminui';
 import { buildOgUrl, buildPostText, emptySocialPost, SOCIAL_TARGETS, DEFAULT_TEMPLATE } from '@/lib/social';
 
 const RED = '#C1121F';
@@ -29,7 +29,8 @@ function formatDate(iso) {
 }
 
 export function Socialni() {
-  const { socialPosts, socialSettings } = useData();
+  const { socialPosts, socialSettings, opponents } = useData();
+  const [showOpponents, setShowOpponents] = useState(false);
   const [open, setOpen] = useState(null);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -115,6 +116,42 @@ export function Socialni() {
         <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
           Tokeny Mety se nastavují v proměnných prostředí (META_PAGE_ID, META_PAGE_TOKEN, META_IG_USER_ID) — do administrace se nikdy nezadávají.
         </div>
+      </Card>
+
+      {/* ZNAKY SOUPEŘŮ */}
+      <Card style={{ marginBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 15 }}>Znaky soupeřů <span style={{ fontWeight: 700, fontSize: 12, color: '#9AA1AC' }}>({opponents.length})</span></div>
+            <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 4 }}>
+              Znak stačí nahrát jednou — sám se použije u každého dalšího zápasu proti stejnému soupeři.
+            </div>
+          </div>
+          <Btn small onClick={() => setShowOpponents((v) => !v)}>{showOpponents ? 'Skrýt' : 'Spravovat znaky'}</Btn>
+        </div>
+
+        {showOpponents && (
+          <div style={{ marginTop: 16 }}>
+            <ListEditor
+              items={opponents}
+              onChange={(v) => setSection('opponents', v)}
+              itemTitle={(o) => o.name || 'Nový soupeř'}
+              newItem={() => ({ ...emptyOpponent(), id: `soupere-${Date.now()}` })}
+              addLabel="+ Přidat soupeře"
+              renderItem={(o, u) => (
+                <div>
+                  <Field label="Název týmu" value={o.name} onChange={(v) => u({ name: v, id: opponentKey(v) || o.id })} placeholder="SK Poříčany" />
+                  <div style={{ height: 12 }} />
+                  <ImageField label="Znak" value={o.logo} onChange={(v) => u({ logo: v })} />
+                </div>
+              )}
+            />
+            <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
+              Název se páruje bez ohledu na diakritiku, velikost písmen a zkratku klubu — „SK Poříčany" sedne i na „Poříčany".
+              Soupeř bez nahraného znaku dostane dlaždici se zkratkou.
+            </div>
+          </div>
+        )}
       </Card>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
