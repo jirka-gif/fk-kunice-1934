@@ -8,7 +8,7 @@ import { Vyber } from '@/app/components/Vyber';
 import { monthGrid, dateKey, czechDate } from '@/lib/rental';
 
 const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
-const inputBase = 'border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
+const inputBase = 'width:100%;min-width:0;box-sizing:border-box;border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
 const inputFocus = 'border-color:#C1121F;background:#fff';
 const sipkaStyl = { width: 34, height: 34, borderRadius: 10, border: '1px solid #ECEEF1', background: '#fff', color: '#C1121F', fontSize: 18, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1 };
 
@@ -292,9 +292,9 @@ export default function Pronajem() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Hov as="input" value={form.name} onChange={setF('name')} placeholder="Jméno a příjmení" style={inputBase} focus={inputFocus} />
-              <div style={{ display: 'flex', gap: 12 }}>
-                <Hov as="input" value={form.phone} onChange={setF('phone')} placeholder="Telefon" style={`flex:1;${inputBase}`} focus={inputFocus} />
-                <Hov as="input" value={form.email} onChange={setF('email')} placeholder="E-mail" style={`flex:1;${inputBase}`} focus={inputFocus} />
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <Hov as="input" value={form.phone} onChange={setF('phone')} placeholder="Telefon" style={`flex:1 1 150px;${inputBase}`} focus={inputFocus} />
+                <Hov as="input" value={form.email} onChange={setF('email')} placeholder="E-mail" style={`flex:1 1 150px;${inputBase}`} focus={inputFocus} />
               </div>
               <Vyber ariaLabel="Plocha k pronájmu" value={aktivniPlocha} onChange={(v) => { setArea(v); setSelTime(''); }} options={areas} placeholder="Vyber plochu" />
               <Hov as="textarea" value={form.note} onChange={setF('note')} placeholder="Poznámka (počet osob, účel)" rows={3} style={`${inputBase};resize:none`} focus={inputFocus} />

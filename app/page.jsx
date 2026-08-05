@@ -1,10 +1,10 @@
 'use client';
-import { Fragment } from 'react';
 import Link from 'next/link';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { Hov, Eyebrow, H2 } from './components/ui';
 import { COLORS, PH, PH_ARR, photo, initials, wldBadge } from '@/lib/design';
 import { useContent } from '@/lib/store';
+import { Blok, Text } from './components/Text';
 
 const cardSh = 'box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 26px rgba(18,18,18,.06)';
 
@@ -52,18 +52,19 @@ export default function Home() {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#050506 0%,rgba(5,5,6,.65) 10%,transparent 26%,transparent 88%,#050506 100%)' }} />
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: '0 28px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <Blok nazev="Úvodní text">
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", color: '#fff', fontSize: 'clamp(64px,9.5vw,148px)', lineHeight: 0.95, letterSpacing: '.5px', textTransform: 'uppercase', textShadow: '0 4px 50px rgba(0,0,0,.55)', maxWidth: 720 }}>
-            {T.hero.title}
+            <Text as="span" cesta="homeTexts.hero.title" hodnota={T.hero.title} />
           </h1>
           <div className="fk-rev" style={{ marginTop: 20, width: 'max-content', maxWidth: '90vw', position: 'relative', transform: 'rotate(-2.5deg)' }}>
-            <span style={{ fontFamily: "'Caveat',cursive", fontWeight: 700, fontSize: 'clamp(40px,4.8vw,72px)', color: '#fff', lineHeight: .95, display: 'block', whiteSpace: 'nowrap', textShadow: '0 3px 28px rgba(0,0,0,.4)' }}>{T.hero.script}</span>
+            <span style={{ fontFamily: "'Caveat',cursive", fontWeight: 700, fontSize: 'clamp(40px,4.8vw,72px)', color: '#fff', lineHeight: .95, display: 'block', whiteSpace: 'nowrap', textShadow: '0 3px 28px rgba(0,0,0,.4)' }}><Text as="span" cesta="homeTexts.hero.script" hodnota={T.hero.script} /></span>
             <svg viewBox="0 0 400 26" preserveAspectRatio="none" style={{ position: 'absolute', left: 6, bottom: -14, width: '94%', height: 18, overflow: 'visible' }} fill="none"><path d="M5 16 C 90 5, 180 25, 268 11 S 378 5, 395 13" stroke="#D62839" strokeWidth={5} strokeLinecap="round" /></svg>
           </div>
           <p className="fk-rev" style={{ marginTop: 38, color: 'rgba(255,255,255,.72)', fontSize: 'clamp(16px,1.4vw,19px)', lineHeight: 1.65, maxWidth: 430 }}>
-            {String(T.hero.perex || '').split('\n').map((line, i) => (
-              <Fragment key={i}>{i > 0 && <br />}{line}</Fragment>
-            ))}
+            <Text as="span" cesta="homeTexts.hero.perex" hodnota={T.hero.perex} viceradkovy
+              style={{ whiteSpace: 'pre-line' }} />
           </p>
+          </Blok>
           <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 38 }}>
             {heroCtas.map((cta, i) => (i === 0 ? (
               <Hov key={i} as={Link} href={cta.href || '/'} style="display:inline-flex;align-items:center;gap:10px;background:#E01B24;color:#fff;font-weight:700;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;box-shadow:0 10px 28px rgba(224,27,36,.4);transition:transform .25s,box-shadow .25s,background .25s" hover="transform:translateY(-2px);box-shadow:0 16px 38px rgba(224,27,36,.55);background:#F0242D;color:#fff">
@@ -98,7 +99,7 @@ export default function Home() {
       {/* ============ MATCH CENTER ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 28px 56px' }}>
         <div className="fk-rev fk-head" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 44, flexWrap: 'wrap' }}>
-          <div><Eyebrow>{T.match.eyebrow}</Eyebrow><H2>{T.match.title}</H2></div>
+          <Blok nazev="Nadpis — zápas"><div><Eyebrow><Text as="span" cesta="homeTexts.match.eyebrow" hodnota={T.match.eyebrow} /></Eyebrow><H2><Text as="span" cesta="homeTexts.match.title" hodnota={T.match.title} /></H2></div></Blok>
           <Hov as={Link} href="/zapasy" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#fff;box-shadow:0 1px 2px rgba(18,18,18,.05),0 8px 24px rgba(18,18,18,.06);transition:transform .2s,box-shadow .2s" hover="transform:translateY(-2px);box-shadow:0 14px 34px rgba(18,18,18,.12)">{T.match.link}</Hov>
         </div>
 
@@ -163,7 +164,7 @@ export default function Home() {
       {/* ============ TEAMS ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 28px 110px' }}>
         <div className="fk-rev" style={{ marginBottom: 44 }}>
-          <Eyebrow>{T.teams.eyebrow}</Eyebrow><H2>{T.teams.title}</H2>
+          <Blok nazev="Nadpis — týmy"><Eyebrow><Text as="span" cesta="homeTexts.teams.eyebrow" hodnota={T.teams.eyebrow} /></Eyebrow><H2><Text as="span" cesta="homeTexts.teams.title" hodnota={T.teams.title} /></H2></Blok>
         </div>
         <div className="fk-teams" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 22 }}>
           {teamCards.map((tm) => (
@@ -193,8 +194,10 @@ export default function Home() {
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(70% 60% at 85% 0%,rgba(193,18,31,.22),transparent 58%)' }} />
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px', position: 'relative' }}>
           <div className="fk-rev" style={{ textAlign: 'center', marginBottom: 60 }}>
-            <Eyebrow center dark>{T.why.eyebrow}</Eyebrow>
-            <h2 style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(44px,5.6vw,76px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>{T.why.title}</h2>
+            <Blok nazev="Nadpis — proč my">
+            <Eyebrow center dark><Text as="span" cesta="homeTexts.why.eyebrow" hodnota={T.why.eyebrow} /></Eyebrow>
+            <h2 style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(44px,5.6vw,76px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}><Text as="span" cesta="homeTexts.why.title" hodnota={T.why.title} /></h2>
+            </Blok>
           </div>
           <div className="fk-why" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
             {whyCards.map((w, i) => (
@@ -210,7 +213,7 @@ export default function Home() {
 
       {/* ============ CAMPS ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '110px 28px' }}>
-        <div className="fk-rev" style={{ marginBottom: 44 }}><Eyebrow>{T.camps.eyebrow}</Eyebrow><H2>{T.camps.title}</H2></div>
+        <div className="fk-rev" style={{ marginBottom: 44 }}><Blok nazev="Nadpis — kempy"><Eyebrow><Text as="span" cesta="homeTexts.camps.eyebrow" hodnota={T.camps.eyebrow} /></Eyebrow><H2><Text as="span" cesta="homeTexts.camps.title" hodnota={T.camps.title} /></H2></Blok></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {camps.filter((c) => !c.archived).map((c, i) => (
             <Hov key={c.id || i} as={Link} href="/kempy" className="fk-rev fk-zoom" style="border-radius:10px;overflow:hidden;position:relative;cursor:pointer;min-height:340px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">
@@ -234,7 +237,7 @@ export default function Home() {
       <section style={{ background: '#fff', padding: '110px 0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px' }}>
           <div className="fk-rev fk-head" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 44, flexWrap: 'wrap' }}>
-            <div><Eyebrow>{T.rental.eyebrow}</Eyebrow><H2>{T.rental.title}</H2></div>
+            <Blok nazev="Nadpis — pronájem"><div><Eyebrow><Text as="span" cesta="homeTexts.rental.eyebrow" hodnota={T.rental.eyebrow} /></Eyebrow><H2><Text as="span" cesta="homeTexts.rental.title" hodnota={T.rental.title} /></H2></div></Blok>
             <Hov as={Link} href="/pronajem" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#F6F7F9;transition:transform .2s,background .2s" hover="background:#EEF0F3;transform:translateY(-2px)">{T.rental.link}</Hov>
           </div>
           <div className="fk-teams" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 22 }}>
@@ -263,7 +266,7 @@ export default function Home() {
       {/* ============ NEWS ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '110px 28px' }}>
         <div className="fk-rev fk-head" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 44, flexWrap: 'wrap' }}>
-          <div><Eyebrow>{T.news.eyebrow}</Eyebrow><H2>{T.news.title}</H2></div>
+          <Blok nazev="Nadpis — novinky"><div><Eyebrow><Text as="span" cesta="homeTexts.news.eyebrow" hodnota={T.news.eyebrow} /></Eyebrow><H2><Text as="span" cesta="homeTexts.news.title" hodnota={T.news.title} /></H2></div></Blok>
           <Hov as={Link} href="/novinky" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#fff;box-shadow:0 1px 2px rgba(18,18,18,.05),0 8px 24px rgba(18,18,18,.06);transition:transform .2s,box-shadow .2s" hover="transform:translateY(-2px);box-shadow:0 14px 34px rgba(18,18,18,.12)">{T.news.link}</Hov>
         </div>
         <div className="fk-news-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
@@ -296,7 +299,7 @@ export default function Home() {
 
       {/* ============ GALLERY ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '44px 28px 110px' }}>
-        <div className="fk-rev" style={{ marginBottom: 38 }}><Eyebrow>{T.gallery.eyebrow}</Eyebrow><H2>{T.gallery.title}</H2></div>
+        <div className="fk-rev" style={{ marginBottom: 38 }}><Blok nazev="Nadpis — galerie"><Eyebrow><Text as="span" cesta="homeTexts.gallery.eyebrow" hodnota={T.gallery.eyebrow} /></Eyebrow><H2><Text as="span" cesta="homeTexts.gallery.title" hodnota={T.gallery.title} /></H2></Blok></div>
         <div className="fk-gallery" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gridAutoRows: 172, gap: 14 }}>
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
             const cells = ['grid-column:span 2;grid-row:span 2', '', '', 'grid-column:span 2', '', '', 'grid-column:span 2', ''];
@@ -317,7 +320,7 @@ export default function Home() {
       {/* ============ SPONSORS ============ */}
       <section style={{ background: '#fff', borderTop: '1px solid #ECEEF1', padding: '80px 0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px' }}>
-          <div className="fk-rev" style={{ textAlign: 'center', marginBottom: 40 }}><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#9AA1AC' }}>{T.sponsors.title}</div></div>
+          <div className="fk-rev" style={{ textAlign: 'center', marginBottom: 40 }}><Blok nazev="Nadpis — partneři"><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#9AA1AC' }}><Text as="span" cesta="homeTexts.sponsors.title" hodnota={T.sponsors.title} /></div></Blok></div>
           <div className="fk-sponsors" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
             {sponsors.map((sp, i) => {
               const box = 'background:#fff;border:1px solid #ECEEF1;border-radius:10px;height:96px;display:flex;align-items:center;justify-content:center;padding:14px;cursor:pointer;transition:transform .3s,box-shadow .3s,border-color .3s;color:#B7BCC4';

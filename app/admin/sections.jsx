@@ -978,13 +978,15 @@ function RezervaceTable({ reservations, areaOptions }) {
     setOpen(0);
   };
 
-  const cols = '1.5fr 1.1fr 1.1fr 90px 112px 92px';
+  const cols = '1.5fr 1.1fr 1.1fr 90px 112px 190px';
   const cell = { padding: '12px 14px', fontSize: 13, display: 'flex', alignItems: 'center', minWidth: 0 };
 
   return (
     <div>
       <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
-        Rezervace odeslané z webu sem dorazí se stavem <b>nová</b>. Klikni na řádek pro detail a úpravu. Vlastní rezervaci (když někdo zavolá / přijde osobně) přidáš tlačítkem dole.
+        Rezervace odeslané z webu sem dorazí se stavem <b>nová</b> a termín rovnou drží.
+        Tlačítkem <b>Potvrdit</b> poptávku schválíš, tlačítkem <b>Zamítnout</b> termín zase uvolníš.
+        Klikni na řádek pro detail a úpravu. Vlastní rezervaci (když někdo zavolá / přijde osobně) přidáš tlačítkem dole.
       </div>
       <Card style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
@@ -1006,7 +1008,12 @@ function RezervaceTable({ reservations, areaOptions }) {
                   <div style={{ ...cell, color: '#3a3f47' }}>{[r.date, r.from && r.to ? `${r.from}–${r.to}` : r.time].filter(Boolean).join(' · ') || '—'}</div>
                   <div style={{ ...cell, color: '#9AA1AC', fontWeight: 600 }}>{r.source}</div>
                   <div style={cell}><span style={statusPill(r.status)}>{r.status}</span></div>
-                  <div style={{ ...cell, justifyContent: 'flex-end', color: '#C1121F', fontWeight: 700, fontSize: 12 }}>Detail {open === i ? '▲' : '▾'}</div>
+                  <div style={{ ...cell, justifyContent: 'flex-end', gap: 6 }} onClick={(e) => e.stopPropagation()}>
+                    {r.status !== 'potvrzená' && <Btn small kind="primary" onClick={() => update(i, { status: 'potvrzená' })}>Potvrdit</Btn>}
+                    {r.status !== 'zamítnutá' && <Btn small onClick={() => update(i, { status: 'zamítnutá' })}>Zamítnout</Btn>}
+                    {r.status === 'zamítnutá' && <Btn small onClick={() => update(i, { status: 'nová' })}>Vrátit</Btn>}
+                    <span onClick={() => setOpen(open === i ? null : i)} style={{ color: '#C1121F', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>{open === i ? '▲' : '▾'}</span>
+                  </div>
                 </div>
                 {open === i && (
                   <div style={{ padding: 18, background: '#FBF6F6', borderBottom: '1px solid #F2F3F5' }}>
@@ -1028,7 +1035,12 @@ function RezervaceTable({ reservations, areaOptions }) {
                     </Row>
                     <div style={{ height: 10 }} />
                     <Field label="Poznámka" textarea rows={2} value={r.note} onChange={(v) => update(i, { note: v })} />
-                    <div style={{ marginTop: 12 }}><Btn kind="danger" small onClick={() => remove(i)}>Smazat rezervaci</Btn></div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                      {r.status !== 'potvrzená' && <Btn small kind="primary" onClick={() => update(i, { status: 'potvrzená' })}>Potvrdit rezervaci</Btn>}
+                      {r.status !== 'zamítnutá' && <Btn small onClick={() => update(i, { status: 'zamítnutá' })}>Zamítnout (uvolní termín)</Btn>}
+                      {r.contact && r.contact.includes('@') && <a href={`mailto:${r.contact}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem</a>}
+                      <span style={{ marginLeft: 'auto' }}><Btn kind="danger" small onClick={() => remove(i)}>Smazat rezervaci</Btn></span>
+                    </div>
                   </div>
                 )}
               </Fragment>

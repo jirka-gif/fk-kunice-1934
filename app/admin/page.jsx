@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useData, resetData, exportJson, updateData, onSaveStatus } from '@/lib/store';
+import { useData, updateData, onSaveStatus } from '@/lib/store';
 import { Card, Btn } from './adminui';
 import { Icon } from '../components/icons';
 import { Nastaveni, Domu, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace, Zpravy } from './sections';
@@ -16,6 +16,7 @@ const RED = '#C1121F';
 export default function Admin() {
   const d = useData();
   const [section, setSectionId] = useState('prehled');
+  const [menuOtevreno, setMenuOtevreno] = useState(false); // na mobilu je menu pod tlačítkem
   const [me, setMe] = useState(null);
   const [loadingMe, setLoadingMe] = useState(true);
   const [saveStatus, setSaveStatus] = useState(null);
@@ -98,14 +99,6 @@ export default function Admin() {
     return { ...g, sections: secs, badge: pocet > 0 ? String(pocet) : undefined };
   });
 
-  const doExport = () => {
-    const blob = new Blob([exportJson()], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'fk-kunice-obsah.json';
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  };
-  const doReset = () => { if (confirm('Obnovit veškerý obsah na původní (z webu)? Tvoje úpravy budou ztraceny.')) resetData(); };
   const doLogout = async () => {
     try { await fetch('/api/logout', { method: 'POST' }); } catch {}
     window.location.href = '/admin/login';
@@ -117,11 +110,11 @@ export default function Admin() {
   const canEditReservations = canEdit(perms, 'pronajem');
 
   if (loadingMe) {
-    return <section className="fk-admin" style={{ maxWidth: 1320, margin: '0 auto', padding: '140px 24px 80px', color: '#9AA1AC', fontWeight: 600 }}>Načítám administraci…</section>;
+    return <section className="fk-admin" style={{ maxWidth: 1320, margin: '0 auto', padding: '110px 24px 80px', color: '#9AA1AC', fontWeight: 600 }}>Načítám administraci…</section>;
   }
   if (!me) {
     return (
-      <section className="fk-admin" style={{ maxWidth: 720, margin: '0 auto', padding: '140px 24px 80px' }}>
+      <section className="fk-admin" style={{ maxWidth: 720, margin: '0 auto', padding: '110px 24px 80px' }}>
         <Card>
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 28, color: '#121212' }}>Administrace se nenačetla</div>
           <div style={{ fontSize: 14, color: '#6B7280', marginTop: 8, lineHeight: 1.6 }}>Nepodařilo se ověřit přihlášení. Zkus to prosím znovu.</div>
@@ -132,9 +125,24 @@ export default function Admin() {
   }
 
   return (
-    <section className="fk-admin" style={{ maxWidth: 1320, margin: '0 auto', padding: '104px 24px 80px', display: 'grid', gridTemplateColumns: '240px 1fr', gap: 24, alignItems: 'start' }}>
+    <section className="fk-admin" style={{ maxWidth: 1320, margin: '0 auto', padding: '76px 24px 80px', display: 'grid', gridTemplateColumns: '240px 1fr', gap: 24, alignItems: 'start' }}>
+      {/* MOBIL: menu schované pod tlačítkem, ať administrace nezačíná dlouhým seznamem */}
+      <button
+        className="fk-admin-burger"
+        data-menu-otevreno={menuOtevreno ? '1' : '0'}
+        onClick={() => setMenuOtevreno((o) => !o)}
+        style={{ display: 'none', alignItems: 'center', gap: 10, width: '100%', background: '#fff', border: '1px solid #ECEEF1', borderRadius: 10, padding: '13px 16px', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', color: '#1E1E1E', cursor: 'pointer' }}
+      >
+        <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 3 }}>
+          <span style={{ width: 16, height: 2, background: RED, borderRadius: 2 }} />
+          <span style={{ width: 16, height: 2, background: RED, borderRadius: 2 }} />
+          <span style={{ width: 16, height: 2, background: RED, borderRadius: 2 }} />
+        </span>
+        {menuOtevreno ? 'Skrýt menu' : `Menu — ${currentGroup ? currentGroup.label : 'Přehled'}`}
+      </button>
+
       {/* SIDEBAR */}
-      <div className="fk-admin-side" style={{ position: 'sticky', top: 96, background: '#fff', borderRadius: 10, padding: 18, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
+      <div className="fk-admin-side" data-menu-otevreno={menuOtevreno ? '1' : '0'} style={{ position: 'sticky', top: 68, background: '#fff', borderRadius: 10, padding: 18, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px 16px', borderBottom: '1px solid #F2F3F5', marginBottom: 12 }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: '#fff', border: '1px solid #ECEEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2 }}>
             <Image src="/logo.webp" alt="" width={34} height={34} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -144,7 +152,7 @@ export default function Admin() {
         {NAV.map((n) => {
           const active = currentGroup && currentGroup.id === n.id;
           return (
-            <div key={n.id} data-group={n.id} data-group-has={n.sections.join(' ')} onClick={() => setSectionId(n.sections[0])} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 3, ...(active ? { background: '#FBEAEC', color: RED } : { color: '#3a3f47' }) }}>
+            <div key={n.id} data-group={n.id} data-group-has={n.sections.join(' ')} onClick={() => { setSectionId(n.sections[0]); setMenuOtevreno(false); }} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 3, ...(active ? { background: '#FBEAEC', color: RED } : { color: '#3a3f47' }) }}>
               <span style={{ display: 'inline-flex', width: 19, justifyContent: 'center' }}><Icon name={n.icon} size={19} /></span><span>{n.label}</span>
               {n.badge && <span style={{ marginLeft: 'auto', background: active ? RED : '#EFF1F4', color: active ? '#fff' : '#9AA1AC', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 10 }}>{n.badge}</span>}
             </div>
@@ -156,10 +164,7 @@ export default function Admin() {
             <div style={{ fontSize: 11, fontWeight: 700, color: '#9AA1AC' }}>{me.roleName}</div>
           </div>
           <Btn kind="ghost" small onClick={() => setSectionId('ucet')}>Změnit heslo</Btn>
-          {canEdit(perms, 'nastaveni') && <Btn kind="dark" onClick={doExport}>⤓ Export dat (JSON)</Btn>}
-          {canEdit(perms, 'nastaveni') && <Btn kind="ghost" small onClick={doReset}>Obnovit původní</Btn>}
           <Btn kind="ghost" small onClick={doLogout}>Odhlásit se</Btn>
-          <Link href="/" style={{ fontSize: 12, fontWeight: 700, color: '#9AA1AC', textAlign: 'center', padding: 6 }}>← Zpět na web</Link>
         </div>
       </div>
 

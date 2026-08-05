@@ -1,7 +1,7 @@
 import './globals.css';
-import Nav from './components/Nav';
-import Footer from './components/Footer';
+import Ramec from './components/Ramec';
 import { ContentProvider } from '@/lib/store';
+import { SessionProvider } from '@/lib/session';
 
 export const metadata = {
   metadataBase: new URL('https://fk-kunice-1934.vercel.app'),
@@ -31,9 +31,10 @@ export default function RootLayout({ children }) {
     <html lang="cs">
       <body>
         <ContentProvider>
-          <Nav />
-          <main className="fk-min">{children}</main>
-          <Footer />
+          <SessionProvider>
+            {/* menu + patička na webu, úzký pruh v administraci */}
+            <Ramec>{children}</Ramec>
+          </SessionProvider>
         </ContentProvider>
       </body>
     </html>

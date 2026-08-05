@@ -172,3 +172,22 @@ input, textarea, select { font-family: 'Inter', system-ui, sans-serif; }
     grid-template-columns: 1fr !important;
   }
 }
+
+/* =========================================================================
+   ADMINISTRACE NA MOBILU
+   Levé menu by na telefonu odsunulo obsah pod dlouhý seznam, proto se schová
+   pod tlačítko. Na desktopu a notebooku zůstává všechno beze změny.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .fk-admin-burger { display: flex !important; }
+  .fk-admin-side[data-menu-otevreno="0"] { display: none !important; }
+  .fk-admin { padding-left: 16px !important; padding-right: 16px !important; }
+}
+
+/* Telefon: pole vedle sebe se zalomí pod sebe, ať se nic neuřízne */
+@media (max-width: 560px) {
+  .fk-admin [style*="width: 180px"],
+  .fk-admin [style*="width: 170px"],
+  .fk-admin [style*="width: 220px"],
+  .fk-admin [style*="width: 150px"] { width: 100% !important; }
+}
