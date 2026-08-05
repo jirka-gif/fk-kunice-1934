@@ -55,10 +55,12 @@ spec:
               value: production
             - name: PORT
               value: '3000'
-            # Next standalone poslouchá na adrese z HOSTNAME, a tu Kubernetes
-            # nastavuje na jméno podu. Web by pak odpovídal jen na IP podu:
-            # `kubectl port-forward` (krok 5 návodu) by skončil chybou spojení,
+            # Next standalone poslouchá na adrese z HOSTNAME. Když ji nikdo
+            # nenastaví, převezme jméno podu a web odpovídá jen na IP podu:
+            # `kubectl port-forward` (krok 5 návodu) skončí chybou spojení,
             # i když v logu stojí „Ready". Ověřeno smoke testem v clusteru.
+            # Obraz už správnou hodnotu má; tady je zopakovaná proto, aby
+            # byla vidět i tomu, kdo čte jen tenhle soubor.
             - name: HOSTNAME
               value: '0.0.0.0'
             # Připojení k vlastnímu Postgresu v clusteru. Secret zakládá
