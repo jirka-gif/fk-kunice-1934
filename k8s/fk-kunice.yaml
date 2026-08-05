@@ -47,16 +47,32 @@ spec:
             capabilities: { drop: ['ALL'] }
           ports:
             - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: fk-kunice-secrets
           env:
             - name: NODE_ENV
               value: production
             - name: PORT
               value: '3000'
-          envFrom:
-            - secretRef:
-                name: fk-kunice-secrets
-          # Bez DATABASE_URL web běží z `content/club.js` (viz README-BACKEND.md).
-          # Až bude potřeba perzistence, doplní se sem odkaz na Postgres.
+            # Připojení k vlastnímu Postgresu v clusteru. Secret zakládá
+            # operátor CloudNativePG sám, když se použije `postgres.yaml` —
+            # heslo tak nikdy neprochází přes schránku ani ruční příkaz.
+            #
+            # `optional: true` znamená: dokud vlastní databáze neexistuje, pod
+            # normálně naběhne a použije se DATABASE_URL z `fk-kunice-secrets`
+            # (tam se dává adresa hostované Neon databáze).
+            #
+            # Pozor na pořadí: `env` PŘEBÍJÍ `envFrom`. Jakmile tedy vlastní
+            # databáze vznikne, web se po restartu přepne na ni, i kdyby v
+            # secretu zůstala stará adresa na Neon. To je záměr — přepnutí se
+            # dělá založením databáze, ne přepisováním hesel.
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fk-kunice-db-app
+                  key: uri
+                  optional: true
           readinessProbe:
             httpGet: { path: /, port: 3000 }
             initialDelaySeconds: 5

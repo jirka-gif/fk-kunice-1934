@@ -1,0 +1,66 @@
+# JEDNORÁZOVÉ přenesení dat z hostované Neon databáze do vlastního Postgresu
+# v clusteru. Po doběhnutí se maže (viz k8s/README.md).
+#
+# ═══════════════════════════════════════════════════════════════════════
+# ⚠️ SMĚR JE JEN JEDEN: Neon → cluster
+# ═══════════════════════════════════════════════════════════════════════
+# Job cílovou databázi nejdřív VYPRÁZDNÍ (`--clean`) a teprve pak do ní nalije
+# obsah z Neonu. Pustit ho podruhé — až budou v clusteru novější data — by
+# tato novější data přepsalo starým obsahem z Neonu. Proto se po úspěchu maže.
+#
+# Zdrojovou adresu čte ze secretu `neon-migrace`, který si založíš ručně
+# a po migraci zase smažeš. Do gitu se tak nikdy nedostane.
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrace-z-neonu
+  namespace: fk-kunice
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 26 # uživatel `postgres` v oficiálním obrazu
+      containers:
+        - name: prenos
+          image: ghcr.io/cloudnative-pg/postgresql:16.4
+          command: ['/bin/sh', '-c']
+          args:
+            - |
+              set -eu
+              echo "== ctu data z Neonu =="
+              # --clean --if-exists: cilova databaze se pred nalitim vyprazdni,
+              #   aby slo migraci zopakovat po neuspechu.
+              # --no-owner --no-privileges: v Neonu se uzivatel jmenuje jinak
+              #   nez v clusteru; bez techto prepinacu by restore hlasil chyby.
+              pg_dump --clean --if-exists --no-owner --no-privileges \
+                      --table=site_content --table=site_auth \
+                      "$ZDROJ" > /tmp/dump.sql
+              echo "== velikost vypisu: $(wc -c < /tmp/dump.sql) bajtu =="
+              echo "== zapisuji do clusteru =="
+              # ON_ERROR_STOP: bez nej psql chyby jen vypise a skonci uspechem,
+              # takze by se neuplna migrace tvarila jako hotova.
+              psql --set ON_ERROR_STOP=on -d "$CIL" -f /tmp/dump.sql
+              echo "== kontrola =="
+              psql -d "$CIL" -tAc \
+                "SELECT 'site_content: '||count(*)||' radku' FROM site_content
+                 UNION ALL
+                 SELECT 'site_auth: '||count(*)||' radku' FROM site_auth"
+              echo "== HOTOVO =="
+          env:
+            - name: ZDROJ
+              valueFrom:
+                secretKeyRef:
+                  name: neon-migrace
+                  key: uri
+            - name: CIL
+              valueFrom:
+                secretKeyRef:
+                  name: fk-kunice-db-app
+                  key: uri
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
