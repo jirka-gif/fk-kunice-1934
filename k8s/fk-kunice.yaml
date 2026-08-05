@@ -7,11 +7,13 @@
 # Obraz je na GHCR VEŘEJNÝ, proto tu není imagePullSecret — stejně jako
 # frenkee-web. Kdyby se balíček přepnul na private, je potřeba do namespace
 # zkopírovat secret `ghcr-pull` a doplnit ho níže.
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: fk-kunice
+#
+# Namespace `fk-kunice` tu NENÍ. Zakládá ho správce clusteru spolu s účtem
+# (viz `bara-rbac.yaml`), protože účet, který sem nasazuje, na namespacy
+# schválně nedosáhne. Kdyby byl tady, `apply` by skončil hláškou
+#   namespaces "fk-kunice" is forbidden: ... cannot patch resource "namespaces"
+# a to až PO tom, co se Deployment, Service i Ingress povedly — vypadalo by
+# to jako neúspěch, i když web mezitím naběhl.
 #
 # Secret `fk-kunice-secrets` tu SCHVÁLNĚ NENÍ. Kdyby tu byl jako vzor s
 # hodnotami typu „zmen-me", každé opakované `apply -f` tohoto souboru by

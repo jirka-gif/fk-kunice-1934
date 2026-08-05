@@ -10,6 +10,13 @@
 #
 # Co NEUMÍ: nic mimo `fk-kunice`. Ani číst, ani měnit.
 ---
+# Namespace je tady, ne v `fk-kunice.yaml`: zakládá ho správce clusteru
+# zároveň s účtem, protože účet sám na namespacy nedosáhne.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fk-kunice
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
