@@ -836,7 +836,7 @@ export function Kempy() {
 
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Výhody kempu</div>
       <ListEditor items={c.perks} onChange={(v) => upd({ perks: v })} itemTitle={(p) => p.title} newItem={{ emoji: '🏆', title: '', text: '' }} addLabel="+ Přidat výhodu"
-        renderItem={(p, u) => (<Row><Field label="Emoji" value={p.emoji} onChange={(v) => u({ emoji: v })} width="90px" /><Field label="Název" value={p.title} onChange={(v) => u({ title: v })} /><Field label="Text" value={p.text} onChange={(v) => u({ text: v })} /></Row>)} />
+        renderItem={(p, u) => (<Row><Field label="Název" value={p.title} onChange={(v) => u({ title: v })} /><Field label="Text" value={p.text} onChange={(v) => u({ text: v })} /></Row>)} />
 
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Denní program</div>
       <ListEditor items={c.program} onChange={(v) => upd({ program: v })} itemTitle={(p) => `${p.time} ${p.title}`} newItem={{ time: '00:00', title: '' }} addLabel="+ Přidat bod programu"
@@ -1061,7 +1061,6 @@ function RentalNastaveni({ settings }) {
 export function Pronajem() {
   const d = useData();
   const [tab, setTab] = useState('rezervace');
-  const busyStr = d.rentalBusyDays.map(String);
   const areaOptions = d.rentalPlans.map((p) => p.name);
   const newCount = d.reservations.filter((r) => r.status === 'nová').length;
 
@@ -1080,7 +1079,11 @@ export function Pronajem() {
         <RezervaceTable reservations={d.reservations} areaOptions={areaOptions} />
       ) : (
         <div>
-          <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>Plochy a ceník (/pronajem)</div>
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 6px' }}>Hřiště k pronájmu</div>
+          <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginBottom: 10 }}>
+            Jeden seznam pro celý web — ceník na stránce Pronájem, první tři se ukážou i na hlavní stránce
+            a vybírají se v poptávkovém formuláři.
+          </div>
           <ListEditor items={d.rentalPlans} onChange={(v) => set('rentalPlans', v)} itemTitle={(p) => `${p.name} — ${p.price}`}
             newItem={{ name: 'Nová plocha', spec: '', price: '0 Kč', status: 'VOLNO', img: 'char', features: [] }} addLabel="+ Přidat plochu"
             renderItem={(p, u) => (
@@ -1100,34 +1103,6 @@ export function Pronajem() {
                 <StringListEditor items={p.features} onChange={(v) => u({ features: v })} placeholder="prvek" columns={2} />
               </div>
             )} />
-
-          <div style={{ fontWeight: 800, fontSize: 15, margin: '24px 0 10px' }}>Plochy na hlavní stránce <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(blok „Pronajmi si náš areál")</span></div>
-          <ListEditor
-            items={d.facilities}
-            onChange={(v) => set('facilities', v)}
-            itemTitle={(f) => `${f.name} — ${f.price}`}
-            newItem={{ name: 'Nová plocha', spec: '', price: '0 Kč', status: 'VOLNO', img: 'char' }}
-            addLabel="Přidat plochu"
-            renderItem={(f, u) => (
-              <div>
-                <Row>
-                  <Field label="Název" value={f.name} onChange={(v) => u({ name: v })} />
-                  <Field label="Specifikace" value={f.spec} onChange={(v) => u({ spec: v })} />
-                </Row>
-                <div style={{ height: 10 }} />
-                <Row>
-                  <Field label="Cena / hod" value={f.price} onChange={(v) => u({ price: v })} width="140px" />
-                  <Select label="Stav" value={f.status} onChange={(v) => u({ status: v })} options={['VOLNO', 'OBSAZENO']} width="170px" />
-                  <Field label="Obrázek" value={f.img} onChange={(v) => u({ img: v })} width="130px" />
-                </Row>
-              </div>
-            )}
-          />
-
-          <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 6px' }}>Obsazené dny v kalendáři (čísla dnů)</div>
-          <Card>
-            <StringListEditor items={busyStr} onChange={(v) => set('rentalBusyDays', v.map((x) => Number(x) || 0).filter(Boolean))} placeholder="den" columns={4} />
-          </Card>
 
           <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Časté dotazy (pronájem)</div>
           <ListEditor items={d.rentalFaq} onChange={(v) => set('rentalFaq', v)} itemTitle={(f) => f.q} newItem={{ q: '', a: '' }} addLabel="+ Přidat dotaz"
@@ -1151,8 +1126,6 @@ export function Kontakt() {
             <Row>
               <Field label="Jméno" value={p.name} onChange={(v) => u({ name: v })} />
               <Field label="Role" value={p.role} onChange={(v) => u({ role: v })} />
-              <Field label="Iniciály" value={p.ini} onChange={(v) => u({ ini: v })} width="100px" />
-              <Field label="Barva" value={p.bg} onChange={(v) => u({ bg: v })} width="120px" />
             </Row>
             <div style={{ height: 10 }} />
             <Row>
@@ -1164,7 +1137,7 @@ export function Kontakt() {
 
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Rychlé kontakty (dlaždice)</div>
       <ListEditor items={d.quickActions} onChange={(v) => set('quickActions', v)} itemTitle={(q) => q.title} newItem={{ emoji: '📞', title: '', value: '' }} addLabel="+ Přidat dlaždici"
-        renderItem={(q, u) => (<Row><Field label="Emoji" value={q.emoji} onChange={(v) => u({ emoji: v })} width="90px" /><Field label="Titulek" value={q.title} onChange={(v) => u({ title: v })} /><Field label="Hodnota" value={q.value} onChange={(v) => u({ value: v })} /></Row>)} />
+        renderItem={(q, u) => (<Row><Field label="Titulek" value={q.title} onChange={(v) => u({ title: v })} placeholder="Zavolejte nám" /><Field label="Hodnota" value={q.value} onChange={(v) => u({ value: v })} placeholder="+420 777 123 456" /></Row>)} />
     </div>
   );
 }

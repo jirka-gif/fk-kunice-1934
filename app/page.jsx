@@ -10,7 +10,7 @@ const cardSh = 'box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 26px rgba(18,18,18
 
 export default function Home() {
   useRevealEngine();
-  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, facilities, news, sponsors, gallery, homeTexts } = useContent();
+  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, rentalPlans, news, sponsors, gallery, homeTexts } = useContent();
   const T = homeTexts;
   const heroCtas = T.hero.ctas || [];
   const featured = news[0];
@@ -238,7 +238,7 @@ export default function Home() {
             <Hov as={Link} href="/pronajem" style="font-weight:700;font-size:15px;color:#121212;padding:14px 24px;border-radius:10px;cursor:pointer;background:#F6F7F9;transition:transform .2s,background .2s" hover="background:#EEF0F3;transform:translateY(-2px)">{T.rental.link}</Hov>
           </div>
           <div className="fk-teams" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 22 }}>
-            {facilities.map((f, i) => {
+            {rentalPlans.slice(0, 3).map((f, i) => {
               const free = f.status === 'VOLNO';
               return (
                 <Hov key={i} as={Link} href="/pronajem" className="fk-rev fk-zoom" style={`background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;display:block;${cardSh};transition:transform .35s,box-shadow .35s`} hover="transform:translateY(-8px);box-shadow:0 30px 60px rgba(18,18,18,.16)">

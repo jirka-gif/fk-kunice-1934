@@ -15,7 +15,7 @@ import {
 describe('buildDefaults / DEFAULTS', () => {
   it('obsahuje všechny hlavní sekce webu', () => {
     for (const key of [
-      'club', 'teams', 'whyCards', 'camps', 'facilities', 'news', 'sponsors',
+      'club', 'teams', 'whyCards', 'camps', 'news', 'sponsors',
       'rentalPlans', 'rentalFaq', 'quickActions', 'people',
       'reservations', 'messages',
     ]) {

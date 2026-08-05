@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
-import { COLORS } from '@/lib/design';
+import { COLORS, initials } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
 import { Vyber } from '@/app/components/Vyber';
@@ -157,7 +157,7 @@ export default function Kontakt() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {people.map((pe, i) => (
               <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 20, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05)' }}>
-                <div style={{ width: 48, height: 48, borderRadius: 99, background: pe.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 16 }}>{pe.ini}</div>
+                <div style={{ width: 48, height: 48, borderRadius: 99, background: COLORS.red, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 16 }}>{initials(pe.name)}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: 15, color: COLORS.text }}>{pe.name}</div>
                   <div style={{ fontSize: 13, color: COLORS.muted, fontWeight: 600 }}>{pe.role}</div>
