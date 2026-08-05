@@ -33,14 +33,33 @@ test('zpráva z webu dorazí do sekce Zprávy a jde označit jako vyřízená', 
   await expect(page.getByText(name)).toBeVisible();
 });
 
-test('přehled v adminu ukazuje reálné počty', async ({ page }) => {
-  await loginToAdmin(page);
-  await expect(page.getByText('Nové zprávy')).toBeVisible();
-  await expect(page.getByText('Nové rezervace').first()).toBeVisible();
-  await expect(page.getByText('Vypsané kempy')).toBeVisible();
-  await expect(page.getByText('Nejbližší zápasy')).toBeVisible();
+test('přehled ukazuje jen to, co opravdu čeká, a vede rovnou tam', async ({ page }) => {
+  // necháme dorazit zprávu, ať máme jistý úkol
+  await page.request.post('/api/submit', {
+    data: { type: 'message', payload: { name: `Úkol ${Date.now()}`, email: 'x@y.cz', text: 'dotaz' } },
+  });
 
-  // klik na kartu přepne do příslušné sekce
-  await page.getByText('Nové zprávy').click();
+  await loginToAdmin(page);
+  await expect(page.getByText('Co je potřeba udělat')).toBeVisible();
+  await expect(page.getByText('Nové zprávy')).toBeVisible();
+
+  // tlačítko u úkolu otevře příslušnou sekci
+  await page.getByRole('button', { name: 'Přečíst' }).first().click();
   await expect(page.getByText('Zprávy odeslané z kontaktního formuláře na webu')).toBeVisible();
+});
+
+test('vyřízené úkoly z přehledu zmizí', async ({ page }) => {
+  await loginToAdmin(page);
+  const content = await (await page.request.get('/api/content')).json();
+  // všechno označíme za vyřízené
+  content.messages = content.messages.map((m) => ({ ...m, status: 'vyřízená' }));
+  content.cmsRegistrations = content.cmsRegistrations.map((r) => ({ ...r, status: 'vyřízená' }));
+  content.reservations = content.reservations.map((r) => ({ ...r, status: 'potvrzená' }));
+  content.matchProposals = content.matchProposals.map((p) => ({ ...p, status: 'schválená' }));
+  content.socialPosts = content.socialPosts.map((p) => ({ ...p, status: 'odesláno' }));
+  await page.request.put('/api/content', { data: content });
+
+  await page.reload();
+  await expect(page.getByText('Všechno vyřízené. Nic tu na tebe nečeká.')).toBeVisible();
+  await expect(page.getByText('Nové zprávy')).toHaveCount(0);
 });

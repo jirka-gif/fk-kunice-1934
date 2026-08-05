@@ -73,12 +73,16 @@ export default function Admin() {
     .slice(0, 5)
     .map((m) => ({ ...m, time: `${m.when.getDate()}. ${m.when.getMonth() + 1}. ${String(m.when.getHours()).padStart(2, '0')}:${String(m.when.getMinutes()).padStart(2, '0')}` }));
 
-  const todo = [
-    { label: 'Nové zprávy', value: newMessages, go: 'zpravy', hint: 'z kontaktního formuláře' },
-    { label: 'Nové rezervace', value: newReservations, go: 'pronajem', hint: 'poptávky pronájmu' },
-    { label: 'Nové registrace', value: newRegistrations, go: 'registrace', hint: 'přihlášky do klubu' },
-    { label: 'Vypsané kempy', value: activeCamps, go: 'kempy', hint: `${d.camps.length - activeCamps} v archivu` },
-  ];
+  const novychNavrhu = d.matchProposals.filter((p) => p.status === 'nová').length;
+  const konceptu = d.socialPosts.filter((p) => p.status !== 'odesláno').length;
+  // do seznamu jde jen to, co opravdu čeká — prázdné řádky nikoho nezajímají
+  const ukoly = [
+    { label: 'Nové zprávy', value: newMessages, go: 'zpravy', hint: 'z kontaktního formuláře', action: 'Přečíst' },
+    { label: 'Nové přihlášky do klubu', value: newRegistrations, go: 'registrace', hint: 'zájemci o nábor', action: 'Vyřídit' },
+    { label: 'Nevyřízené rezervace', value: newReservations, go: 'pronajem', hint: 'poptávky pronájmu drží termín', action: 'Potvrdit' },
+    { label: 'Návrhy zápasů ke kontrole', value: novychNavrhu, go: 'zapasy', hint: 'stažené z fotbal.cz', action: 'Zkontrolovat' },
+    { label: 'Rozepsané příspěvky', value: konceptu, go: 'socialni', hint: 'čekají na zveřejnění', action: 'Dokončit' },
+  ].filter((u) => u.value > 0 && canView(perms, u.go));
 
   const BADGES = {
     tymy: String(d.teams.length),
@@ -200,21 +204,34 @@ export default function Admin() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
               <div><div style={{ fontFamily: "'Bebas Neue'", fontSize: 32, color: '#121212', letterSpacing: '.3px' }}>Přehled</div><div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>{d.club.fullName}</div></div>
-              <div style={{ width: 38, height: 38, borderRadius: 99, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 13 }}>PD</div>
+              <div style={{ width: 38, height: 38, borderRadius: 99, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 13 }}>{(me.name || me.email).split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase()}</div>
             </div>
 
-            {/* co čeká na vyřízení — reálné počty z obsahu webu */}
-            <div className="fk-admin-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
-              {todo.map((c, i) => (
-                <Card key={i} style={{ cursor: 'pointer' }}>
-                  <div onClick={() => setSectionId(c.go)}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#9AA1AC', letterSpacing: '.5px' }}>{c.label}</div>
-                    <div style={{ fontFamily: "'Bebas Neue'", fontSize: 34, color: c.value > 0 ? RED : '#121212', marginTop: 8, lineHeight: 1 }}>{c.value}</div>
-                    <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6, color: '#9AA1AC' }}>{c.hint}</div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            {/* Co je potřeba udělat — jen to, co opravdu čeká, s tlačítkem rovnou tam. */}
+            <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Co je potřeba udělat</div>
+            {ukoly.length === 0 ? (
+              <Card style={{ marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 4 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 99, background: '#1F8A4C', flex: 'none' }} />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1F8A4C' }}>Všechno vyřízené. Nic tu na tebe nečeká.</span>
+                </div>
+              </Card>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+                {ukoly.map((u) => (
+                  <Card key={u.go} style={{ padding: '14px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                      <span style={{ minWidth: 42, height: 42, borderRadius: 10, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 24, flex: 'none' }}>{u.value}</span>
+                      <div style={{ flex: 1, minWidth: 160 }}>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{u.label}</div>
+                        <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginTop: 2 }}>{u.hint}</div>
+                      </div>
+                      <Btn kind="primary" small onClick={() => setSectionId(u.go)}>{u.action}</Btn>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             {/* reálný obsah webu */}
             <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Obsah webu</div>
@@ -224,6 +241,7 @@ export default function Admin() {
                 { n: playersTotal, l: 'Hráčů', go: 'tymy' },
                 { n: coachesTotal, l: 'Trenérů', go: 'tymy' },
                 { n: d.news.length, l: 'Novinek', go: 'novinky' },
+                { n: activeCamps, l: 'Vypsaných kempů', go: 'kempy' },
                 { n: d.teams.reduce((s, t) => s + ((t.results && t.results.length) || 0), 0), l: 'Výsledků', go: 'zapasy' },
                 { n: d.rentalPlans.length, l: 'Ploch k pronájmu', go: 'pronajem' },
                 { n: d.sponsors.length, l: 'Partnerů', go: 'partneri' },
