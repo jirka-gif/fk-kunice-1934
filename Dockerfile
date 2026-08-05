@@ -27,10 +27,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
-# Next standalone se váže na adresu z HOSTNAME. Bez tohohle řádku by
-# poslouchal na jménu stroje místo na všech adresách a nebyl by dostupný
-# zvenčí kontejneru. Pozor: běhové prostředí umí HOSTNAME přepsat, proto
-# je totéž ještě v k8s/fk-kunice.yaml.
+# Next standalone se váže na adresu z HOSTNAME. Bez tohohle řádku převezme
+# hodnotu, kterou kontejneru nastaví běhové prostředí — v Kubernetes je to
+# jméno podu — a web pak odpovídá jen na IP podu, ne na localhostu.
+# Totéž je i v k8s/fk-kunice.yaml, aby to bylo vidět tomu, kdo čte manifest.
 ENV HOSTNAME=0.0.0.0
 
 # Nonroot. Uživatel 1001 odpovídá tomu, co v clusteru běží u ostatních webů.
