@@ -58,3 +58,16 @@ describe('výchozí obsah', () => {
     expect(saved.rentalPlans[0].price).toBe('1 500 Kč');
   });
 });
+
+describe('datum z kalendáře (datetime-local)', () => {
+  it('kratší zápis bez sekund je pořád platné datum pro odpočet i řazení', () => {
+    // `datetime-local` ukládá „2026-07-07T08:00", starší data mají i sekundy
+    expect(isNaN(new Date('2026-07-07T08:00'))).toBe(false);
+    expect(new Date('2026-07-07T08:00').getTime()).toBe(new Date('2026-07-07T08:00:00').getTime());
+  });
+
+  it('oříznutí na 16 znaků nechá hodnotu, kterou prohlížeč zobrazí', () => {
+    expect('2026-07-07T08:00:00'.slice(0, 16)).toBe('2026-07-07T08:00');
+    expect(''.slice(0, 16)).toBe('');
+  });
+});

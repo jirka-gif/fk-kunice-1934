@@ -424,7 +424,7 @@ export function Zapasy() {
         <div style={{ height: 10 }} />
         <Row>
           <Field label="Kdy / soutěž (text)" value={nm.when} onChange={(v) => updNm({ when: v })} placeholder="NE 16:30 · III. TŘÍDA" />
-          <Field label="Datum a čas (pro odpočet)" type="datetime-local" value={nm.dateISO} onChange={(v) => updNm({ dateISO: v })} width="230px" />
+          <Field label="Datum a čas (pro odpočet)" type="datetime-local" value={(nm.dateISO || '').slice(0, 16)} onChange={(v) => updNm({ dateISO: v })} width="230px" />
           <Field label="Kde se hraje" value={nm.venue} onChange={(v) => updNm({ venue: v })} placeholder="Areál Kunice" />
         </Row>
       </Card>
@@ -674,7 +674,7 @@ export function Navrhy({ proposals, teams }) {
                       <div style={{ height: 10 }} />
                       <Row>
                         <Field label="Kdy (text)" value={nm.when} onChange={(v) => updDraft({ nextMatch: { ...nm, when: v } })} />
-                        <Field label="Datum a čas" value={nm.dateISO} onChange={(v) => updDraft({ nextMatch: { ...nm, dateISO: v } })} width="220px" />
+                        <Field label="Datum a čas" type="datetime-local" value={(nm.dateISO || '').slice(0, 16)} onChange={(v) => updDraft({ nextMatch: { ...nm, dateISO: v } })} width="230px" />
                         <Field label="Kde" value={nm.venue} onChange={(v) => updDraft({ nextMatch: { ...nm, venue: v } })} />
                       </Row>
                     </>
@@ -822,12 +822,14 @@ export function Kempy() {
         <Field label="Popis na homepage" textarea rows={2} value={c.desc} onChange={(v) => upd({ desc: v })} />
         <div style={{ height: 10 }} />
         <Field label="Úvodní text (detail kempu)" textarea rows={2} value={c.lead} onChange={(v) => upd({ lead: v })} />
-        <div style={{ height: 10 }} />
+        <div style={{ height: 14 }} />
+        <ImageField label="Fotka kempu" value={c.img} onChange={(v) => upd({ img: v })} />
+        <div style={{ height: 14 }} />
         <Row>
           <Field label="Obsazeno (počet)" type="number" value={c.capacity.taken} onChange={(v) => upd({ capacity: { ...c.capacity, taken: Number(v) || 0 } })} width="160px" />
           <Field label="Kapacita celkem" type="number" value={c.capacity.total} onChange={(v) => upd({ capacity: { ...c.capacity, total: Number(v) || 0 } })} width="160px" />
-          <Field label="Start (ISO pro odpočet)" value={c.startISO} onChange={(v) => upd({ startISO: v })} placeholder="2026-07-07T08:00:00" />
-          <Field label="Obrázek" value={c.img} onChange={(v) => upd({ img: v })} width="130px" />
+          <Field label="Začátek kempu" type="datetime-local" value={(c.startISO || '').slice(0, 16)} onChange={(v) => upd({ startISO: v })} width="230px" />
+
         </Row>
       </Card>
 
@@ -844,7 +846,16 @@ export function Kempy() {
 
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Trenéři kempu</div>
       <ListEditor items={c.coaches} onChange={(v) => upd({ coaches: v })} itemTitle={(p) => p.name} newItem={{ name: '', role: 'Trenér', img: 'dusk' }} addLabel="+ Přidat trenéra"
-        renderItem={(p, u) => (<Row><Field label="Jméno" value={p.name} onChange={(v) => u({ name: v })} /><Field label="Role" value={p.role} onChange={(v) => u({ role: v })} /><Field label="Obrázek" value={p.img} onChange={(v) => u({ img: v })} width="120px" /></Row>)} />
+        renderItem={(p, u) => (
+          <div>
+            <Row>
+              <Field label="Jméno" value={p.name} onChange={(v) => u({ name: v })} />
+              <Field label="Role" value={p.role} onChange={(v) => u({ role: v })} />
+            </Row>
+            <div style={{ height: 12 }} />
+            <ImageField label="Fotka" value={p.img} onChange={(v) => u({ img: v })} />
+          </div>
+        )} />
 
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Časté dotazy</div>
       <ListEditor items={c.faq} onChange={(v) => upd({ faq: v })} itemTitle={(f) => f.q} newItem={{ q: '', a: '' }} addLabel="+ Přidat dotaz"
@@ -1096,8 +1107,9 @@ export function Pronajem() {
                 <div style={{ height: 10 }} />
                 <Row>
                   <Select label="Stav" value={p.status} onChange={(v) => u({ status: v })} options={['VOLNO', 'OBSAZENO']} width="200px" />
-                  <Field label="Obrázek" value={p.img} onChange={(v) => u({ img: v })} width="130px" />
                 </Row>
+                <div style={{ height: 12 }} />
+                <ImageField label="Fotka hřiště" value={p.img} onChange={(v) => u({ img: v })} />
                 <div style={{ marginTop: 12, fontSize: 11, fontWeight: 800, color: '#9AA1AC' }}>VYBAVENÍ</div>
                 <div style={{ height: 6 }} />
                 <StringListEditor items={p.features} onChange={(v) => u({ features: v })} placeholder="prvek" columns={2} />
