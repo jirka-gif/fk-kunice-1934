@@ -1,6 +1,8 @@
 'use client';
 import { useState, Fragment } from 'react';
-import { useData, setSection } from '@/lib/store';
+import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem, emptyReservation } from '@/lib/store';
+import { czechDate, daySlots } from '@/lib/rental';
+import { postFromResult } from '@/lib/social';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
@@ -40,10 +42,214 @@ export function Nastaveni() {
           <Field label="E-mail" value={club.email} onChange={(v) => upd({ email: v })} />
           <Field label="Telefon" value={club.phone} onChange={(v) => upd({ phone: v })} />
           <Field label="Messenger" value={club.messenger} onChange={(v) => upd({ messenger: v })} />
+          <Field label="Adresa pro mapu (Kontakt)" value={club.mapQuery} onChange={(v) => upd({ mapQuery: v })} placeholder="FK Kunice, Kunice 130, 251 63 Kunice" />
         </Row>
         <div style={{ height: 12 }} />
         <Field label="Popis (patička)" textarea value={club.description} onChange={(v) => upd({ description: v })} />
       </Card>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- DOMŮ / TEXTY
+const WHY_ICONS = [
+  { value: 'star', label: 'Hvězda' },
+  { value: 'home', label: 'Domeček' },
+  { value: 'users', label: 'Lidé' },
+  { value: 'ball', label: 'Míč' },
+];
+
+// dvojice „nadpis sekce" (eyebrow + titulek) na hlavní stránce
+function SectionTexts({ label, value, onChange, extra }) {
+  return (
+    <Card style={{ marginBottom: 12 }}>
+      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>{label}</div>
+      <Row>
+        <Field label="Nadnadpis" value={value.eyebrow} onChange={(v) => onChange({ eyebrow: v })} width="240px" />
+        <Field label="Nadpis" value={value.title} onChange={(v) => onChange({ title: v })} />
+      </Row>
+      {extra && <><div style={{ height: 10 }} />{extra}</>}
+    </Card>
+  );
+}
+
+export function Domu() {
+  const { homeTexts, whyCards, footer, gallery } = useData();
+  const [tab, setTab] = useState('hero');
+  const setHome = (patch) => set('homeTexts', { ...homeTexts, ...patch });
+  const sec = (key) => (patch) => setHome({ [key]: { ...homeTexts[key], ...patch } });
+  const setFooter = (patch) => set('footer', { ...footer, ...patch });
+  const h = homeTexts.hero;
+
+  return (
+    <div>
+      <SectionHead title="Domů / texty" desc="Texty na hlavní stránce a v patičce — hero, nadpisy sekcí, karty „Proč my“ a odkazy v patičce" />
+      <SubTabs tab={tab} setTab={setTab} tabs={[
+        { id: 'hero', label: 'Hero' },
+        { id: 'sekce', label: 'Nadpisy sekcí' },
+        { id: 'proc', label: 'Proč my', badge: whyCards.length },
+        { id: 'galerie', label: 'Galerie', badge: gallery.filter((g) => g.image).length },
+        { id: 'paticka', label: 'Patička' },
+      ]} />
+
+      {tab === 'hero' && (
+        <div>
+          <Card style={{ marginBottom: 16 }}>
+            <Row>
+              <Field label="Hlavní nadpis" value={h.title} onChange={(v) => sec('hero')({ title: v })} />
+              <Field label="Psaný podtitulek" value={h.script} onChange={(v) => sec('hero')({ script: v })} />
+            </Row>
+            <div style={{ height: 12 }} />
+            <Field label="Odstavec (každý řádek se zalomí zvlášť)" textarea rows={3} value={h.perex} onChange={(v) => sec('hero')({ perex: v })} />
+            <div style={{ height: 12 }} />
+            <Field label="Popisek u šipky dolů" value={h.scrollLabel} onChange={(v) => sec('hero')({ scrollLabel: v })} width="220px" />
+          </Card>
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Tlačítka v hero (první je červené)</div>
+          <ListEditor
+            items={h.ctas || []}
+            onChange={(v) => sec('hero')({ ctas: v })}
+            itemTitle={(c) => c.label || 'Nové tlačítko'}
+            newItem={{ label: 'Nové tlačítko', href: '/' }}
+            addLabel="+ Přidat tlačítko"
+            renderItem={(c, u) => (
+              <Row>
+                <Field label="Text tlačítka" value={c.label} onChange={(v) => u({ label: v })} />
+                <Field label="Odkaz" value={c.href} onChange={(v) => u({ href: v })} placeholder="/kontakt" />
+              </Row>
+            )}
+          />
+        </div>
+      )}
+
+      {tab === 'sekce' && (
+        <div>
+          <SectionTexts label="Match center (zápasy)" value={homeTexts.match} onChange={sec('match')} extra={
+            <div>
+              <Row>
+                <Field label="Text odkazu" value={homeTexts.match.link} onChange={(v) => sec('match')({ link: v })} />
+                <Field label="Popisek příštího zápasu" value={homeTexts.match.nextLabel} onChange={(v) => sec('match')({ nextLabel: v })} />
+                <Field label="Tlačítko detailu" value={homeTexts.match.detailLink} onChange={(v) => sec('match')({ detailLink: v })} />
+              </Row>
+              <div style={{ height: 10 }} />
+              <Row>
+                <Field label="Nadpis výsledků" value={homeTexts.match.resultsTitle} onChange={(v) => sec('match')({ resultsTitle: v })} />
+                <Field label="Nadpis tabulky" value={homeTexts.match.tableTitle} onChange={(v) => sec('match')({ tableTitle: v })} />
+              </Row>
+            </div>
+          } />
+          <SectionTexts label="Týmy" value={homeTexts.teams} onChange={sec('teams')} />
+          <SectionTexts label="Proč my" value={homeTexts.why} onChange={sec('why')} />
+          <SectionTexts label="Kempy" value={homeTexts.camps} onChange={sec('camps')} extra={
+            <Field label="Text tlačítka u kempu" value={homeTexts.camps.ctaLabel} onChange={(v) => sec('camps')({ ctaLabel: v })} width="240px" />
+          } />
+          <SectionTexts label="Pronájem" value={homeTexts.rental} onChange={sec('rental')} extra={
+            <Row>
+              <Field label="Text odkazu" value={homeTexts.rental.link} onChange={(v) => sec('rental')({ link: v })} />
+              <Field label="Jednotka u ceny" value={homeTexts.rental.unit} onChange={(v) => sec('rental')({ unit: v })} width="180px" />
+            </Row>
+          } />
+          <SectionTexts label="Novinky" value={homeTexts.news} onChange={sec('news')} extra={
+            <Field label="Text odkazu" value={homeTexts.news.link} onChange={(v) => sec('news')({ link: v })} width="240px" />
+          } />
+          <SectionTexts label="Galerie" value={homeTexts.gallery} onChange={sec('gallery')} />
+          <Card>
+            <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>Partneři</div>
+            <Field label="Nadpis nad logy partnerů" value={homeTexts.sponsors.title} onChange={(v) => sec('sponsors')({ title: v })} width="280px" />
+          </Card>
+        </div>
+      )}
+
+      {tab === 'proc' && (
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>Karty „Proč rodiče volí nás“</div>
+          <ListEditor
+            items={whyCards}
+            onChange={(v) => set('whyCards', v)}
+            itemTitle={(w) => w.title || 'Nová karta'}
+            newItem={{ title: 'Nová karta', text: '', icon: 'star' }}
+            addLabel="+ Přidat kartu"
+            renderItem={(w, u) => (
+              <div>
+                <Row>
+                  <Field label="Nadpis" value={w.title} onChange={(v) => u({ title: v })} />
+                  <Select label="Ikona" value={w.icon} onChange={(v) => u({ icon: v })} options={WHY_ICONS} width="170px" />
+                </Row>
+                <div style={{ height: 10 }} />
+                <Field label="Text" textarea rows={2} value={w.text} onChange={(v) => u({ text: v })} />
+              </div>
+            )}
+          />
+        </div>
+      )}
+
+      {tab === 'galerie' && (
+        <div>
+          <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+            Sekce <b>Momenty</b> na hlavní stránce má osm dlaždic. První je velká (2 × 2),
+            čtvrtá a sedmá široké. Dlaždice bez nahrané fotky zůstane barevná.
+          </div>
+          <ListEditor
+            items={gallery}
+            onChange={(v) => set('gallery', v)}
+            itemTitle={(g, i) => `Dlaždice ${i + 1}${i === 0 ? ' (velká)' : i === 3 || i === 6 ? ' (široká)' : ''}`}
+            newItem={() => ({ ...emptyGalleryItem(), id: `foto-${Date.now()}` })}
+            addLabel="Přidat fotku"
+            renderItem={(g, u) => (
+              <div>
+                <ImageField label="Fotka" value={g.image} onChange={(v) => u({ image: v })} />
+                <div style={{ height: 12 }} />
+                <Field label="Popis pro čtečky (nepovinný)" value={g.alt} onChange={(v) => u({ alt: v })} placeholder="Áčko po vítězném zápase" />
+              </div>
+            )}
+          />
+        </div>
+      )}
+
+      {tab === 'paticka' && (
+        <div>
+          <Card style={{ marginBottom: 16 }}>
+            <Row>
+              <Field label="Nadpis kontaktu" value={footer.contactTitle} onChange={(v) => setFooter({ contactTitle: v })} />
+              <Field label="První řádek adresy" value={footer.contactLead} onChange={(v) => setFooter({ contactLead: v })} />
+              <Field label="Popisek u mapy" value={footer.mapLabel} onChange={(v) => setFooter({ mapLabel: v })} />
+            </Row>
+            <div style={{ height: 12 }} />
+            <Row>
+              <Field label="Spodní řádek (copyright)" value={footer.copyright} onChange={(v) => setFooter({ copyright: v })} />
+              <Field label="Claim vpravo dole" value={footer.claim} onChange={(v) => setFooter({ claim: v })} width="260px" />
+            </Row>
+            <div style={{ height: 12 }} />
+            <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginBottom: 8 }}>Odkazy na sociální sítě — prázdné pole ikonu skryje.</div>
+            <Row>
+              <Field label="Instagram" value={footer.social.instagram} onChange={(v) => setFooter({ social: { ...footer.social, instagram: v } })} placeholder="https://instagram.com/…" />
+              <Field label="Facebook" value={footer.social.facebook} onChange={(v) => setFooter({ social: { ...footer.social, facebook: v } })} placeholder="https://facebook.com/…" />
+              <Field label="X / Twitter" value={footer.social.twitter} onChange={(v) => setFooter({ social: { ...footer.social, twitter: v } })} placeholder="https://x.com/…" />
+            </Row>
+          </Card>
+
+          {[['columnA', 'První sloupec odkazů'], ['columnB', 'Druhý sloupec odkazů']].map(([key, label]) => (
+            <div key={key} style={{ marginBottom: 20 }}>
+              <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>{label}</div>
+              <Card style={{ marginBottom: 10 }}>
+                <Field label="Nadpis sloupce" value={footer[key].title} onChange={(v) => setFooter({ [key]: { ...footer[key], title: v } })} width="240px" />
+              </Card>
+              <ListEditor
+                items={footer[key].links || []}
+                onChange={(v) => setFooter({ [key]: { ...footer[key], links: v } })}
+                itemTitle={(l) => l.label || 'Nový odkaz'}
+                newItem={{ label: 'Nový odkaz', href: '/' }}
+                addLabel="+ Přidat odkaz"
+                renderItem={(l, u) => (
+                  <Row>
+                    <Field label="Text" value={l.label} onChange={(v) => u({ label: v })} />
+                    <Field label="Odkaz" value={l.href} onChange={(v) => u({ href: v })} placeholder="/tymy" />
+                  </Row>
+                )}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -77,13 +283,13 @@ export function Tymy() {
         {teams.map((tm, i) => {
           const active = i === idx;
           return (
-            <button key={tm.id} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
+            <button key={tm.id} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
               {tm.name}
-              <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{tm.players.length}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 10, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{tm.players.length}</span>
             </button>
           );
         })}
-        <button onClick={addTeam} style={{ fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 12, cursor: 'pointer', border: '1px dashed #C1121F', background: '#FBEAEC', color: '#C1121F' }}>+ Přidat tým</button>
+        <button onClick={addTeam} style={{ fontSize: 13.5, fontWeight: 700, padding: '9px 14px', borderRadius: 10, cursor: 'pointer', border: '1px dashed #C1121F', background: '#FBEAEC', color: '#C1121F' }}>+ Přidat tým</button>
       </div>
 
       {/* editor vybraného týmu */}
@@ -103,6 +309,11 @@ export function Tymy() {
           <Field label="Kontakt" value={t.contact} onChange={(v) => updateTeam({ contact: v })} placeholder="nepovinné" />
           <Field label="ID (URL)" value={t.id} onChange={(v) => updateTeam({ id: v })} width="160px" />
         </Row>
+        <div style={{ height: 14 }} />
+        <ImageField label="Fotka týmu (karta na homepage)" value={t.photo} onChange={(v) => updateTeam({ photo: v })} />
+        <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 6 }}>
+          Bez nahrané fotky zůstane na kartě barevný přechod.
+        </div>
 
         <div style={{ marginTop: 20, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>REALIZAČNÍ TÝM ({t.coaches.length})</div>
         <div style={{ height: 8 }} />
@@ -121,7 +332,7 @@ export function Tymy() {
         />
 
         {t.id === 'skolicka' ? (
-          <div style={{ marginTop: 20, background: '#FAFBFC', border: '1px solid #ECEEF1', borderRadius: 12, padding: '14px 16px', fontSize: 13, color: '#6B7280', lineHeight: 1.5 }}>
+          <div style={{ marginTop: 20, background: '#FAFBFC', border: '1px solid #ECEEF1', borderRadius: 10, padding: '14px 16px', fontSize: 13, color: '#6B7280', lineHeight: 1.5 }}>
             U <b>fotbalové školičky</b> (4–6 let) se soupiska ani statistiky nevedou — spravuj jen kontakt a realizační tým. Na webu se místo soupisky zobrazí výzva k náboru.
           </div>
         ) : (
@@ -157,11 +368,14 @@ export function Tymy() {
 
 // ---------------------------------------------------------------- ZÁPASY
 export function Zapasy() {
-  const { teams } = useData();
+  const d = useData();
+  const { teams, matchProposals, matchesSync } = d;
   const [sel, setSel] = useState(0);
+  const [tab, setTab] = useState('rucne');
   const idx = Math.min(sel, teams.length - 1);
   const t = teams[idx] || teams[0];
   const updateTeam = (patch) => set('teams', teams.map((tm, i) => (i === idx ? { ...tm, ...patch } : tm)));
+  const newProposals = matchProposals.filter((p) => p.status === 'nová');
 
   const nm = t.nextMatch || {};
   const md = t.matchDetail || {};
@@ -176,7 +390,27 @@ export function Zapasy() {
   return (
     <div>
       <SectionHead title="Zápasy" desc="Vyber tým — příští zápas, poslední zápas se střelci a tabulka" count={teams.length} />
+      <SyncStav sync={matchesSync} />
+      <SubTabs tab={tab} setTab={setTab} tabs={[
+        { id: 'rucne', label: 'Ruční úprava' },
+        { id: 'navrhy', label: 'Návrhy z fotbal.cz', badge: newProposals.length },
+      ]} />
+
+      {tab === 'navrhy' ? (
+        <Navrhy proposals={matchProposals} teams={teams} />
+      ) : (
+      <>
       <TeamSwitcher teams={teams} activeIndex={idx} onSelect={setSel} badge={null} />
+      <Card style={{ marginBottom: 18 }}>
+        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Zdroj dat pro automatické stahování</div>
+        <Row>
+          <Field label="Adresa soutěže na fotbal.cz" value={t.sourceUrl} onChange={(v) => updateTeam({ sourceUrl: v })} placeholder="https://www.fotbal.cz/souteze/turnaje/…" />
+          <Field label="Odkaz na FAČR (zobrazí se na webu)" value={t.facrUrl} onChange={(v) => updateTeam({ facrUrl: v })} />
+        </Row>
+        <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
+          Z této adresy se 4× týdně stahují návrhy zápasů. Prázdné pole = tým se nestahuje.
+        </div>
+      </Card>
 
       {/* PŘÍŠTÍ ZÁPAS */}
       <Card style={{ marginBottom: 18 }}>
@@ -289,6 +523,192 @@ export function Zapasy() {
           />
         </>
       )}
+      </>
+      )}
+    </div>
+  );
+}
+
+// --- návrhy zápasů stažené z fotbal.cz --------------------------------------
+// Stav automatického stahování. Když poslední běh selhal nebo je dávno,
+// admin to hned vidí — web mezitím ukazuje poslední ručně potvrzená data.
+function SyncStav({ sync }) {
+  if (!sync || sync.status === 'nikdy') {
+    return (
+      <div style={{ background: '#fff', border: '1px solid #ECEEF1', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+        Automatické stahování zápasů zatím neproběhlo. Vyplň u týmů adresu soutěže a nastav v repozitáři tajný klíč <b>MATCHES_TOKEN</b>.
+      </div>
+    );
+  }
+  const failed = sync.status === 'chyba';
+  const staleDays = sync.lastOkAt ? Math.floor((Date.now() - new Date(sync.lastOkAt)) / 86400000) : null;
+  const stale = staleDays !== null && staleDays > 7;
+  const warn = failed || stale;
+  return (
+    <div style={{ background: warn ? '#FBEAEC' : '#EAF6EE', color: warn ? '#C1121F' : '#1F8A4C', borderRadius: 10, padding: '12px 16px', fontSize: 13, fontWeight: 700, marginBottom: 16, lineHeight: 1.5 }}>
+      {failed ? 'Poslední stahování selhalo. ' : 'Poslední stahování proběhlo v pořádku. '}
+      Naposledy: {formatDate(sync.lastRunAt)}
+      {sync.lastOkAt ? ` · úspěšně: ${formatDate(sync.lastOkAt)}` : ''}
+      {sync.message ? ` · ${sync.message}` : ''}
+      {stale && ' — data jsou starší než týden, radši je zkontroluj ručně.'}
+    </div>
+  );
+}
+
+// Přehled tabulky v návrhu (jen pro čtení)
+function TabulkaNahled({ rows }) {
+  if (!rows || !rows.length) return <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>Tabulka se nestáhla.</div>;
+  return (
+    <div style={{ background: '#FAFBFC', borderRadius: 10, padding: 12 }}>
+      {rows.slice(0, 8).map((r, i) => (
+        <div key={i} style={{ display: 'flex', gap: 10, fontSize: 13, padding: '4px 0', color: r.me ? '#C1121F' : '#3a3f47', fontWeight: r.me ? 800 : 600 }}>
+          <span style={{ width: 22 }}>{r.pos}.</span>
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.team}</span>
+          <span style={{ width: 34, textAlign: 'right' }}>{r.gp}</span>
+          <span style={{ width: 34, textAlign: 'right' }}>{r.pts}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function Navrhy({ proposals, teams }) {
+  const [open, setOpen] = useState(null);
+  const [draft, setDraft] = useState(null); // rozpracovaná úprava návrhu
+
+  const nove = proposals.filter((p) => p.status === 'nová');
+  const setStatus = (id, status) => set('matchProposals', proposals.map((p) => (p.id === id ? { ...p, status } : p)));
+
+  // Potvrzení = data z návrhu se zapíšou do týmu, návrh se označí za schválený
+  // a z výsledku rovnou vznikne koncept příspěvku na sociální sítě (Krok 4).
+  const potvrdit = (p, data) => {
+    const payload = data || p.data;
+    updateData((d) => {
+      const team = d.teams.find((t) => t.id === p.teamId);
+      if (!team) return;
+      if (payload.nextMatch) team.nextMatch = { ...team.nextMatch, ...payload.nextMatch };
+      if (payload.lastMatch) team.lastMatch = { ...team.lastMatch, ...payload.lastMatch };
+      if (payload.table && payload.table.length) team.table = payload.table;
+      d.matchProposals = d.matchProposals.map((x) => (x.id === p.id ? { ...x, status: 'schválená', data: payload } : x));
+
+      if (payload.lastMatch && payload.lastMatch.score) {
+        const post = postFromResult({
+          teamName: team.name,
+          lastMatch: payload.lastMatch,
+          competition: team.comp,
+          settings: d.socialSettings,
+        });
+        // stejný výsledek nezakládá druhý příspěvek
+        const same = d.socialPosts.some((x) => x.visual.score === post.visual.score && x.visual.away === post.visual.away && x.visual.home === post.visual.home);
+        if (!same) d.socialPosts = [post, ...d.socialPosts];
+      }
+    });
+    setOpen(null);
+    setDraft(null);
+  };
+
+  const zahodit = (p) => {
+    if (!confirm('Opravdu zahodit tento návrh? Data týmu zůstanou beze změny.')) return;
+    setStatus(p.id, 'zahozená');
+    setOpen(null);
+    setDraft(null);
+  };
+
+  if (!nove.length) {
+    return (
+      <Card>
+        <div style={{ padding: 8, textAlign: 'center', color: '#9AA1AC', fontWeight: 600, fontSize: 14 }}>
+          Žádné nevyřízené návrhy. Nové se objeví po dalším automatickém stažení.
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+        Návrhy stažené z fotbal.cz se na web <b>nedostanou samy</b>. Zkontroluj je a potvrď — teprve pak se zapíšou k týmu.
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {nove.map((p) => {
+          const isOpen = open === p.id;
+          const team = teams.find((t) => t.id === p.teamId);
+          const d = (isOpen && draft) || p.data;
+          const nm = d.nextMatch || {};
+          const lm = d.lastMatch || {};
+          const updDraft = (patch) => setDraft({ ...d, ...patch });
+          return (
+            <Card key={p.id} style={{ padding: 0, overflow: 'hidden' }}>
+              <div onClick={() => { setOpen(isOpen ? null : p.id); setDraft(isOpen ? null : p.data); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', cursor: 'pointer', background: isOpen ? '#FBF6F6' : '#fff' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>
+                    {p.teamName || (team ? team.name : p.teamId)}
+                    {!team && <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', marginLeft: 8 }}>TÝM NEEXISTUJE</span>}
+                    {p.warnings.length > 0 && <span style={{ fontSize: 10, fontWeight: 800, color: '#A98C4E', marginLeft: 8 }}>{p.warnings.length}× VAROVÁNÍ</span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2 }}>
+                    Staženo {formatDate(p.createdAt)}
+                    {lm.score ? ` · poslední ${lm.opp} ${lm.score}` : ''}
+                    {nm.when ? ` · příští ${nm.when}` : ''}
+                  </div>
+                </div>
+                <span style={{ color: '#C1121F', fontWeight: 700, fontSize: 12, flex: 'none' }}>Zkontrolovat {isOpen ? '▲' : '▾'}</span>
+              </div>
+
+              {isOpen && (
+                <div style={{ padding: 18, background: '#FBF6F6', borderTop: '1px solid #F2F3F5' }}>
+                  {p.warnings.length > 0 && (
+                    <div style={{ background: '#F3F0E9', color: '#A98C4E', borderRadius: 10, padding: '10px 14px', fontSize: 12, fontWeight: 700, marginBottom: 12 }}>
+                      {p.warnings.join(' · ')}
+                    </div>
+                  )}
+
+                  <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 8 }}>Příští zápas</div>
+                  {nm.home ? (
+                    <>
+                      <Row>
+                        <Field label="Domácí" value={nm.home.name} onChange={(v) => updDraft({ nextMatch: { ...nm, home: { ...nm.home, name: v } } })} />
+                        <Field label="Hosté" value={nm.away.name} onChange={(v) => updDraft({ nextMatch: { ...nm, away: { ...nm.away, name: v } } })} />
+                      </Row>
+                      <div style={{ height: 10 }} />
+                      <Row>
+                        <Field label="Kdy (text)" value={nm.when} onChange={(v) => updDraft({ nextMatch: { ...nm, when: v } })} />
+                        <Field label="Datum a čas" value={nm.dateISO} onChange={(v) => updDraft({ nextMatch: { ...nm, dateISO: v } })} width="220px" />
+                        <Field label="Kde" value={nm.venue} onChange={(v) => updDraft({ nextMatch: { ...nm, venue: v } })} />
+                      </Row>
+                    </>
+                  ) : <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>Příští zápas se nestáhl.</div>}
+
+                  <div style={{ fontWeight: 800, fontSize: 14, margin: '18px 0 8px' }}>Poslední výsledek</div>
+                  {lm.score ? (
+                    <Row>
+                      <Field label="Soupeř" value={lm.opp} onChange={(v) => updDraft({ lastMatch: { ...lm, opp: v } })} />
+                      <Field label="Skóre" value={lm.score} onChange={(v) => updDraft({ lastMatch: { ...lm, score: v } })} width="120px" />
+                      <Select label="Výsledek" value={lm.result} onChange={(v) => updDraft({ lastMatch: { ...lm, result: v } })} options={RESULT_OPTS} width="160px" />
+                      <Field label="Střelci (doplň ručně)" value={lm.scorers} onChange={(v) => updDraft({ lastMatch: { ...lm, scorers: v } })} />
+                    </Row>
+                  ) : <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>Poslední výsledek se nestáhl.</div>}
+
+                  <div style={{ fontWeight: 800, fontSize: 14, margin: '18px 0 8px' }}>Tabulka ({(d.table || []).length} řádků)</div>
+                  <TabulkaNahled rows={d.table} />
+
+                  <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Btn kind="primary" onClick={() => potvrdit(p, d)}>Potvrdit a zapsat k týmu</Btn>
+                    <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>Změny v polích výš se uloží spolu s potvrzením.</span>
+                    <span style={{ marginLeft: 'auto' }}><Btn kind="danger" small onClick={() => zahodit(p)}>Zahodit</Btn></span>
+                  </div>
+                  {p.sourceUrl && (
+                    <div style={{ marginTop: 10 }}>
+                      <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Otevřít zdroj na fotbal.cz →</a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -298,12 +718,12 @@ export function Novinky() {
   const { news } = useData();
   return (
     <div>
-      <SectionHead title="Novinky" desc="Fotka, pár vět, datum — a hotovo. Zobrazí se na webu i na homepage (nejnovější nahoře)." count={news.length} />
+      <SectionHead title="Novinky" desc="Fotka, pár vět, datum — a hotovo. Zobrazí se na webu i na homepage (nejnovější nahoře). Delší text se ukáže na detailu článku." count={news.length} />
       <ListEditor
         items={news}
         onChange={(v) => set('news', v)}
         itemTitle={(n) => n.title || 'Nová novinka'}
-        newItem={{ category: 'Klub', title: 'Nová novinka', text: '', date: '', image: '' }}
+        newItem={() => ({ ...emptyNews(), title: 'Nová novinka', id: `novinka-${Date.now()}` })}
         addLabel="+ Přidat novinku"
         renderItem={(n, u) => (
           <div>
@@ -315,7 +735,14 @@ export function Novinky() {
               <Field label="Datum" value={n.date} onChange={(v) => u({ date: v })} width="150px" placeholder="14. 6. 2026" />
             </Row>
             <div style={{ height: 12 }} />
-            <Field label="Text (pár vět)" textarea rows={3} value={n.text} onChange={(v) => u({ text: v })} />
+            <Field label="Perex (pár vět do výpisu)" textarea rows={2} value={n.text} onChange={(v) => u({ text: v })} />
+            <div style={{ height: 12 }} />
+            <Field label="Text článku (jen na detailu — prázdný řádek dělí odstavce)" textarea rows={6} value={n.body} onChange={(v) => u({ body: v })} />
+            <div style={{ height: 12 }} />
+            <Row>
+              <Field label="Adresa detailu (/novinky/…)" value={n.id} onChange={(v) => u({ id: slugify(v) })} />
+              <a href={`/novinky/${n.id}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#C1121F', padding: '11px 0' }}>Otevřít detail →</a>
+            </Row>
           </div>
         )}
       />
@@ -325,14 +752,66 @@ export function Novinky() {
 
 // ---------------------------------------------------------------- KEMPY
 export function Kempy() {
-  const { campDetail } = useData();
-  const upd = (patch) => set('campDetail', { ...campDetail, ...patch });
-  const c = campDetail;
+  const { camps } = useData();
+  const [sel, setSel] = useState(0);
+  const idx = Math.min(sel, Math.max(0, camps.length - 1));
+  const c = camps[idx];
+
+  const upd = (patch) => set('camps', camps.map((cm, i) => (i === idx ? { ...cm, ...patch } : cm)));
+  const addCamp = () => {
+    const id = `kemp-${Date.now()}`;
+    set('camps', [...camps, { ...emptyCamp(), id, title: 'Nový kemp', tag: 'NOVÝ', badge: 'NOVÝ KEMP', img: 'sunset' }]);
+    setSel(camps.length);
+  };
+  const removeCamp = () => {
+    if (!confirm(`Opravdu smazat kemp „${c.title}“? Tuto akci nelze vrátit zpět.`)) return;
+    set('camps', camps.filter((_, i) => i !== idx));
+    setSel(0);
+  };
+
+  if (!c) {
+    return (
+      <div>
+        <SectionHead title="Kempy" desc="Zatím nemáš vypsaný žádný kemp" />
+        <Card><Btn kind="primary" onClick={addCamp}>+ Přidat kemp</Btn></Card>
+      </div>
+    );
+  }
+
+  const activeCount = camps.filter((cm) => !cm.archived).length;
+
   return (
     <div>
-      <SectionHead title="Kempy" desc="Letní kemp — informace, program, FAQ" />
+      <SectionHead title="Kempy" desc="Vypsané kempy — informace, program, trenéři, FAQ. Archivovaný kemp zůstane v adminu, ale zmizí z webu." count={`${activeCount} / ${camps.length}`} />
+
+      {/* přepínač kempů + přidání */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+        {camps.map((cm, i) => {
+          const on = i === idx;
+          return (
+            <button key={cm.id || i} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: on ? '1px solid #C1121F' : '1px solid #ECEEF1', background: on ? '#C1121F' : '#fff', color: on ? '#fff' : (cm.archived ? '#9AA1AC' : '#3a3f47') }}>
+              {cm.title || 'Bez názvu'}
+              {cm.archived && <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: on ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: on ? '#fff' : '#9AA1AC' }}>ARCHIV</span>}
+            </button>
+          );
+        })}
+        <Btn kind="primary" small onClick={addCamp}>+ Přidat kemp</Btn>
+      </div>
+
       <Card style={{ marginBottom: 16 }}>
-        <Field label="Odznak (badge)" value={c.badge} onChange={(v) => upd({ badge: v })} />
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F2F3F5' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: c.archived ? '#9AA1AC' : '#1F8A4C' }}>
+            {c.archived ? 'Archivovaný — na webu se nezobrazuje' : 'Aktivní — zobrazuje se na webu'}
+          </span>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <Btn small kind="ghost" onClick={() => upd({ archived: !c.archived })}>{c.archived ? 'Vrátit na web' : 'Archivovat'}</Btn>
+            <Btn small kind="danger" onClick={removeCamp}>Smazat kemp</Btn>
+          </div>
+        </div>
+        <Row>
+          <Field label="Odznak (badge)" value={c.badge} onChange={(v) => upd({ badge: v })} />
+          <Field label="Štítek na homepage" value={c.tag} onChange={(v) => upd({ tag: v })} width="180px" />
+        </Row>
         <div style={{ height: 10 }} />
         <Row>
           <Field label="Titulek" value={c.title} onChange={(v) => upd({ title: v })} />
@@ -340,12 +819,15 @@ export function Kempy() {
           <Field label="Termín" value={c.term} onChange={(v) => upd({ term: v })} />
         </Row>
         <div style={{ height: 10 }} />
-        <Field label="Úvodní text" textarea rows={2} value={c.lead} onChange={(v) => upd({ lead: v })} />
+        <Field label="Popis na homepage" textarea rows={2} value={c.desc} onChange={(v) => upd({ desc: v })} />
+        <div style={{ height: 10 }} />
+        <Field label="Úvodní text (detail kempu)" textarea rows={2} value={c.lead} onChange={(v) => upd({ lead: v })} />
         <div style={{ height: 10 }} />
         <Row>
           <Field label="Obsazeno (počet)" type="number" value={c.capacity.taken} onChange={(v) => upd({ capacity: { ...c.capacity, taken: Number(v) || 0 } })} width="160px" />
           <Field label="Kapacita celkem" type="number" value={c.capacity.total} onChange={(v) => upd({ capacity: { ...c.capacity, total: Number(v) || 0 } })} width="160px" />
-          <Field label="Start (ISO pro odpočet)" value={c.startISO} onChange={(v) => upd({ startISO: v })} />
+          <Field label="Start (ISO pro odpočet)" value={c.startISO} onChange={(v) => upd({ startISO: v })} placeholder="2026-07-07T08:00:00" />
+          <Field label="Obrázek" value={c.img} onChange={(v) => upd({ img: v })} width="130px" />
         </Row>
       </Card>
 
@@ -371,12 +853,87 @@ export function Kempy() {
   );
 }
 
+// ---------------------------------------------------------------- ZPRÁVY
+// datum ve tvaru „14. 6. 2026 18:05"; když chybí nebo je poškozené, vrátí „—"
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return String(iso);
+  return `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+export function Zpravy() {
+  const { messages } = useData();
+  const [tab, setTab] = useState('nove');
+  const [open, setOpen] = useState(null);
+
+  const newCount = messages.filter((m) => m.status !== 'vyřízená').length;
+  const shown = messages
+    .map((m, i) => ({ ...m, _i: i }))
+    .filter((m) => (tab === 'vse' ? true : tab === 'nove' ? m.status !== 'vyřízená' : m.status === 'vyřízená'));
+
+  const update = (i, patch) => set('messages', messages.map((m, idx) => (idx === i ? { ...m, ...patch } : m)));
+  const remove = (i) => {
+    if (!confirm('Opravdu smazat tuto zprávu? Tuto akci nelze vrátit zpět.')) return;
+    set('messages', messages.filter((_, idx) => idx !== i));
+    setOpen(null);
+  };
+
+  return (
+    <div>
+      <SectionHead title="Zprávy" desc="Zprávy odeslané z kontaktního formuláře na webu" count={newCount} />
+      <SubTabs tab={tab} setTab={setTab} tabs={[
+        { id: 'nove', label: 'Nové', badge: newCount },
+        { id: 'vyrizene', label: 'Vyřízené', badge: messages.length - newCount },
+        { id: 'vse', label: 'Vše', badge: messages.length },
+      ]} />
+
+      {shown.length === 0 ? (
+        <Card><div style={{ padding: 8, textAlign: 'center', color: '#9AA1AC', fontWeight: 600, fontSize: 14 }}>Žádné zprávy v této složce.</div></Card>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {shown.map((m) => {
+            const done = m.status === 'vyřízená';
+            const isOpen = open === m._i;
+            return (
+              <Card key={m._i} style={{ padding: 0, overflow: 'hidden' }}>
+                <div onClick={() => setOpen(isOpen ? null : m._i)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', cursor: 'pointer', background: isOpen ? '#FBF6F6' : '#fff' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>
+                      {m.name || <span style={{ color: '#C7CCD3' }}>Bez jména</span>}
+                      <span style={statusPill(done ? 'potvrzená' : 'nová')}>{done ? 'vyřízená' : 'nová'}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {[m.email, formatDate(m.date)].filter(Boolean).join(' · ')}
+                    </div>
+                  </div>
+                  <span style={{ color: '#C1121F', fontWeight: 700, fontSize: 12, flex: 'none' }}>Detail {isOpen ? '▲' : '▾'}</span>
+                </div>
+                {isOpen && (
+                  <div style={{ padding: 18, background: '#FBF6F6', borderTop: '1px solid #F2F3F5' }}>
+                    <div style={{ background: '#fff', borderRadius: 10, padding: 16, fontSize: 14, color: '#3a3f47', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text || 'Bez textu.'}</div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <Btn small onClick={() => update(m._i, { status: done ? 'nová' : 'vyřízená' })}>{done ? 'Vrátit mezi nové' : 'Označit jako vyřízenou'}</Btn>
+                      {m.email && <a href={`mailto:${m.email}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem →</a>}
+                      <span style={{ marginLeft: 'auto' }}><Btn small kind="danger" onClick={() => remove(m._i)}>Smazat zprávu</Btn></span>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- PRONÁJEM
 const RES_STATUS = ['nová', 'potvrzená', 'zamítnutá'];
 const RES_SOURCE = ['web', 'telefon', 'osobně'];
 function statusPill(status) {
   const map = { 'nová': { background: '#FBEAEC', color: '#C1121F' }, 'potvrzená': { background: '#EAF6EE', color: '#1F8A4C' }, 'zamítnutá': { background: '#F4F5F7', color: '#9AA1AC' } };
-  return { fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, marginLeft: 6, textTransform: 'uppercase', ...(map[status] || map['nová']) };
+  return { fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10, marginLeft: 6, textTransform: 'uppercase', ...(map[status] || map['nová']) };
 }
 
 function SubTabs({ tab, setTab, tabs }) {
@@ -385,9 +942,9 @@ function SubTabs({ tab, setTab, tabs }) {
       {tabs.map((t) => {
         const active = tab === t.id;
         return (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
             {t.label}
-            {t.badge != null && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{t.badge}</span>}
+            {t.badge != null && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 10, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{t.badge}</span>}
           </button>
         );
       })}
@@ -399,14 +956,17 @@ function RezervaceTable({ reservations, areaOptions }) {
   const [open, setOpen] = useState(null);
   const update = (i, patch) => set('reservations', reservations.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   const remove = (i) => { if (confirm('Opravdu smazat tuto rezervaci?')) { set('reservations', reservations.filter((_, idx) => idx !== i)); setOpen(null); } };
-  const add = () => { set('reservations', [{ name: '', contact: '', area: areaOptions[0] || '', date: '', time: '', note: '', source: 'telefon', status: 'nová' }, ...reservations]); setOpen(0); };
+  const add = () => {
+    set('reservations', [{ ...emptyReservation(), id: `rezervace-${Date.now()}`, area: areaOptions[0] || '', source: 'telefon', createdAt: new Date().toISOString() }, ...reservations]);
+    setOpen(0);
+  };
 
   const cols = '1.5fr 1.1fr 1.1fr 90px 112px 92px';
   const cell = { padding: '12px 14px', fontSize: 13, display: 'flex', alignItems: 'center', minWidth: 0 };
 
   return (
     <div>
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
         Rezervace odeslané z webu sem dorazí se stavem <b>nová</b>. Klikni na řádek pro detail a úpravu. Vlastní rezervaci (když někdo zavolá / přijde osobně) přidáš tlačítkem dole.
       </div>
       <Card style={{ padding: 0, overflow: 'hidden' }}>
@@ -426,7 +986,7 @@ function RezervaceTable({ reservations, areaOptions }) {
                 <div onClick={() => setOpen(open === i ? null : i)} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '1px solid #F2F3F5', cursor: 'pointer', background: open === i ? '#FBF6F6' : '#fff', alignItems: 'center' }}>
                   <div style={{ ...cell, fontWeight: 700, color: '#1E1E1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name || <span style={{ color: '#C7CCD3' }}>Bez jména</span>}</div>
                   <div style={{ ...cell, color: '#3a3f47', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.area || '—'}</div>
-                  <div style={{ ...cell, color: '#3a3f47' }}>{[r.date, r.time].filter(Boolean).join(' ') || '—'}</div>
+                  <div style={{ ...cell, color: '#3a3f47' }}>{[r.date, r.from && r.to ? `${r.from}–${r.to}` : r.time].filter(Boolean).join(' · ') || '—'}</div>
                   <div style={{ ...cell, color: '#9AA1AC', fontWeight: 600 }}>{r.source}</div>
                   <div style={cell}><span style={statusPill(r.status)}>{r.status}</span></div>
                   <div style={{ ...cell, justifyContent: 'flex-end', color: '#C1121F', fontWeight: 700, fontSize: 12 }}>Detail {open === i ? '▲' : '▾'}</div>
@@ -440,8 +1000,9 @@ function RezervaceTable({ reservations, areaOptions }) {
                     <div style={{ height: 10 }} />
                     <Row>
                       <Select label="Plocha" value={r.area} onChange={(v) => update(i, { area: v })} options={areaOptions.length ? areaOptions : ['—']} />
-                      <Field label="Datum" value={r.date} onChange={(v) => update(i, { date: v })} width="150px" placeholder="22. 6. 2026" />
-                      <Field label="Čas" value={r.time} onChange={(v) => update(i, { time: v })} width="110px" placeholder="18:00" />
+                      <Field label="Datum" type="date" value={r.dateISO} onChange={(v) => update(i, { dateISO: v, date: czechDate(v) })} width="170px" />
+                      <Field label="Od" value={r.from} onChange={(v) => update(i, { from: v, time: v })} width="100px" placeholder="18:00" />
+                      <Field label="Do" value={r.to} onChange={(v) => update(i, { to: v })} width="100px" placeholder="19:00" />
                     </Row>
                     <div style={{ height: 10 }} />
                     <Row>
@@ -463,6 +1024,40 @@ function RezervaceTable({ reservations, areaOptions }) {
   );
 }
 
+// Otevírací doba a pravidla poptávek — podle nich web nabízí volné termíny.
+function RentalNastaveni({ settings }) {
+  const upd = (patch) => set('rentalSettings', { ...settings, ...patch });
+  const sloty = daySlots(settings);
+  return (
+    <div>
+      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+        Podle tohohle nastavení web nabízí volné termíny. Obsazenost se počítá z rezervací —
+        <b> nová i potvrzená</b> poptávka termín drží, zamítnutá ho zase uvolní.
+      </div>
+      <Card style={{ marginBottom: 16 }}>
+        <Row>
+          <Field label="Otevřeno od" value={settings.openFrom} onChange={(v) => upd({ openFrom: v })} width="140px" placeholder="08:00" />
+          <Field label="Otevřeno do" value={settings.openTo} onChange={(v) => upd({ openTo: v })} width="140px" placeholder="22:00" />
+          <Field label="Délka termínu (minuty)" type="number" value={settings.slotMinutes} onChange={(v) => upd({ slotMinutes: Number(v) || 60 })} width="190px" />
+        </Row>
+        <div style={{ height: 12 }} />
+        <Row>
+          <Field label="Poptat nejpozději (hodin předem)" type="number" value={settings.leadHours} onChange={(v) => upd({ leadHours: Number(v) || 0 })} width="230px" />
+          <Field label="Jak daleko dopředu (dnů)" type="number" value={settings.horizonDays} onChange={(v) => upd({ horizonDays: Number(v) || 120 })} width="200px" />
+          <Field label="E-mail pro upozornění" value={settings.notifyEmail} onChange={(v) => upd({ notifyEmail: v })} placeholder="klub@fkkunice.cz" />
+        </Row>
+        <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 12 }}>
+          Denně to dělá <b>{sloty.length}</b> termínů{sloty.length ? `: ${sloty[0]} – ${sloty[sloty.length - 1]}` : ' — zkontroluj otevírací dobu'}.
+          E-mail se odešle jen s nastaveným klíčem RESEND_API_KEY; poptávka se do administrace uloží vždycky.
+        </div>
+      </Card>
+
+      <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Zavřené dny <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(turnaj, údržba — web je vůbec nenabídne)</span></div>
+      <StringListEditor items={settings.closedDays} onChange={(v) => upd({ closedDays: v })} placeholder="2026-07-04" columns={3} />
+    </div>
+  );
+}
+
 export function Pronajem() {
   const d = useData();
   const [tab, setTab] = useState('rezervace');
@@ -476,9 +1071,12 @@ export function Pronajem() {
       <SubTabs tab={tab} setTab={setTab} tabs={[
         { id: 'rezervace', label: 'Rezervace', badge: newCount },
         { id: 'plochy', label: 'Plochy & ceník' },
+        { id: 'nastaveni', label: 'Otevírací doba' },
       ]} />
 
-      {tab === 'rezervace' ? (
+      {tab === 'nastaveni' ? (
+        <RentalNastaveni settings={d.rentalSettings} />
+      ) : tab === 'rezervace' ? (
         <RezervaceTable reservations={d.reservations} areaOptions={areaOptions} />
       ) : (
         <div>
@@ -502,6 +1100,29 @@ export function Pronajem() {
                 <StringListEditor items={p.features} onChange={(v) => u({ features: v })} placeholder="prvek" columns={2} />
               </div>
             )} />
+
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '24px 0 10px' }}>Plochy na hlavní stránce <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(blok „Pronajmi si náš areál")</span></div>
+          <ListEditor
+            items={d.facilities}
+            onChange={(v) => set('facilities', v)}
+            itemTitle={(f) => `${f.name} — ${f.price}`}
+            newItem={{ name: 'Nová plocha', spec: '', price: '0 Kč', status: 'VOLNO', img: 'char' }}
+            addLabel="Přidat plochu"
+            renderItem={(f, u) => (
+              <div>
+                <Row>
+                  <Field label="Název" value={f.name} onChange={(v) => u({ name: v })} />
+                  <Field label="Specifikace" value={f.spec} onChange={(v) => u({ spec: v })} />
+                </Row>
+                <div style={{ height: 10 }} />
+                <Row>
+                  <Field label="Cena / hod" value={f.price} onChange={(v) => u({ price: v })} width="140px" />
+                  <Select label="Stav" value={f.status} onChange={(v) => u({ status: v })} options={['VOLNO', 'OBSAZENO']} width="170px" />
+                  <Field label="Obrázek" value={f.img} onChange={(v) => u({ img: v })} width="130px" />
+                </Row>
+              </div>
+            )}
+          />
 
           <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 6px' }}>Obsazené dny v kalendáři (čísla dnů)</div>
           <Card>
@@ -553,10 +1174,27 @@ export function Partneri() {
   const { sponsors } = useData();
   return (
     <div>
-      <SectionHead title="Partneři" desc="Loga / názvy partnerů klubu" count={sponsors.length} />
-      <Card>
-        <StringListEditor items={sponsors} onChange={(v) => set('sponsors', v)} placeholder="partner" columns={2} />
-      </Card>
+      <SectionHead title="Partneři" desc="Loga partnerů klubu — bez nahraného loga se zobrazí název" count={sponsors.length} />
+      <ListEditor
+        items={sponsors}
+        onChange={(v) => set('sponsors', v)}
+        itemTitle={(sp) => sp.name || 'Nový partner'}
+        newItem={() => ({ ...emptySponsor(), id: `partner-${Date.now()}` })}
+        addLabel="Přidat partnera"
+        renderItem={(sp, u) => (
+          <div>
+            <Row>
+              <Field label="Název" value={sp.name} onChange={(v) => u({ name: v, id: slugify(v) || sp.id })} placeholder="STAVOSPOL" />
+              <Field label="Odkaz na web (nepovinný)" value={sp.url} onChange={(v) => u({ url: v })} placeholder="https://…" />
+            </Row>
+            <div style={{ height: 12 }} />
+            <ImageField label="Logo" value={sp.logo} onChange={(v) => u({ logo: v })} />
+          </div>
+        )}
+      />
+      <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
+        Nejlépe vypadá logo na průhledném pozadí (PNG) nebo na bílém. Dlaždice je vysoká 96 px, logo se do ní vejde samo.
+      </div>
     </div>
   );
 }

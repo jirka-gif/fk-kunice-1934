@@ -14,6 +14,8 @@ export const club = {
   email: 'info@fkkunice.cz',
   phone: '+420 777 123 456',
   messenger: '@fkkunice1934',
+  // co se vyhledá v Google Mapách na stránce Kontakt (adresa nebo souřadnice)
+  mapQuery: 'FK Kunice, Kunice 130, 251 63 Kunice',
   description:
     'Společně silnější. Moderní fotbalová akademie pro děti, mládež i dospělé ve Středočeském kraji.',
 };
@@ -262,12 +264,12 @@ export const rentalFaq = [
 // -----------------------------------------------------------------------------
 export const newsCategories = ['Vše', 'Áčko', 'Mládež', 'Klub', 'Akce'];
 export const news = [
-  { category: 'Áčko', title: 'Áčko slaví postup do okresního přeboru', text: 'Historický okamžik pro klub. Po dramatické sezóně a vítězství v posledním kole slaví naše áčko zasloužený postup do okresního přeboru.', date: '14. 6. 2026', image: '' },
-  { category: 'Mládež', title: 'Přípravka vyhrála zimní turnaj v Říčanech', text: 'Naši nejmenší předvedli skvělý fotbal a z turnaje v Říčanech dovezli pohár.', date: '10. 6. 2026', image: '' },
-  { category: 'Klub', title: 'Otevíráme nábor pro sezónu 2026/27', text: 'Hledáme nové talenty do všech věkových kategorií. Přijď si k nám zatrénovat.', date: '2. 6. 2026', image: '' },
-  { category: 'Akce', title: 'Den otevřených dveří se vydařil', text: 'Areál zaplnily desítky rodin a budoucích fotbalistů. Děkujeme všem, kdo dorazili.', date: '28. 5. 2026', image: '' },
-  { category: 'Mládež', title: 'Dorost postoupil do krajského finále', text: 'Výborný výkon a postup přes silného soupeře. Držte nám palce ve finále.', date: '20. 5. 2026', image: '' },
-  { category: 'Klub', title: 'Nové LED osvětlení na umělé trávě', text: 'Investice do areálu, která prodlouží tréninkový čas i do večerních hodin.', date: '12. 5. 2026', image: '' },
+  { category: 'Áčko', title: 'Áčko slaví postup do okresního přeboru', text: 'Historický okamžik pro klub. Po dramatické sezóně a vítězství v posledním kole slaví naše áčko zasloužený postup do okresního přeboru.', body: 'Rozhodlo se až v posledním kole. Kunice potřebovaly vyhrát a zvládly to — po nervózním úvodu otočily zápas dvěma góly ve druhém poločase.\n\nDěkujeme všem, kdo tým celou sezónu podporovali. Do vyšší soutěže jdeme s pokorou a se stejnou partou.', date: '14. 6. 2026', image: '' },
+  { category: 'Mládež', title: 'Přípravka vyhrála zimní turnaj v Říčanech', text: 'Naši nejmenší předvedli skvělý fotbal a z turnaje v Říčanech dovezli pohár.', body: 'Turnajem prošli bez porážky a ve finále zvládli i penaltový rozstřel.\n\nVelká pochvala patří celému týmu — hrály všechny děti a každá si zaslouží svou medaili.', date: '10. 6. 2026', image: '' },
+  { category: 'Klub', title: 'Otevíráme nábor pro sezónu 2026/27', text: 'Hledáme nové talenty do všech věkových kategorií. Přijď si k nám zatrénovat.', body: 'Nábor je otevřený pro děti od 4 let i pro dospělé hráče. První tři tréninky jsou nezávazné a zdarma.\n\nStačí přijít v tréninkovém oblečení, zbytek vybavení zajistíme. Ozvěte se nám přes kontaktní formulář a domluvíme termín.', date: '2. 6. 2026', image: '' },
+  { category: 'Akce', title: 'Den otevřených dveří se vydařil', text: 'Areál zaplnily desítky rodin a budoucích fotbalistů. Děkujeme všem, kdo dorazili.', body: 'Pro děti byly připravené dovednostní soutěže, střelba na rychlost i utkání s trenéry.\n\nDěkujeme rodičům za skvělou atmosféru a partnerům klubu za ceny do soutěží.', date: '28. 5. 2026', image: '' },
+  { category: 'Mládež', title: 'Dorost postoupil do krajského finále', text: 'Výborný výkon a postup přes silného soupeře. Držte nám palce ve finále.', body: 'Kluci zvládli semifinále brankou v samotném závěru zápasu.\n\nFinále se hraje na domácím hřišti — přijďte je podpořit.', date: '20. 5. 2026', image: '' },
+  { category: 'Klub', title: 'Nové LED osvětlení na umělé trávě', text: 'Investice do areálu, která prodlouží tréninkový čas i do večerních hodin.', body: 'Nové osvětlení splňuje parametry pro mistrovská utkání mládeže a spotřebuje výrazně méně energie než původní reflektory.\n\nDíky tomu můžeme rozšířit tréninkové časy i pronájem hřiště do večerních hodin.', date: '12. 5. 2026', image: '' },
 ];
 
 // -----------------------------------------------------------------------------
@@ -288,22 +290,11 @@ export const people = [
 // -----------------------------------------------------------------------------
 //  CMS / ADMIN — dashboard přehled (z designu)
 // -----------------------------------------------------------------------------
-export const cmsStats = [
-  { label: 'Členové', value: '342', trend: '↑ +12 tento měsíc', up: true },
-  { label: 'Návštěvy webu', value: '8 420', trend: '↑ +18 % týdně', up: true },
-  { label: 'Rezervace', value: '27', trend: '↑ +4 tento týden', up: true },
-  { label: 'Příjmy (Kč)', value: '64 300', trend: '↑ +9 % měsíc', up: true },
-];
 export const cmsRegistrations = [
   { name: 'Tobiáš Malý', team: 'Přípravka U9', ini: 'TM', bg: '#C1121F', tag: 'Nová', tg: 'new' },
   { name: 'Eliška Horká', team: 'Žáci U13', ini: 'EH', bg: '#2d6b8a', tag: 'Nová', tg: 'new' },
   { name: 'Matěj Dušek', team: 'Dorost U17', ini: 'MD', bg: '#7a4a8c', tag: 'Čeká', tg: 'wait' },
   { name: 'Klára Veselá', team: 'Školička', ini: 'KV', bg: '#c0853c', tag: 'Schváleno', tg: 'ok' },
-];
-export const cmsTodayMatches = [
-  { match: 'Kunice – Mnichovice', team: 'A-tým', time: '16:30' },
-  { match: 'Kunice – Mukařov', team: 'Dorost', time: '10:00' },
-  { match: 'Struhařov – Kunice', team: 'Žáci', time: '09:00' },
 ];
 // Rezervace pronájmu — z webu i ručně založené (telefon/osobně).
 // status: 'nová' | 'potvrzená' | 'zamítnutá';  source: 'web' | 'telefon' | 'osobně'
@@ -401,3 +392,69 @@ export const teamMatches = {
 };
 // odkaz na FAČR ke každému týmu (klub si upraví na svou konkrétní soutěž)
 Object.values(teamMatches).forEach((m) => { if (!m.facrUrl) m.facrUrl = _FACR; });
+
+// -----------------------------------------------------------------------------
+//  DOMŮ — texty na hlavní stránce (hero, nadpisy sekcí, odkazy).
+//  Dřív byly napsané natvrdo v app/page.jsx; teď jsou editovatelné v adminu
+//  (sekce „Domů / texty"). Web bere hodnoty odsud, tohle je jen výchozí obsah.
+// -----------------------------------------------------------------------------
+export const homeTexts = {
+  hero: {
+    title: 'FK Kunice',
+    script: 'Společně silnější.',
+    perex: 'Fotbal spojuje generace.\nOd roku 1934 vytváříme místo,\nkde rostou hráči i přátelství.',
+    scrollLabel: 'SCROLL',
+    ctas: [
+      { label: 'Přidej se do klubu', href: '/kontakt' },
+      { label: 'Letní kempy', href: '/kempy' },
+      { label: 'Rozpis zápasů', href: '/zapasy' },
+    ],
+  },
+  match: {
+    eyebrow: 'MATCH CENTER',
+    title: 'Žijeme každým zápasem',
+    link: 'Všechny zápasy →',
+    nextLabel: 'PŘÍŠTÍ ZÁPAS',
+    resultsTitle: 'POSLEDNÍ VÝSLEDKY',
+    tableTitle: 'TABULKA · III. TŘÍDA',
+    detailLink: 'Detail zápasu',
+  },
+  teams: { eyebrow: 'NAŠE TÝMY', title: 'Od přípravky po dospělé' },
+  why: { eyebrow: 'PROČ RODIČE VOLÍ NÁS', title: 'Víc než jen fotbal' },
+  camps: { eyebrow: 'LETNÍ KEMPY', title: 'Léto plné fotbalu', ctaLabel: 'Registrovat →' },
+  rental: { eyebrow: 'PRONÁJEM', title: 'Pronajmi si náš areál', link: 'Rezervovat →', unit: '/ hodina' },
+  news: { eyebrow: 'NOVINKY', title: 'Ze života klubu', link: 'Magazín →' },
+  gallery: { eyebrow: 'GALERIE', title: 'Momenty' },
+  sponsors: { title: 'PARTNEŘI KLUBU' },
+};
+
+// -----------------------------------------------------------------------------
+//  PATIČKA — sloupce s odkazy, kontakt a spodní řádek.
+// -----------------------------------------------------------------------------
+export const footer = {
+  columnA: {
+    title: 'KLUB',
+    links: [
+      { label: 'Týmy', href: '/tymy' },
+      { label: 'Zápasy', href: '/zapasy' },
+      { label: 'Novinky', href: '/novinky' },
+      { label: 'Galerie', href: '/' },
+      { label: 'Historie', href: '/' },
+    ],
+  },
+  columnB: {
+    title: 'SLUŽBY',
+    links: [
+      { label: 'Letní kempy', href: '/kempy' },
+      { label: 'Pronájem areálu', href: '/pronajem' },
+      { label: 'Nábor dětí', href: '/kontakt' },
+      { label: 'Admin / CMS', href: '/admin' },
+    ],
+  },
+  contactTitle: 'KONTAKT',
+  contactLead: 'Areál FK Kunice',
+  mapLabel: 'Zobrazit mapu',
+  copyright: '© 2026 FK Kunice 1934. Všechna práva vyhrazena.',
+  claim: 'SPOLEČNĚ SILNĚJŠÍ.',
+  social: { instagram: '', facebook: '', twitter: '' },
+};

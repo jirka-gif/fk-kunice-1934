@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
-import { Icon } from '@/app/components/icons';
 import { Countdown } from '@/app/components/Countdown';
 import { COLORS, PH } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
@@ -23,7 +22,7 @@ function resultPill(r) {
   if (r === 'REMÍZA') return { background: 'rgba(255,255,255,.14)', color: 'rgba(255,255,255,.85)' };
   return { background: 'rgba(31,138,76,.18)', color: '#39C46E' };
 }
-const card = { background: '#fff', borderRadius: 22, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' };
+const card = { background: '#fff', borderRadius: 10, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' };
 const placeholder = (txt) => (
   <div className="fk-rev" style={{ ...card, padding: 32, textAlign: 'center', color: '#9AA1AC', fontSize: 14, fontWeight: 600 }}>{txt}</div>
 );
@@ -52,7 +51,7 @@ export default function Zapasy() {
   const galleryImgs = [PH.dusk, PH.sunset, PH.slate, PH.cool, PH.warm, PH.char, PH.red, PH.ember];
 
   const facrButton = t.facrUrl ? (
-    <Hov as="a" href={t.facrUrl} target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:13px 22px;border-radius:14px;cursor:pointer;box-shadow:0 10px 24px rgba(193,18,31,.32);transition:transform .2s,background .2s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Kompletní tabulka a výsledky na FAČR →</Hov>
+    <Hov as="a" href={t.facrUrl} target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:13px 22px;border-radius:10px;cursor:pointer;box-shadow:0 10px 24px rgba(193,18,31,.32);transition:transform .2s,background .2s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Kompletní tabulka a výsledky na FAČR</Hov>
   ) : null;
 
   return (
@@ -69,7 +68,7 @@ export default function Zapasy() {
             {matchTeams.map((tm, i) => {
               const active = i === idx;
               return (
-                <span key={tm.id} onClick={() => setSel(i)} style={{ fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 99, cursor: 'pointer', transition: 'all .2s', ...(active ? { background: '#C1121F', color: '#fff' } : { background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.82)', border: '1px solid rgba(255,255,255,.2)' }) }}>{tm.name}</span>
+                <span key={tm.id} onClick={() => setSel(i)} style={{ fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .2s', ...(active ? { background: '#C1121F', color: '#fff' } : { background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.82)', border: '1px solid rgba(255,255,255,.2)' }) }}>{tm.name}</span>
               );
             })}
           </div>
@@ -81,21 +80,21 @@ export default function Zapasy() {
         <>
           <section style={{ maxWidth: 1100, margin: '0 auto', padding: '64px 28px 0' }}>
             <div className="fk-rev" style={{ marginBottom: 22 }}><Eyebrow>POSLEDNÍ ZÁPAS</Eyebrow></div>
-            <div className="fk-rev" style={{ background: 'linear-gradient(150deg,#1c1c1e,#0d0d0f)', borderRadius: 24, padding: 'clamp(28px,4vw,48px)', position: 'relative', overflow: 'hidden' }}>
+            <div className="fk-rev" style={{ background: 'linear-gradient(150deg,#1c1c1e,#0d0d0f)', borderRadius: 10, padding: 'clamp(28px,4vw,48px)', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(70% 80% at 50% 120%,rgba(193,18,31,.4),transparent 60%)' }} />
               {(md.header || md.when) && <div style={{ position: 'relative', textAlign: 'center', color: 'rgba(255,255,255,.6)', fontSize: 12, fontWeight: 700, letterSpacing: '1.5px', marginBottom: 6 }}>{md.header}</div>}
               {md.when && <div style={{ position: 'relative', textAlign: 'center', color: 'rgba(255,255,255,.45)', fontSize: 13, fontWeight: 600, marginBottom: 26 }}>{md.when}</div>}
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(20px,5vw,56px)' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ width: 'clamp(64px,8vw,96px)', height: 'clamp(64px,8vw,96px)', margin: '0 auto 14px', borderRadius: 20, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 'clamp(24px,3vw,36px)', color: '#fff' }}>{mdHome.short}</div>
+                  <div style={{ width: 'clamp(64px,8vw,96px)', height: 'clamp(64px,8vw,96px)', margin: '0 auto 14px', borderRadius: 10, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 'clamp(24px,3vw,36px)', color: '#fff' }}>{mdHome.short}</div>
                   <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(18px,2.2vw,26px)', color: '#fff' }}>{mdHome.name}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(56px,10vw,104px)', color: '#fff', lineHeight: 1 }}>{mdScore.home}<span style={{ color: 'rgba(255,255,255,.35)', margin: '0 8px' }}>:</span>{mdScore.away}</div>
-                  <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 800, letterSpacing: '1px', padding: '5px 12px', borderRadius: 99, ...resultPill(md.result) }}>{md.result}</span>
+                  <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 800, letterSpacing: '1px', padding: '5px 12px', borderRadius: 10, ...resultPill(md.result) }}>{md.result}</span>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ width: 'clamp(64px,8vw,96px)', height: 'clamp(64px,8vw,96px)', margin: '0 auto 14px', borderRadius: 20, background: 'rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 'clamp(24px,3vw,36px)', color: '#fff' }}>{mdAway.short}</div>
+                  <div style={{ width: 'clamp(64px,8vw,96px)', height: 'clamp(64px,8vw,96px)', margin: '0 auto 14px', borderRadius: 10, background: 'rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 'clamp(24px,3vw,36px)', color: '#fff' }}>{mdAway.short}</div>
                   <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(18px,2.2vw,26px)', color: '#fff' }}>{mdAway.name}</div>
                 </div>
               </div>
@@ -111,7 +110,7 @@ export default function Zapasy() {
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', padding: '13px 0', borderBottom: '1px solid #F2F3F5' }}>
                     <div style={{ flex: 1, textAlign: 'right', ...homeShow }}><span style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{ev.player}</span> <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{ev.note}</span></div>
-                    <div style={{ flex: 'none', width: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><span style={styleObj(evIcon(ev.type))}>{ev.type === 'goal' ? <Icon name="ball" size={13} color="#fff" /> : null}</span><span style={{ fontFamily: "'Bebas Neue'", fontSize: 15, color: '#9AA1AC', width: 24, textAlign: 'center' }}>{ev.min}'</span></div>
+                    <div style={{ flex: 'none', width: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><span style={styleObj(evIcon(ev.type))}></span><span style={{ fontFamily: "'Bebas Neue'", fontSize: 15, color: '#9AA1AC', width: 24, textAlign: 'center' }}>{ev.min}'</span></div>
                     <div style={{ flex: 1, textAlign: 'left', ...awayShow }}><span style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{ev.player}</span> <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{ev.note}</span></div>
                   </div>
                 );
@@ -123,7 +122,7 @@ export default function Zapasy() {
             <div className="fk-rev" style={{ marginBottom: 20 }}><Eyebrow>FOTKY ZE ZÁPASU</Eyebrow></div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gridAutoRows: 150, gap: 14 }}>
               {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-                <Hov key={i} className="fk-rev fk-zoom" style={`${galleryCells[i]};border-radius:16px;overflow:hidden;position:relative;cursor:pointer`}>
+                <Hov key={i} className="fk-rev fk-zoom" style={`${galleryCells[i]};border-radius:10px;overflow:hidden;position:relative;cursor:pointer`}>
                   <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: galleryImgs[i], backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 </Hov>
               ))}
@@ -137,17 +136,17 @@ export default function Zapasy() {
             <div className="fk-rev" style={{ ...card, padding: 'clamp(24px,4vw,32px)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div style={{ width: 54, height: 54, borderRadius: 14, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 18, color: '#fff', flex: 'none' }}>FK</div>
+                  <div style={{ width: 54, height: 54, borderRadius: 10, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 18, color: '#fff', flex: 'none' }}>FK</div>
                   <div>
                     <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#121212', letterSpacing: '.5px' }}>FK Kunice <span style={{ color: '#9AA1AC' }}>vs</span> {lm.opp}</div>
-                    <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.5px', padding: '3px 10px', borderRadius: 99, background: '#F4F5F7', color: '#3a3f47' }}>{lm.result}</span>
+                    <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.5px', padding: '3px 10px', borderRadius: 10, background: '#F4F5F7', color: '#3a3f47' }}>{lm.result}</span>
                   </div>
                 </div>
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(40px,6vw,56px)', color: '#C1121F', letterSpacing: '2px', lineHeight: 1 }}>{lm.score}</div>
               </div>
               {lm.scorers && lm.scorers.trim() && (
                 <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid #F2F3F5', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ width: 26, height: 26, borderRadius: 99, background: '#C1121F', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Icon name="ball" size={14} color="#fff" /></span>
+                  <span style={{ width: 8, height: 8, borderRadius: 99, background: '#C1121F', flex: 'none' }} />
                   <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '1px', color: '#9AA1AC' }}>STŘELCI:</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: '#1E1E1E' }}>{lm.scorers}</span>
                 </div>
@@ -161,7 +160,7 @@ export default function Zapasy() {
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '56px 28px 0' }}>
         <div className="fk-rev" style={{ marginBottom: 22 }}><Eyebrow>PŘÍŠTÍ ZÁPAS</Eyebrow></div>
         {hasNext ? (
-          <div className="fk-rev" style={{ background: 'linear-gradient(155deg,#1c1c1e,#0d0d0f)', borderRadius: 24, padding: 'clamp(24px,4vw,40px)', color: '#fff', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 60px rgba(18,18,18,.28)' }}>
+          <div className="fk-rev" style={{ background: 'linear-gradient(155deg,#1c1c1e,#0d0d0f)', borderRadius: 10, padding: 'clamp(24px,4vw,40px)', color: '#fff', position: 'relative', overflow: 'hidden', boxShadow: '0 24px 60px rgba(18,18,18,.28)' }}>
             <div style={{ position: 'absolute', right: -50, top: -50, width: 220, height: 220, borderRadius: 99, background: 'radial-gradient(circle,rgba(193,18,31,.45),transparent 70%)' }} />
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 8, height: 8, borderRadius: 99, background: '#D62839', animation: 'fkPulse 1.6s infinite' }} />
@@ -169,19 +168,19 @@ export default function Zapasy() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, margin: '26px 0 24px', position: 'relative' }}>
               <div style={{ textAlign: 'center', flex: 1 }}>
-                <div style={{ width: 64, height: 64, margin: '0 auto 12px', borderRadius: 16, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 20 }}>{nmHome.short}</div>
+                <div style={{ width: 64, height: 64, margin: '0 auto 12px', borderRadius: 10, background: 'linear-gradient(160deg,#D62839,#8E0F18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 20 }}>{nmHome.short}</div>
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: '.5px' }}>{nmHome.name}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>{nmHome.side || 'Domácí'}</div>
               </div>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 32, color: 'rgba(255,255,255,.3)', flex: 'none' }}>VS</div>
               <div style={{ textAlign: 'center', flex: 1 }}>
-                <div style={{ width: 64, height: 64, margin: '0 auto 12px', borderRadius: 16, background: 'rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 20 }}>{nmAway.short}</div>
+                <div style={{ width: 64, height: 64, margin: '0 auto 12px', borderRadius: 10, background: 'rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 20 }}>{nmAway.short}</div>
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: '.5px' }}>{nmAway.name}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>{nmAway.side || 'Hosté'}</div>
               </div>
             </div>
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.08)', padding: '10px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.85)' }}>
-              <Icon name="pin" size={15} /> {nm.venue || 'Areál Kunice'}
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.08)', padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.85)' }}>
+              {nm.venue || 'Areál Kunice'}
             </div>
             {nm.dateISO ? <Countdown targetISO={nm.dateISO} /> : null}
           </div>
@@ -192,7 +191,7 @@ export default function Zapasy() {
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '56px 28px 110px' }}>
         <div className="fk-rev" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
           <Eyebrow>TABULKA SOUTĚŽE</Eyebrow>
-          <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '4px 11px', borderRadius: 99 }}>{t.comp}</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: '#C1121F', background: '#FBEAEC', padding: '4px 11px', borderRadius: 10 }}>{t.comp}</span>
         </div>
         {table.length > 0 ? (
           <div className="fk-rev" style={{ ...card, padding: '8px 24px' }}>

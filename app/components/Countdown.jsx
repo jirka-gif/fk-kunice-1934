@@ -27,7 +27,7 @@ export function Countdown({ targetISO }) {
   return (
     <div style={{ display: 'flex', gap: 8, marginTop: 22 }}>
       {boxes.map((b, i) => (
-        <div key={i} style={{ flex: 1, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 13, padding: '12px 6px', textAlign: 'center' }}>
+        <div key={i} style={{ flex: 1, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 10, padding: '12px 6px', textAlign: 'center' }}>
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(24px,4vw,30px)', lineHeight: 1, color: '#fff' }}>{String(b.n).padStart(2, '0')}</div>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: 'rgba(255,255,255,.45)', marginTop: 5 }}>{b.l}</div>
         </div>

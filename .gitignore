@@ -1,5 +1,6 @@
 /node_modules
 /.next
+/.next-e2e
 /out
 /build
 .DS_Store
@@ -8,3 +9,12 @@ npm-debug.log*
 .env*.local
 .vercel
 next-env.d.ts
+
+# testy
+/test-results
+/playwright-report
+/blob-report
+/.playwright
+
+# lokální testovací data (FK_LOCAL_STORE=1)
+/.data
