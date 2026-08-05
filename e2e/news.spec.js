@@ -48,10 +48,31 @@ test('nová novinka z adminu má funkční detail', async ({ page }) => {
   // nová položka se přidá na konec seznamu
   await page.getByLabel('Titulek').last().fill(title);
   await page.getByLabel('Perex (pár vět do výpisu)').last().fill('Perex testovacího článku.');
-  await page.getByLabel('Adresa detailu (/novinky/…)').last().fill('test-clanek-e2e');
   await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
 
-  await page.goto('/novinky/test-clanek-e2e');
+  // adresa článku se vytvoří z titulku sama — ručně ji nikdo zadávat nemusí
+  const content = await (await page.request.get('/api/content')).json();
+  const clanek = content.news.find((n) => n.title === title);
+  expect(clanek).toBeTruthy();
+  expect(clanek.id).toBeTruthy();
+
+  await page.goto(`/novinky/${clanek.id}`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
   await expect(page.getByText('Perex testovacího článku.')).toBeVisible();
+});
+
+test('adresu článku jde přepsat v Pokročilém nastavení', async ({ page }) => {
+  await loginToAdmin(page);
+  await openAdminSection(page, 'novinky');
+  await page.getByRole('button', { name: '+ Přidat novinku' }).click();
+  await page.getByLabel('Titulek').last().fill(`Vlastní adresa ${Date.now()}`);
+
+  // pole je schované, dokud si ho člověk vědomě nerozbalí
+  await expect(page.getByLabel('Adresa článku (/novinky/…)')).toHaveCount(0);
+  await page.getByRole('button', { name: /Pokročilé nastavení/ }).last().click();
+  await page.getByLabel('Adresa článku (/novinky/…)').last().fill('moje-vlastni-adresa');
+  await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
+
+  await page.goto('/novinky/moje-vlastni-adresa');
+  await expect(page.getByText('Novinka nenalezena')).toHaveCount(0);
 });

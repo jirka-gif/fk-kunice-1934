@@ -1,6 +1,6 @@
 'use client';
 // Sdílená UI primitiva pro administraci FK Kunice.
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 const RED = '#C1121F';
 const LINE = '#ECEEF1';
@@ -126,6 +126,30 @@ export function SectionHead({ title, desc, count }) {
 }
 
 // Editor pole objektů: přidat / smazat / přesunout. `renderItem(item, update, index)`.
+// Sbalený blok pro věci, které klub potřebuje výjimečně (adresy stránek,
+// popisky tlačítek). Nezmizí, jen nepřekáží — po rozbalení je všechno tam,
+// kde bylo.
+export function Pokrocile({ title = 'Pokročilé nastavení', hint, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: 16, border: `1px solid ${LINE}`, borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '13px 16px', background: open ? '#FBF6F6' : '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
+      >
+        <span>
+          <span style={{ fontWeight: 800, fontSize: 14, color: '#3a3f47' }}>{title}</span>
+          {hint && <span style={{ display: 'block', fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2 }}>{hint}</span>}
+        </span>
+        <span style={{ color: RED, fontWeight: 700, fontSize: 12, flex: 'none' }}>{open ? 'Skrýt' : 'Zobrazit'}</span>
+      </button>
+      {open && <div style={{ padding: 16, borderTop: `1px solid ${LINE}` }}>{children}</div>}
+    </div>
+  );
+}
+
 export function ListEditor({ items, onChange, newItem, renderItem, addLabel = '+ Přidat', itemTitle }) {
   const update = (i, patch) => {
     const next = items.slice();

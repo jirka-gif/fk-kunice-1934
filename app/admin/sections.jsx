@@ -3,7 +3,7 @@ import { useState, Fragment } from 'react';
 import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem, emptyReservation, emptyRegistration } from '@/lib/store';
 import { czechDate, daySlots } from '@/lib/rental';
 import { postFromResult } from '@/lib/social';
-import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
+import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField, Pokrocile } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
 const EV_TYPE_OPTS = [{ value: 'goal', label: 'Gól' }, { value: 'yellow', label: 'Žlutá karta' }, { value: 'red', label: 'Červená karta' }];
@@ -65,10 +65,11 @@ function SectionTexts({ label, value, onChange, extra }) {
     <Card style={{ marginBottom: 12 }}>
       <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>{label}</div>
       <Row>
-        <Field label="Nadnadpis" value={value.eyebrow} onChange={(v) => onChange({ eyebrow: v })} width="240px" />
+        <Field label="Malý nadpis nad" value={value.eyebrow} onChange={(v) => onChange({ eyebrow: v })} width="240px" />
         <Field label="Nadpis" value={value.title} onChange={(v) => onChange({ title: v })} />
       </Row>
-      {extra && <><div style={{ height: 10 }} />{extra}</>}
+      {/* popisky tlačítek a jednotky měníš jednou za rok — ať nepřekáží */}
+      {extra && <Pokrocile title="Texty tlačítek a popisky">{extra}</Pokrocile>}
     </Card>
   );
 }
@@ -101,8 +102,10 @@ export function Domu() {
             </Row>
             <div style={{ height: 12 }} />
             <Field label="Odstavec (každý řádek se zalomí zvlášť)" textarea rows={3} value={h.perex} onChange={(v) => sec('hero')({ perex: v })} />
-            <div style={{ height: 12 }} />
-            <Field label="Popisek u šipky dolů" value={h.scrollLabel} onChange={(v) => sec('hero')({ scrollLabel: v })} width="220px" />
+
+            <Pokrocile title="Drobnosti">
+              <Field label="Popisek u šipky dolů" value={h.scrollLabel} onChange={(v) => sec('hero')({ scrollLabel: v })} width="220px" />
+            </Pokrocile>
           </Card>
           <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Tlačítka v hero (první je červené)</div>
           <ListEditor
@@ -307,13 +310,16 @@ export function Tymy() {
         <Row>
           <Field label="Soutěž" value={t.comp} onChange={(v) => updateTeam({ comp: v })} />
           <Field label="Kontakt" value={t.contact} onChange={(v) => updateTeam({ contact: v })} placeholder="nepovinné" />
-          <Field label="ID (URL)" value={t.id} onChange={(v) => updateTeam({ id: v })} width="160px" />
         </Row>
         <div style={{ height: 14 }} />
         <ImageField label="Fotka týmu (karta na homepage)" value={t.photo} onChange={(v) => updateTeam({ photo: v })} />
         <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 6 }}>
           Bez nahrané fotky zůstane na kartě barevný přechod.
         </div>
+
+        <Pokrocile hint="Adresa stránky týmu — měň jen když víš proč, staré odkazy přestanou fungovat.">
+          <Field label="Adresa stránky (/tymy/…)" value={t.id} onChange={(v) => updateTeam({ id: v })} width="220px" />
+        </Pokrocile>
 
         <div style={{ marginTop: 20, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>REALIZAČNÍ TÝM ({t.coaches.length})</div>
         <div style={{ height: 8 }} />
@@ -739,10 +745,10 @@ export function Novinky() {
             <div style={{ height: 12 }} />
             <Field label="Text článku (jen na detailu — prázdný řádek dělí odstavce)" textarea rows={6} value={n.body} onChange={(v) => u({ body: v })} />
             <div style={{ height: 12 }} />
-            <Row>
-              <Field label="Adresa detailu (/novinky/…)" value={n.id} onChange={(v) => u({ id: slugify(v) })} />
-              <a href={`/novinky/${n.id}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#C1121F', padding: '11px 0' }}>Otevřít detail →</a>
-            </Row>
+            <a href={`/novinky/${n.id}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: '#C1121F' }}>Otevřít článek na webu</a>
+            <Pokrocile hint="Adresa článku se vytvoří z titulku sama. Změnou přestanou fungovat dřív sdílené odkazy.">
+              <Field label="Adresa článku (/novinky/…)" value={n.id} onChange={(v) => u({ id: slugify(v) })} />
+            </Pokrocile>
           </div>
         )}
       />
