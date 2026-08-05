@@ -1,0 +1,13 @@
+# Do build kontextu patří jen to, z čeho se staví.
+node_modules
+.next
+.git
+.github
+e2e
+tests
+playwright.config.mjs
+*.md
+.env
+.env.*
+!.env.example
+.claude

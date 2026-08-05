@@ -1,0 +1,122 @@
+# FK Kunice 1934 — nasazení do nethost clusteru (frankee-dev).
+#
+# Cluster:   ~/.kube/frankee-dev-config, context client-admin@frankee-dev
+# Namespace: fk-kunice (vlastní, oddělený od frenkee-web-prod i insurecrm)
+# Doména:    www.fkkunice.cz + fkkunice.cz
+#
+# Obraz je na GHCR VEŘEJNÝ, proto tu není imagePullSecret — stejně jako
+# frenkee-web. Kdyby se balíček přepnul na private, je potřeba do namespace
+# zkopírovat secret `ghcr-pull` a doplnit ho níže.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fk-kunice
+#
+# Secret `fk-kunice-secrets` tu SCHVÁLNĚ NENÍ. Kdyby tu byl jako vzor s
+# hodnotami typu „zmen-me", každé opakované `apply -f` tohoto souboru by
+# přepsalo skutečná hesla zpátky na vzor a shodilo administraci. Secret se
+# proto zakládá zvlášť příkazem — viz krok 2 v k8s/README.md.
+#
+# Deployment ho níže čte přes envFrom; bez něj poběží pod v CreateContainerConfigError.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fk-kunice
+  namespace: fk-kunice
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: fk-kunice }
+  template:
+    metadata:
+      labels: { app: fk-kunice }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: web
+          # Tag doplní nasazovací příkaz. `latest` schválně NE — z něj nepoznáš,
+          # co běží, protože se přepisuje.
+          image: ghcr.io/jirka-gif/fk-kunice-1934:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ['ALL'] }
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: '3000'
+          envFrom:
+            - secretRef:
+                name: fk-kunice-secrets
+          # Bez DATABASE_URL web běží z `content/club.js` (viz README-BACKEND.md).
+          # Až bude potřeba perzistence, doplní se sem odkaz na Postgres.
+          readinessProbe:
+            httpGet: { path: /, port: 3000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: 3000 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: '1', memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fk-kunice
+  namespace: fk-kunice
+spec:
+  selector: { app: fk-kunice }
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fk-kunice
+  namespace: fk-kunice
+  annotations:
+    # Stejný issuer, jakým si certifikát bere frenkee-web.
+    cert-manager.io/cluster-issuer: le-nethost-issuer
+    # Anotace i `ingressClassName` schválně obojí: frenkee-web v tomhle
+    # clusteru používá anotaci a prokazatelně funguje, `ingressClassName`
+    # je novější tvar. Když je obojí shodné, nekoliduje to.
+    kubernetes.io/ingress.class: nginx
+    # fkkunice.cz → www.fkkunice.cz. Bez tohohle by apex vracel obsah přímo
+    # a Google by to viděl jako dvě stránky s týmž textem.
+    nginx.ingress.kubernetes.io/from-to-www-redirect: 'true'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [www.fkkunice.cz, fkkunice.cz]
+      secretName: fk-kunice-tls
+  rules:
+    - host: www.fkkunice.cz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fk-kunice
+                port: { number: 80 }
+    - host: fkkunice.cz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fk-kunice
+                port: { number: 80 }
