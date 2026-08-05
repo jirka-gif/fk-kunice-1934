@@ -5,7 +5,7 @@
 //  z /api/og/match, úprava textu i proměnných vizuálu a odeslání přes Metu.
 // =============================================================================
 import { useState } from 'react';
-import { useData, setSection, updateData, emptyOpponent, opponentKey } from '@/lib/store';
+import { useData, setSection, updateData, emptyOpponent, opponentKey, collectOpponentNames } from '@/lib/store';
 import { Card, Btn, Field, Row, Select, SectionHead, ImageField, ListEditor } from './adminui';
 import { buildOgUrl, buildPostText, emptySocialPost, SOCIAL_TARGETS, DEFAULT_TEMPLATE } from '@/lib/social';
 
@@ -29,8 +29,21 @@ function formatDate(iso) {
 }
 
 export function Socialni() {
-  const { socialPosts, socialSettings, opponents } = useData();
+  const data = useData();
+  const { socialPosts, socialSettings, opponents } = data;
   const [showOpponents, setShowOpponents] = useState(false);
+
+  // Doplní do seznamu soupeře, kteří se objevují v tabulkách a zápasech,
+  // ale ještě nemají svůj řádek. Znak k nim pak stačí nahrát.
+  const addFromMatches = () => {
+    const known = new Set(opponents.map((o) => opponentKey(o.name)));
+    const fresh = collectOpponentNames(data)
+      .filter((name) => !known.has(opponentKey(name)))
+      .map((name) => ({ ...emptyOpponent(), id: opponentKey(name), name }));
+    if (!fresh.length) { alert('Všichni soupeři ze zápasů už v seznamu jsou.'); return; }
+    setSection('opponents', [...opponents, ...fresh]);
+    setShowOpponents(true);
+  };
   const [open, setOpen] = useState(null);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -127,7 +140,10 @@ export function Socialni() {
               Znak stačí nahrát jednou — sám se použije u každého dalšího zápasu proti stejnému soupeři.
             </div>
           </div>
-          <Btn small onClick={() => setShowOpponents((v) => !v)}>{showOpponents ? 'Skrýt' : 'Spravovat znaky'}</Btn>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Btn small onClick={addFromMatches}>Doplnit soupeře ze zápasů</Btn>
+            <Btn small onClick={() => setShowOpponents((v) => !v)}>{showOpponents ? 'Skrýt' : 'Spravovat znaky'}</Btn>
+          </div>
         </div>
 
         {showOpponents && (

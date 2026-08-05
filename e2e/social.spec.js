@@ -56,6 +56,33 @@ test('nahraný znak soupeře se použije podle názvu týmu', async ({ page }) =
   await page.request.put('/api/content', { data: content });
 });
 
+test('tlačítko doplní soupeře ze zápasů a znak se pak nahraje k nim', async ({ page }) => {
+  await loginToAdmin(page);
+  // začneme s prázdným seznamem
+  const before = await (await page.request.get('/api/content')).json();
+  before.opponents = [];
+  await page.request.put('/api/content', { data: before });
+
+  await openAdminSection(page, 'socialni');
+  await page.getByRole('button', { name: 'Doplnit soupeře ze zápasů' }).click();
+  await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
+
+  const after = await (await page.request.get('/api/content')).json();
+  expect(after.opponents.length).toBeGreaterThan(3);
+  // nikdy nenabídne nás samotné a každý klub je právě jednou
+  expect(after.opponents.some((o) => o.id === 'kunice')).toBe(false);
+  expect(new Set(after.opponents.map((o) => o.id)).size).toBe(after.opponents.length);
+  // řádky jsou připravené na nahrání znaku
+  expect(after.opponents.every((o) => o.name && o.logo === '')).toBe(true);
+
+  // seznam je vidět i v administraci
+  await expect(page.getByText('Znaky soupeřů')).toBeVisible();
+
+  // úklid
+  after.opponents = [];
+  await page.request.put('/api/content', { data: after });
+});
+
 test('neznámé id příspěvku vizuál nerozbije', async ({ request }) => {
   const res = await request.get('/api/og/match?post=takovy-neexistuje&score=1:0');
   expect(res.status()).toBe(200);

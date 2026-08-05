@@ -115,8 +115,10 @@ odolné a **vždy s ruční kontrolou**.
   Všechny texty jsou parametry adresy, takže admin mění vizuál bez zásahu do kódu.
   Znak klubu se bere z `public/logo-og.png` (satori neumí webp), znak soupeře
   z registru `opponents` — páruje se podle názvu přes `opponentKey()`
-  (bez diakritiky, velikosti písmen a zkratky klubu na začátku). Soupeř bez
-  znaku dostane dlaždici se zkratkou.
+  (bez diakritiky, velikosti písmen, zkratky klubu na začátku a označení týmu
+  na konci, takže „SK Mukařov U15" najde znak „SK Mukařov"). Soupeř bez znaku
+  dostane dlaždici se zkratkou. `collectOpponentNames()` posbírá soupeře
+  z tabulek a výsledků, aby je klub nemusel vypisovat ručně.
   **Fotka na pozadí:** nahraje se v adminu a uloží jako data URL — do adresy by
   se nevešla, proto se posílá jen `?post=<id>` a route si obsah načte sama
   (proto běží na `nodejs`, ne na edge). Fotka se ořízne na výšku a ztmaví

@@ -70,10 +70,10 @@ curl -X POST http://localhost:3000/api/matches -H 'content-type: application/jso
     se překreslí (formát 1080 × 1350 px, tedy 4:5 pro Instagram i Facebook).
     Zkus i **Fotka na pozadí** — nahraj libovolný snímek ze zápasu; ořízne se
     na výšku a ztmaví, aby zůstaly texty čitelné. Bez fotky zůstane tmavé pozadí.
-15. **Znaky soupeřů** (v téže sekci) → *Spravovat znaky* → přidej soupeře
-    a nahraj jeho znak. Použije se automaticky u každého dalšího zápasu proti
-    němu; název se páruje bez ohledu na diakritiku a zkratku („SK Poříčany"
-    sedne i na „Poříčany").
+15. **Znaky soupeřů** (v téže sekci) → *Spravovat znaky*. Seznam soupeřů už je
+    předvyplněný (20 klubů ze soutěží), stačí ke každému nahrát znak. Tlačítko
+    *Doplnit soupeře ze zápasů* přidá další, jakmile se v tabulkách objeví.
+    Znak platí pro celý klub — „SK Mukařov U15" i „SK Mukařov B" použijí ten samý.
 16. Klikni na *Zveřejnit*. Bez tokenů Mety to **schválně** selže a do historie
     příspěvku se zapíše, která proměnná chybí — přesně tak se to chová i ostře.
 
