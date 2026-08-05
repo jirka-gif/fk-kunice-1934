@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
-import { Icon } from '@/app/components/icons';
 import { Countdown } from '@/app/components/Countdown';
 import { COLORS, PH } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
@@ -52,7 +51,7 @@ export default function Zapasy() {
   const galleryImgs = [PH.dusk, PH.sunset, PH.slate, PH.cool, PH.warm, PH.char, PH.red, PH.ember];
 
   const facrButton = t.facrUrl ? (
-    <Hov as="a" href={t.facrUrl} target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:13px 22px;border-radius:10px;cursor:pointer;box-shadow:0 10px 24px rgba(193,18,31,.32);transition:transform .2s,background .2s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Kompletní tabulka a výsledky na FAČR →</Hov>
+    <Hov as="a" href={t.facrUrl} target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:13px 22px;border-radius:10px;cursor:pointer;box-shadow:0 10px 24px rgba(193,18,31,.32);transition:transform .2s,background .2s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Kompletní tabulka a výsledky na FAČR</Hov>
   ) : null;
 
   return (
@@ -111,7 +110,7 @@ export default function Zapasy() {
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', padding: '13px 0', borderBottom: '1px solid #F2F3F5' }}>
                     <div style={{ flex: 1, textAlign: 'right', ...homeShow }}><span style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{ev.player}</span> <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{ev.note}</span></div>
-                    <div style={{ flex: 'none', width: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><span style={styleObj(evIcon(ev.type))}>{ev.type === 'goal' ? <Icon name="ball" size={13} color="#fff" /> : null}</span><span style={{ fontFamily: "'Bebas Neue'", fontSize: 15, color: '#9AA1AC', width: 24, textAlign: 'center' }}>{ev.min}'</span></div>
+                    <div style={{ flex: 'none', width: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><span style={styleObj(evIcon(ev.type))}></span><span style={{ fontFamily: "'Bebas Neue'", fontSize: 15, color: '#9AA1AC', width: 24, textAlign: 'center' }}>{ev.min}'</span></div>
                     <div style={{ flex: 1, textAlign: 'left', ...awayShow }}><span style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{ev.player}</span> <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{ev.note}</span></div>
                   </div>
                 );
@@ -147,7 +146,7 @@ export default function Zapasy() {
               </div>
               {lm.scorers && lm.scorers.trim() && (
                 <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid #F2F3F5', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ width: 26, height: 26, borderRadius: 99, background: '#C1121F', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Icon name="ball" size={14} color="#fff" /></span>
+                  <span style={{ width: 8, height: 8, borderRadius: 99, background: '#C1121F', flex: 'none' }} />
                   <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '1px', color: '#9AA1AC' }}>STŘELCI:</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: '#1E1E1E' }}>{lm.scorers}</span>
                 </div>
@@ -181,7 +180,7 @@ export default function Zapasy() {
               </div>
             </div>
             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.08)', padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.85)' }}>
-              <Icon name="pin" size={15} /> {nm.venue || 'Areál Kunice'}
+              {nm.venue || 'Areál Kunice'}
             </div>
             {nm.dateISO ? <Countdown targetISO={nm.dateISO} /> : null}
           </div>

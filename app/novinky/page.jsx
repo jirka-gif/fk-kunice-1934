@@ -86,11 +86,11 @@ export default function Novinky() {
         {/* STRÁNKOVÁNÍ */}
         {pages > 1 && (
           <nav aria-label="Stránkování novinek" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 40, flexWrap: 'wrap' }}>
-            <button onClick={() => setPage(current - 1)} disabled={current === 1} style={pageBtn(false, current === 1)}>← Novější</button>
+            <button onClick={() => setPage(current - 1)} disabled={current === 1} style={pageBtn(false, current === 1)}>Novější</button>
             {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
               <button key={p} onClick={() => setPage(p)} aria-current={p === current ? 'page' : undefined} style={pageBtn(p === current, false)}>{p}</button>
             ))}
-            <button onClick={() => setPage(current + 1)} disabled={current === pages} style={pageBtn(false, current === pages)}>Starší →</button>
+            <button onClick={() => setPage(current + 1)} disabled={current === pages} style={pageBtn(false, current === pages)}>Starší</button>
           </nav>
         )}
       </section>

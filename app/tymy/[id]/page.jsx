@@ -3,7 +3,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Hov, Eyebrow, H2 } from '@/app/components/ui';
-import { Icon } from '@/app/components/icons';
 import { COLORS, PH, PH_ARR, photo, initials } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
@@ -99,7 +98,7 @@ export default function TeamDetail() {
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(56px,9vw,124px)', lineHeight: 1.22, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>{curTeam.name}</h1>
           <p className="fk-rev" style={{ color: 'rgba(255,255,255,.8)', fontSize: 18, marginTop: 18, maxWidth: 580, lineHeight: 1.55 }}>{teamDesc}</p>
           {teamContact && (
-            <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, marginTop: 16, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 10, padding: '9px 16px', color: '#fff', fontSize: 13, fontWeight: 600 }}><Icon name="phone" size={15} /> {teamContact}</div>
+            <div className="fk-rev" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, marginTop: 16, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 10, padding: '9px 16px', color: '#fff', fontSize: 13, fontWeight: 600 }}>{teamContact}</div>
           )}
           <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginTop: 28 }}>
             {teamChips.map((tc) => (
@@ -137,8 +136,8 @@ export default function TeamDetail() {
                   <div style={{ padding: 18 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{st.name}</div>
                     <div style={{ fontSize: 12, color: '#C1121F', fontWeight: 700, marginTop: 3 }}>{st.role}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}><Icon name="award" size={14} /> {st.licence}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6B7280', fontWeight: 600, marginTop: 4 }}><Icon name="mail" size={14} /> {st.contact}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>{st.licence}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6B7280', fontWeight: 600, marginTop: 4 }}>{st.contact}</div>
                   </div>
                 </div>
               ))}
@@ -172,7 +171,7 @@ export default function TeamDetail() {
                       <div><span style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color: '#C1121F' }}>{pl.goals}</span><span style={{ fontSize: 11, color: '#9AA1AC', fontWeight: 600, marginLeft: 4 }}>gólů</span></div>
                       <div><span style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color: '#121212' }}>{pl.age}</span><span style={{ fontSize: 11, color: '#9AA1AC', fontWeight: 600, marginLeft: 4 }}>let</span></div>
                     </div>
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #F2F3F5', fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Zobrazit profil →</div>
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #F2F3F5', fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Zobrazit profil</div>
                   </div>
                 </Hov>
               ))}
@@ -246,11 +245,11 @@ export default function TeamDetail() {
               </>
             )}
             {curTeam.facrUrl && (
-              <Hov as="a" href={curTeam.facrUrl} target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid #F2F3F5;font-size:13px;font-weight:700;color:#C1121F;cursor:pointer">Kompletní tabulka na FAČR →</Hov>
+              <Hov as="a" href={curTeam.facrUrl} target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid #F2F3F5;font-size:13px;font-weight:700;color:#C1121F;cursor:pointer">Kompletní tabulka na FAČR</Hov>
             )}
           </div>
           )}
-          <Hov as={Link} href="/kontakt" className="fk-rev" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:10px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Přidej se k týmu →</Hov>
+          <Hov as={Link} href="/kontakt" className="fk-rev" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:10px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Přidej se k týmu</Hov>
         </div>
       </section>
 

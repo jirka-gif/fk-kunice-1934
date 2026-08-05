@@ -12,7 +12,7 @@ test('zpráva z webu dorazí do sekce Zprávy a jde označit jako vyřízená', 
   await page.getByPlaceholder('Vaše zpráva').fill('Mám dotaz k náboru.');
   await Promise.all([
     page.waitForResponse((r) => r.url().includes('/api/submit') && r.request().method() === 'POST'),
-    page.getByText('Odeslat zprávu →').click(),
+    page.getByText('Odeslat zprávu', { exact: true }).click(),
   ]);
 
   // 2) v adminu je mezi novými

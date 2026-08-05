@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
-import { Icon, emojiIcon } from '@/app/components/icons';
 import { COLORS } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
@@ -64,7 +63,7 @@ export default function Kontakt() {
           <div className="fk-kontakt-dlazdice" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
             {quickActions.map((qa, i) => (
               <Hov key={i} className="fk-rev" style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05);cursor:pointer;transition:transform .3s,box-shadow .3s" hover="transform:translateY(-6px);box-shadow:0 22px 44px rgba(18,18,18,.12)">
-                <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(193,18,31,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>{emojiIcon(qa.emoji) ? <Icon name={emojiIcon(qa.emoji)} size={20} color={COLORS.red} /> : qa.emoji}</div>
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(193,18,31,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>{qa.title.slice(0, 1).toUpperCase()}</div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>{qa.title}</div>
                 <div style={{ fontSize: 13, color: COLORS.red, fontWeight: 600, marginTop: 4 }}>{qa.value}</div>
               </Hov>
@@ -115,7 +114,6 @@ export default function Kontakt() {
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: COLORS.ink, marginBottom: 18 }}>Napište nám</div>
           {sent ? (
             <div style={{ background: '#EAF6EE', border: '1px solid #BfE6CC', borderRadius: 10, padding: 24, textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, color: '#1F8A4C' }}><Icon name="checkCircle" size={40} strokeWidth={1.7} /></div>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#1F8A4C' }}>Zpráva odeslána</div>
               <div style={{ color: '#3a3f47', fontSize: 14, fontWeight: 500, marginTop: 6, lineHeight: 1.5 }}>Děkujeme! Ozveme se vám co nejdříve.</div>
               <div onClick={() => { setSent(false); setMsg({ name: '', email: '', text: '' }); }} style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: COLORS.red, cursor: 'pointer' }}>Napsat další zprávu</div>
@@ -125,7 +123,7 @@ export default function Kontakt() {
             <Hov as="input" value={msg.name} onChange={setM('name')} placeholder="Jméno a příjmení" style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none" focus="border-color:#C1121F;background:#fff" />
             <Hov as="input" value={msg.email} onChange={setM('email')} placeholder="E-mail" style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none" focus="border-color:#C1121F;background:#fff" />
             <Hov as="textarea" value={msg.text} onChange={setM('text')} placeholder="Vaše zpráva" rows={4} style="border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none;resize:none" focus="border-color:#C1121F;background:#fff" />
-            <Hov as="a" onClick={sendMsg} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:10px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat zprávu →</Hov>
+            <Hov as="a" onClick={sendMsg} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:10px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat zprávu</Hov>
           </div>
           )}
         </div>

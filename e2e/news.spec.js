@@ -10,7 +10,7 @@ test('z přehledu novinek se dá prokliknout na detail článku', async ({ page 
   // hlavní (nejnovější) novinka vede na svůj detail
   await page.locator('a[href^="/novinky/"]').first().click();
   await expect(page).toHaveURL(/\/novinky\/[^/]+$/);
-  await expect(page.getByRole('link', { name: '← Zpět na novinky' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Zpět na novinky' })).toBeVisible();
   await expect(page.getByText('DALŠÍ NOVINKY')).toBeVisible();
 });
 

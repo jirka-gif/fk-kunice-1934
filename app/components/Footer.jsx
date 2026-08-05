@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Hov } from './ui';
-import { Icon } from './icons';
 import { useContent } from '@/lib/store';
 
 function Ig() { return (<svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x={2} y={2} width={20} height={20} rx={5} /><circle cx={12} cy={12} r={4} /><circle cx={17.5} cy={6.5} r={1} /></svg>); }
@@ -58,7 +57,6 @@ export default function Footer() {
             <Link href="/kontakt" style={{ marginTop: 18, height: 120, borderRadius: 10, background: 'linear-gradient(135deg,#241112,#120a0b)', border: '1px solid rgba(255,255,255,.1)', position: 'relative', overflow: 'hidden', cursor: 'pointer', display: 'block' }}>
               <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px)', backgroundSize: '24px 24px' }} />
               <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <Icon name="pin" size={22} color="rgba(255,255,255,.85)" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.8)' }}>{footer.mapLabel}</span>
               </div>
             </Link>

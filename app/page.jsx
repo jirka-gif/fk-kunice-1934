@@ -3,19 +3,10 @@ import { Fragment } from 'react';
 import Link from 'next/link';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { Hov, Eyebrow, H2 } from './components/ui';
-import { Icon } from './components/icons';
 import { COLORS, PH, PH_ARR, photo, initials, wldBadge } from '@/lib/design';
 import { useContent } from '@/lib/store';
 
 const cardSh = 'box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 26px rgba(18,18,18,.06)';
-
-function WhyIcon({ k }) {
-  const p = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: COLORS.redBright, strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
-  if (k === 'star') return <svg {...p}><path d="M12 2l3 6 6 .9-4.5 4.3L18 20l-6-3.2L6 20l1.5-6.8L3 8.9 9 8z" /></svg>;
-  if (k === 'home') return <svg {...p}><path d="M3 21h18M5 21V7l8-4 8 4v14M9 21v-6h6v6" /></svg>;
-  if (k === 'users') return <svg {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
-  return <svg {...p}><circle cx={12} cy={12} r={10} /><path d="M12 2a10 10 0 0 0 0 20M2 12h20" /></svg>;
-}
 
 export default function Home() {
   useRevealEngine();
@@ -77,7 +68,6 @@ export default function Home() {
             {heroCtas.map((cta, i) => (i === 0 ? (
               <Hov key={i} as={Link} href={cta.href || '/'} style="display:inline-flex;align-items:center;gap:10px;background:#E01B24;color:#fff;font-weight:700;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;box-shadow:0 10px 28px rgba(224,27,36,.4);transition:transform .25s,box-shadow .25s,background .25s" hover="transform:translateY(-2px);box-shadow:0 16px 38px rgba(224,27,36,.55);background:#F0242D;color:#fff">
                 {cta.label}
-                <span aria-hidden="true" style={{ fontSize: 15 }}>→</span>
               </Hov>
             ) : (
               <Hov key={i} as={Link} href={cta.href || '/'} style="display:inline-flex;align-items:center;background:rgba(8,8,10,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.28);color:#fff;font-weight:700;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;transition:background .25s,transform .25s,border-color .25s" hover="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.55);transform:translateY(-2px);color:#fff">{cta.label}</Hov>
@@ -140,7 +130,7 @@ export default function Home() {
             </div>
             <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
               <Hov as={Link} href="/zapasy" style="flex:1;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:14px;border-radius:10px;cursor:pointer;transition:transform .2s,background .2s;box-shadow:0 10px 24px rgba(193,18,31,.4)" hover="transform:translateY(-2px);background:#D62839;color:#fff">{T.match.detailLink}</Hov>
-              <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.08)', padding: '0 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.8)' }}><Icon name="pin" size={15} /> {nextMatch.venue}</div>
+              <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.08)', padding: '0 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.8)' }}>{nextMatch.venue}</div>
             </div>
           </div>
 
@@ -191,7 +181,7 @@ export default function Home() {
               <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 99, background: tm.coachBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'Inter' }}>{tm.initials}</div>
                 <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 700, color: '#1E1E1E' }}>{tm.coach}</div><div style={{ fontSize: 11, color: '#9AA1AC', fontWeight: 600 }}>Hlavní trenér</div></div>
-                <span style={{ color: '#C1121F', fontWeight: 800, fontSize: 18 }}>→</span>
+
               </div>
             </Hov>
           ))}
@@ -209,7 +199,7 @@ export default function Home() {
           <div className="fk-why" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
             {whyCards.map((w, i) => (
               <Hov key={i} className="fk-rev" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:30px;transition:background .3s,transform .3s,border-color .3s" hover="background:rgba(255,255,255,.07);transform:translateY(-6px);border-color:rgba(214,40,57,.4)">
-                <div style={{ width: 52, height: 52, borderRadius: 10, background: 'rgba(214,40,57,.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}><WhyIcon k={w.icon} /></div>
+                <div style={{ width: 40, height: 4, borderRadius: 4, background: COLORS.redBright, marginBottom: 22 }} />
                 <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#fff', textTransform: 'uppercase', lineHeight: 1.02, letterSpacing: '.4px' }}>{w.title}</div>
                 <p style={{ color: 'rgba(255,255,255,.58)', fontSize: 14, lineHeight: 1.6, marginTop: 12 }}>{w.text}</p>
               </Hov>

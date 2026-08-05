@@ -9,7 +9,7 @@ test('kontaktní formulář odešle zprávu a zobrazí potvrzení', async ({ pag
 
   const [res] = await Promise.all([
     page.waitForResponse((r) => r.url().includes('/api/submit') && r.request().method() === 'POST'),
-    page.getByText('Odeslat zprávu →').click(),
+    page.getByText('Odeslat zprávu', { exact: true }).click(),
   ]);
   expect(res.ok()).toBe(true);
   await expect(page.getByText('Zpráva odeslána')).toBeVisible();
@@ -19,20 +19,5 @@ test('kontaktní formulář odešle zprávu a zobrazí potvrzení', async ({ pag
   expect(content.messages.some((m) => m.name === 'E2E Tester' && m.status === 'nová')).toBe(true);
 });
 
-test('formulář pronájmu odešle poptávku a zobrazí potvrzení', async ({ page }) => {
-  await page.goto('/pronajem');
-  await page.getByPlaceholder('Jméno a příjmení').fill('E2E Nájemce');
-  await page.getByPlaceholder('Telefon').fill('777123456');
-  await page.getByPlaceholder('E-mail').fill('najemce@example.com');
-  await page.getByPlaceholder('Poznámka (počet osob, čas, účel)').fill('Turnaj, 20 osob.');
-
-  const [res] = await Promise.all([
-    page.waitForResponse((r) => r.url().includes('/api/submit') && r.request().method() === 'POST'),
-    page.getByText('Odeslat poptávku →').click(),
-  ]);
-  expect(res.ok()).toBe(true);
-  await expect(page.getByText('Poptávka odeslána')).toBeVisible();
-
-  const content = await (await page.request.get('/api/content')).json();
-  expect(content.reservations.some((r) => r.name === 'E2E Nájemce' && r.status === 'nová')).toBe(true);
-});
+// Poptávka pronájmu má vlastní tok (kalendář + výběr času) — testuje ji
+// e2e/rezervace.spec.js, kde se dá ověřit i obsazenost termínů.

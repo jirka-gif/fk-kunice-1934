@@ -3,7 +3,9 @@
 // nepřepisuje celý obsah. Tělo: { type, payload }.
 import { NextResponse } from 'next/server';
 import { getStoredContent, saveStoredContent } from '@/lib/db';
-import { DEFAULTS, mergeStored, clone } from '@/lib/defaults';
+import { DEFAULTS, mergeStored, clone, emptyReservation } from '@/lib/defaults';
+import { validateRequest, slotEnd, czechDate } from '@/lib/rental';
+import { sendMail, reservationMail } from '@/lib/mail';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -26,19 +28,49 @@ export async function POST(req) {
   const content = stored ? mergeStored(stored) : clone(DEFAULTS);
 
   if (type === 'reservation') {
-    content.reservations = [
-      {
-        name: s(payload.name, 120),
-        contact: s(payload.contact, 200),
-        area: s(payload.area, 120),
-        date: s(payload.date, 60),
-        time: s(payload.time, 30),
-        note: s(payload.note, 800),
-        source: 'web',
-        status: 'nová',
-      },
-      ...(content.reservations || []),
-    ].slice(0, 500);
+    const area = s(payload.area, 120);
+    const dateISO = s(payload.dateISO, 10);
+    const from = s(payload.from, 5);
+    if (!s(payload.name, 120).trim()) {
+      return NextResponse.json({ error: 'Vyplň prosím jméno.' }, { status: 400 });
+    }
+    // Poslední kontrola na serveru: mezi zobrazením kalendáře a odesláním mohl
+    // termín někdo zabrat. Bez tohohle by na stejný čas dorazily dvě poptávky.
+    const check = validateRequest({
+      reservations: content.reservations,
+      area,
+      dateISO,
+      from,
+      settings: content.rentalSettings,
+    });
+    if (!check.ok) {
+      return NextResponse.json({ error: check.error }, { status: 409 });
+    }
+
+    const reservation = {
+      ...emptyReservation(),
+      id: `rezervace-${new Date().toISOString()}`,
+      name: s(payload.name, 120),
+      contact: s(payload.contact, 200),
+      area,
+      dateISO,
+      from,
+      to: slotEnd(from, content.rentalSettings),
+      date: czechDate(dateISO),
+      time: from,
+      note: s(payload.note, 800),
+      source: 'web',
+      status: 'nová',
+      createdAt: new Date().toISOString(),
+    };
+    content.reservations = [reservation, ...(content.reservations || [])].slice(0, 500);
+    await saveStoredContent(content);
+
+    // Upozornění e-mailem je bonus — když není nastavené, poptávka už je uložená
+    // v administraci a odeslání formuláře kvůli tomu nesmí selhat.
+    const mail = reservationMail(reservation);
+    const sent = await sendMail({ to: content.rentalSettings.notifyEmail, ...mail });
+    return NextResponse.json({ ok: true, emailSent: sent.ok });
   } else if (type === 'registration') {
     content.cmsRegistrations = [
       {

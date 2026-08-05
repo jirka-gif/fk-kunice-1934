@@ -52,7 +52,11 @@ nebo `ADMIN_PASSWORD` smaž `.data/auth.json`, aby se správce založil znovu.
 
 **Zprávy a rezervace**
 8. Odešli formulář na <http://localhost:3000/kontakt> → objeví se v **Zprávy**.
-9. Odešli poptávku na <http://localhost:3000/pronajem> → objeví se v **Pronájem**.
+9. **Pronájem** → vyber plochu, klikni na volný den v kalendáři a na čas.
+   Odešli poptávku → objeví se v adminu (Pronájem → Rezervace) jako **nová**
+   a její termín zmizí z nabídky. Zkus ho poptat znovu — web ho odmítne.
+   Po zamítnutí v adminu se termín zase uvolní.
+   Otevírací dobu a zavřené dny nastavíš v **Pronájem → Otevírací doba**.
 10. **Přehled** ukazuje skutečné počty, ne vymyšlená čísla.
 
 **Zápasy z fotbal.cz**

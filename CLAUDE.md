@@ -135,6 +135,22 @@ odolné a **vždy s ruční kontrolou**.
 - Obsah: `socialPosts` (fronta + historie) a `socialSettings`
   (ruční / automatické schvalování, sítě, šablona, počet opakování).
 
+## Rezervace pronájmu (poptávky)
+- `lib/rental.js` — čistá logika: z otevírací doby nakrájí termíny, z rezervací
+  spočítá obsazenost, `validateRequest()` rozhodne, jestli jde termín poptat.
+  **Termín blokuje rezervace ve stavu `nová` i `potvrzená`** — nepotvrzená
+  poptávka drží místo, dokud ji klub nezamítne.
+- `app/api/availability` — veřejné, vrací **jen časy a stavy**, nikdy jména
+  ani kontakty (ty patří do administrace).
+- `POST /api/submit` (typ `reservation`) kontroluje termín ještě jednou na
+  serveru a při kolizi vrací **409** — jinak by dva lidé poptali stejný čas.
+- `lib/mail.js` — upozornění přes Resend HTTP API (bez SMTP knihovny).
+  Bez `RESEND_API_KEY` se e-mail neodešle, ale poptávka se uloží.
+- Obsah: `reservations` (s `dateISO`/`from`/`to`) + `rentalSettings`
+  (otevírací doba, délka termínu, zavřené dny, e-mail pro upozornění).
+- `app/components/Vyber.jsx` — rozbalovací nabídka v klubovém stylu
+  (nativní `<select>` nejde napříč prohlížeči nastylovat).
+
 ## Administrace
 `app/admin/page.jsx` (layout + přehled) + `app/admin/sections.jsx` (sekce)
 + `app/admin/adminui.jsx` (prvky) + `app/admin/users.jsx` (uživatelé a role)

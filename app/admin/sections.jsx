@@ -1,6 +1,7 @@
 'use client';
 import { useState, Fragment } from 'react';
-import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem } from '@/lib/store';
+import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem, emptyReservation } from '@/lib/store';
+import { czechDate, daySlots } from '@/lib/rental';
 import { postFromResult } from '@/lib/social';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
 
@@ -966,7 +967,10 @@ function RezervaceTable({ reservations, areaOptions }) {
   const [open, setOpen] = useState(null);
   const update = (i, patch) => set('reservations', reservations.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   const remove = (i) => { if (confirm('Opravdu smazat tuto rezervaci?')) { set('reservations', reservations.filter((_, idx) => idx !== i)); setOpen(null); } };
-  const add = () => { set('reservations', [{ name: '', contact: '', area: areaOptions[0] || '', date: '', time: '', note: '', source: 'telefon', status: 'nová' }, ...reservations]); setOpen(0); };
+  const add = () => {
+    set('reservations', [{ ...emptyReservation(), id: `rezervace-${Date.now()}`, area: areaOptions[0] || '', source: 'telefon', createdAt: new Date().toISOString() }, ...reservations]);
+    setOpen(0);
+  };
 
   const cols = '1.5fr 1.1fr 1.1fr 90px 112px 92px';
   const cell = { padding: '12px 14px', fontSize: 13, display: 'flex', alignItems: 'center', minWidth: 0 };
@@ -993,7 +997,7 @@ function RezervaceTable({ reservations, areaOptions }) {
                 <div onClick={() => setOpen(open === i ? null : i)} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '1px solid #F2F3F5', cursor: 'pointer', background: open === i ? '#FBF6F6' : '#fff', alignItems: 'center' }}>
                   <div style={{ ...cell, fontWeight: 700, color: '#1E1E1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name || <span style={{ color: '#C7CCD3' }}>Bez jména</span>}</div>
                   <div style={{ ...cell, color: '#3a3f47', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.area || '—'}</div>
-                  <div style={{ ...cell, color: '#3a3f47' }}>{[r.date, r.time].filter(Boolean).join(' ') || '—'}</div>
+                  <div style={{ ...cell, color: '#3a3f47' }}>{[r.date, r.from && r.to ? `${r.from}–${r.to}` : r.time].filter(Boolean).join(' · ') || '—'}</div>
                   <div style={{ ...cell, color: '#9AA1AC', fontWeight: 600 }}>{r.source}</div>
                   <div style={cell}><span style={statusPill(r.status)}>{r.status}</span></div>
                   <div style={{ ...cell, justifyContent: 'flex-end', color: '#C1121F', fontWeight: 700, fontSize: 12 }}>Detail {open === i ? '▲' : '▾'}</div>
@@ -1007,8 +1011,9 @@ function RezervaceTable({ reservations, areaOptions }) {
                     <div style={{ height: 10 }} />
                     <Row>
                       <Select label="Plocha" value={r.area} onChange={(v) => update(i, { area: v })} options={areaOptions.length ? areaOptions : ['—']} />
-                      <Field label="Datum" value={r.date} onChange={(v) => update(i, { date: v })} width="150px" placeholder="22. 6. 2026" />
-                      <Field label="Čas" value={r.time} onChange={(v) => update(i, { time: v })} width="110px" placeholder="18:00" />
+                      <Field label="Datum" type="date" value={r.dateISO} onChange={(v) => update(i, { dateISO: v, date: czechDate(v) })} width="170px" />
+                      <Field label="Od" value={r.from} onChange={(v) => update(i, { from: v, time: v })} width="100px" placeholder="18:00" />
+                      <Field label="Do" value={r.to} onChange={(v) => update(i, { to: v })} width="100px" placeholder="19:00" />
                     </Row>
                     <div style={{ height: 10 }} />
                     <Row>
@@ -1030,6 +1035,40 @@ function RezervaceTable({ reservations, areaOptions }) {
   );
 }
 
+// Otevírací doba a pravidla poptávek — podle nich web nabízí volné termíny.
+function RentalNastaveni({ settings }) {
+  const upd = (patch) => set('rentalSettings', { ...settings, ...patch });
+  const sloty = daySlots(settings);
+  return (
+    <div>
+      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+        Podle tohohle nastavení web nabízí volné termíny. Obsazenost se počítá z rezervací —
+        <b> nová i potvrzená</b> poptávka termín drží, zamítnutá ho zase uvolní.
+      </div>
+      <Card style={{ marginBottom: 16 }}>
+        <Row>
+          <Field label="Otevřeno od" value={settings.openFrom} onChange={(v) => upd({ openFrom: v })} width="140px" placeholder="08:00" />
+          <Field label="Otevřeno do" value={settings.openTo} onChange={(v) => upd({ openTo: v })} width="140px" placeholder="22:00" />
+          <Field label="Délka termínu (minuty)" type="number" value={settings.slotMinutes} onChange={(v) => upd({ slotMinutes: Number(v) || 60 })} width="190px" />
+        </Row>
+        <div style={{ height: 12 }} />
+        <Row>
+          <Field label="Poptat nejpozději (hodin předem)" type="number" value={settings.leadHours} onChange={(v) => upd({ leadHours: Number(v) || 0 })} width="230px" />
+          <Field label="Jak daleko dopředu (dnů)" type="number" value={settings.horizonDays} onChange={(v) => upd({ horizonDays: Number(v) || 120 })} width="200px" />
+          <Field label="E-mail pro upozornění" value={settings.notifyEmail} onChange={(v) => upd({ notifyEmail: v })} placeholder="klub@fkkunice.cz" />
+        </Row>
+        <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 12 }}>
+          Denně to dělá <b>{sloty.length}</b> termínů{sloty.length ? `: ${sloty[0]} – ${sloty[sloty.length - 1]}` : ' — zkontroluj otevírací dobu'}.
+          E-mail se odešle jen s nastaveným klíčem RESEND_API_KEY; poptávka se do administrace uloží vždycky.
+        </div>
+      </Card>
+
+      <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Zavřené dny <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(turnaj, údržba — web je vůbec nenabídne)</span></div>
+      <StringListEditor items={settings.closedDays} onChange={(v) => upd({ closedDays: v })} placeholder="2026-07-04" columns={3} />
+    </div>
+  );
+}
+
 export function Pronajem() {
   const d = useData();
   const [tab, setTab] = useState('rezervace');
@@ -1043,9 +1082,12 @@ export function Pronajem() {
       <SubTabs tab={tab} setTab={setTab} tabs={[
         { id: 'rezervace', label: 'Rezervace', badge: newCount },
         { id: 'plochy', label: 'Plochy & ceník' },
+        { id: 'nastaveni', label: 'Otevírací doba' },
       ]} />
 
-      {tab === 'rezervace' ? (
+      {tab === 'nastaveni' ? (
+        <RentalNastaveni settings={d.rentalSettings} />
+      ) : tab === 'rezervace' ? (
         <RezervaceTable reservations={d.reservations} areaOptions={areaOptions} />
       ) : (
         <div>

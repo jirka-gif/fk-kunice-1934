@@ -72,15 +72,70 @@ describe('type: message (kontaktní formulář)', () => {
 });
 
 describe('type: reservation (pronájem)', () => {
-  it('přidá rezervaci na začátek seznamu se stavem "nová"', async () => {
-    const before = DEFAULTS.reservations.length;
-    await POST(req({ type: 'reservation', payload: { name: 'Petr Svoboda', contact: '777123456', area: 'Hlavní hřiště', date: '2026-08-10', time: '18:00', note: 'Turnaj' } }));
+  // termín musí být v budoucnu a uvnitř povoleného horizontu (120 dní)
+  const den = new Date(Date.now() + 7 * 86400000);
+  const dateISO = `${den.getFullYear()}-${String(den.getMonth() + 1).padStart(2, '0')}-${String(den.getDate()).padStart(2, '0')}`;
+
+  const poptavka = (over = {}) => ({
+    type: 'reservation',
+    payload: {
+      name: 'Petr Svoboda', contact: '777123456', area: 'Hlavní stadion',
+      dateISO, from: '18:00', note: 'Turnaj', ...over,
+    },
+  });
+
+  it('uloží poptávku se stavem „nová" a strojovým termínem', async () => {
+    const res = await POST(req(poptavka()));
+    expect(res.status).toBe(200);
+
     const list = globalThis.__fkMemStore.data.reservations;
-    expect(list.length).toBe(before + 1);
     expect(list[0].name).toBe('Petr Svoboda');
-    expect(list[0].area).toBe('Hlavní hřiště');
+    expect(list[0].area).toBe('Hlavní stadion');
     expect(list[0].status).toBe('nová');
     expect(list[0].source).toBe('web');
+    expect(list[0].dateISO).toBe(dateISO);
+    expect(list[0].from).toBe('18:00');
+    expect(list[0].to).toBe('19:00'); // dopočítaný konec termínu
+    expect(list[0].date).toContain(String(den.getFullYear())); // čitelně pro admin
+  });
+
+  it('obsazený termín odmítne a nic neuloží', async () => {
+    await POST(req(poptavka()));
+    const pocet = globalThis.__fkMemStore.data.reservations.length;
+
+    const res = await POST(req(poptavka({ name: 'Někdo jiný' })));
+    expect(res.status).toBe(409);
+    expect((await res.json()).error).toContain('obsazený');
+    expect(globalThis.__fkMemStore.data.reservations.length).toBe(pocet);
+  });
+
+  it('stejný čas na jiné ploše projde', async () => {
+    await POST(req(poptavka()));
+    const res = await POST(req(poptavka({ area: 'Umělá tráva' })));
+    expect(res.status).toBe(200);
+  });
+
+  it('termín v minulosti odmítne', async () => {
+    const res = await POST(req(poptavka({ dateISO: '2020-01-01' })));
+    expect(res.status).toBe(409);
+  });
+
+  it('čas mimo otevírací dobu odmítne', async () => {
+    const res = await POST(req(poptavka({ from: '03:00' })));
+    expect(res.status).toBe(409);
+  });
+
+  it('bez jména neuloží nic', async () => {
+    const res = await POST(req(poptavka({ name: '  ' })));
+    expect(res.status).toBe(400);
+    expect(globalThis.__fkMemStore.data).toBe(null);
+  });
+
+  it('bez nastaveného e-mailu se poptávka přesto uloží', async () => {
+    const res = await POST(req(poptavka()));
+    expect(res.status).toBe(200);
+    expect((await res.json()).emailSent).toBe(false);
+    expect(globalThis.__fkMemStore.data.reservations.length).toBeGreaterThan(0);
   });
 });
 

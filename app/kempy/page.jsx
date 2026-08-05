@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Hov, Eyebrow } from '@/app/components/ui';
-import { Icon, emojiIcon } from '@/app/components/icons';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
@@ -31,7 +30,7 @@ export default function Kempy() {
         <div style={{ background: '#fff', borderRadius: 10, padding: 40, textAlign: 'center', maxWidth: 560, boxShadow: cardSh }}>
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 34, color: '#121212' }}>Zatím nemáme vypsaný žádný kemp</div>
           <p style={{ color: '#6B7280', fontSize: 15, marginTop: 10, lineHeight: 1.6 }}>Sledujte nás — nové termíny vypisujeme před každou sezónou. Rádi vám dáme vědět.</p>
-          <Hov as={Link} href="/kontakt" style="display:inline-block;margin-top:18px;background:#C1121F;color:#fff;font-weight:700;font-size:15px;padding:14px 26px;border-radius:10px;cursor:pointer" hover="background:#D62839;color:#fff">Napsat nám →</Hov>
+          <Hov as={Link} href="/kontakt" style="display:inline-block;margin-top:18px;background:#C1121F;color:#fff;font-weight:700;font-size:15px;padding:14px 26px;border-radius:10px;cursor:pointer" hover="background:#D62839;color:#fff">Napsat nám</Hov>
         </div>
       </div>
     );
@@ -75,7 +74,7 @@ export default function Kempy() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14, marginBottom: 52 }}>
             {perks.map((cp, i) => (
               <div key={i} className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 20, boxShadow: cardSh, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                <span style={{ flex: 'none', width: 40, height: 40, borderRadius: 10, background: 'rgba(193,18,31,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{emojiIcon(cp.emoji) ? <Icon name={emojiIcon(cp.emoji)} size={20} color={COLORS.red} /> : <span style={{ fontSize: 20 }}>{cp.emoji}</span>}</span>
+                <span style={{ flex: 'none', width: 4, height: 40, borderRadius: 4, background: COLORS.red }} />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{cp.title}</div>
                   <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.5, marginTop: 3 }}>{cp.text}</div>
@@ -158,7 +157,7 @@ export default function Kempy() {
                 ))}
               </div>
             )}
-            <Hov as={Link} href="/kontakt" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:10px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Registrovat dítě →</Hov>
+            <Hov as={Link} href="/kontakt" style="display:block;text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:17px;border-radius:10px;cursor:pointer;box-shadow:0 14px 34px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-3px);background:#D62839;color:#fff">Registrovat dítě</Hov>
             <div style={{ marginTop: 22, paddingTop: 20, borderTop: '1px solid #F2F3F5', display: includes.length ? 'block' : 'none' }}>
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', color: '#9AA1AC', marginBottom: 12 }}>V CENĚ JE</div>
               {includes.map((ci, i) => (

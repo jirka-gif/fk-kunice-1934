@@ -1,42 +1,94 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
-import { Icon } from '@/app/components/icons';
 import { useContent } from '@/lib/store';
+import { Vyber } from '@/app/components/Vyber';
+import { monthGrid, dateKey, czechDate } from '@/lib/rental';
 
 const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 const inputBase = 'border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
 const inputFocus = 'border-color:#C1121F;background:#fff';
+const sipkaStyl = { width: 34, height: 34, borderRadius: 10, border: '1px solid #ECEEF1', background: '#fff', color: '#C1121F', fontSize: 18, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1 };
 
 export default function Pronajem() {
   useRevealEngine();
-  const { rentalPlans, rentalBusyDays, rentalFaq } = useContent();
-  const [selDay, setSelDay] = useState(18);
+  const { rentalPlans, rentalFaq } = useContent();
+  const areas = rentalPlans.map((p) => p.name);
+
+  const [area, setArea] = useState('');
+  const [month, setMonth] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }; });
+  const [selDate, setSelDate] = useState('');
+  const [selTime, setSelTime] = useState('');
+  const [dni, setDni] = useState({});      // stav dnů v měsíci z API
+  const [sloty, setSloty] = useState(null); // termíny vybraného dne
   const [faqOpen, setFaqOpen] = useState({});
-  const [form, setForm] = useState({ name: '', phone: '', email: '', area: '', note: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', note: '' });
   const [sent, setSent] = useState(false);
+  const [chyba, setChyba] = useState('');
+  const [odesilam, setOdesilam] = useState(false);
   const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  // ===== Kalendář: 2 vodicí prázdné buňky, dny 1..31, doplnit do 35 =====
-  const calendar = [];
-  for (let i = 0; i < 2; i++) calendar.push({ day: '', busy: false, sel: false });
-  for (let d = 1; d <= 31; d++) {
-    const isBusy = rentalBusyDays.includes(d);
-    const isSel = d === selDay;
-    calendar.push({ day: d, busy: isBusy, sel: isSel });
-  }
-  while (calendar.length < 35) calendar.push({ day: '', busy: false, sel: false });
+  const aktivniPlocha = area || areas[0] || '';
+  const monthKey = `${month.year}-${String(month.month + 1).padStart(2, '0')}`;
 
-  const selDayLabel = selDay ? `${selDay}. července 2026` : '—';
+  // obsazenost celého měsíce (barvy v kalendáři)
+  useEffect(() => {
+    if (!aktivniPlocha) return undefined;
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/availability?area=${encodeURIComponent(aktivniPlocha)}&month=${monthKey}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!alive) return;
+        const map = {};
+        for (const d of data.days) map[d.date] = d.state;
+        setDni(map);
+      } catch { /* kalendář zůstane neutrální, poptávku to nezablokuje */ }
+    })();
+    return () => { alive = false; };
+  }, [aktivniPlocha, monthKey, sent]);
+
+  // termíny vybraného dne
+  useEffect(() => {
+    if (!selDate || !aktivniPlocha) { setSloty(null); return undefined; }
+    let alive = true;
+    setSloty(null);
+    (async () => {
+      try {
+        const res = await fetch(`/api/availability?area=${encodeURIComponent(aktivniPlocha)}&date=${selDate}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (alive) setSloty(data);
+      } catch { if (alive) setSloty({ slots: [], freeCount: 0, totalCount: 0 }); }
+    })();
+    return () => { alive = false; };
+  }, [selDate, aktivniPlocha, sent]);
+
+  const cells = monthGrid(month.year, month.month);
+  const posunMesic = (delta) => {
+    const d = new Date(month.year, month.month + delta, 1);
+    setMonth({ year: d.getFullYear(), month: d.getMonth() });
+    setSelDate(''); setSelTime('');
+  };
+
+  const vyberDen = (dateISO) => {
+    const stav = dni[dateISO];
+    if (stav === 'plno' || stav === 'zavřeno' || stav === 'mimo') return;
+    setSelDate(dateISO); setSelTime(''); setChyba('');
+  };
 
   const submit = async () => {
-    if (!form.name.trim()) { alert('Vyplň prosím jméno.'); return; }
-    // optimisticky zobrazíme potvrzení; odeslání běží na server
-    setSent(true);
+    setChyba('');
+    if (!form.name.trim()) { setChyba('Vyplň prosím jméno.'); return; }
+    if (!selDate) { setChyba('Vyber prosím den v kalendáři.'); return; }
+    if (!selTime) { setChyba('Vyber prosím čas.'); return; }
+
+    setOdesilam(true);
     try {
-      await fetch('/api/submit', {
+      const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -44,17 +96,30 @@ export default function Pronajem() {
           payload: {
             name: form.name.trim(),
             contact: [form.phone, form.email].filter(Boolean).join(' · '),
-            area: form.area || (rentalPlans[0] && rentalPlans[0].name) || '',
-            date: selDayLabel,
-            time: '',
+            area: aktivniPlocha,
+            dateISO: selDate,
+            from: selTime,
             note: form.note,
           },
         }),
       });
-    } catch (e) {
-      console.warn('[pronájem] odeslání se nezdařilo:', e?.message);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // typicky 409 — termín mezitím někdo zabral
+        setChyba(data.error || 'Poptávku se nepodařilo odeslat. Zkus to prosím znovu.');
+        setSelTime('');
+        return;
+      }
+      setSent(true);
+    } catch {
+      setChyba('Server je nedostupný. Zkus to prosím za chvíli.');
+    } finally {
+      setOdesilam(false);
     }
   };
+
+  const mesicNazev = new Date(month.year, month.month, 1).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+  const dnesKey = dateKey(new Date());
 
   return (
     <div style={{ background: '#F6F7F9' }}>
@@ -108,58 +173,121 @@ export default function Pronajem() {
       </section>
 
       {/* ============ KALENDÁŘ + FORMULÁŘ ============ */}
-      <section className="fk-rent-grid" style={{ maxWidth: 960, margin: '0 auto', padding: '72px 28px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
-        {/* kalendář */}
+      <section className="fk-rent-grid" style={{ maxWidth: 1060, margin: '0 auto', padding: '72px 28px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+        {/* kalendář + termíny dne */}
         <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <span style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#121212' }}>Červenec 2026</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#9AA1AC' }}>Vyber termín</span>
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', marginBottom: 6, textTransform: 'uppercase' }}>Plocha</div>
+            <Vyber ariaLabel="Plocha" value={aktivniPlocha} onChange={(v) => { setArea(v); setSelDate(''); setSelTime(''); }} options={areas} placeholder="Vyber plochu" />
           </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <button onClick={() => posunMesic(-1)} aria-label="Předchozí měsíc" style={sipkaStyl}>‹</button>
+            <span style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#121212', textTransform: 'capitalize' }}>{mesicNazev}</span>
+            <button onClick={() => posunMesic(1)} aria-label="Další měsíc" style={sipkaStyl}>›</button>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6, marginBottom: 8 }}>
             {weekDays.map((wd) => (
               <div key={wd} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#9AA1AC', padding: '4px 0' }}>{wd}</div>
             ))}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6 }}>
-            {calendar.map((cd, i) => {
-              if (cd.day === '') return <div key={i} />;
-              let bg = '#EAF6EE', color = '#1F8A4C', cur = 'pointer';
-              if (cd.busy) { bg = '#FBEAEC'; color = '#C1121F'; cur = 'not-allowed'; }
-              if (cd.sel) { bg = '#C1121F'; color = '#fff'; }
+            {cells.map((cd, i) => {
+              if (!cd.day) return <div key={i} />;
+              const stav = dni[cd.dateISO] || 'volno';
+              const vybrany = cd.dateISO === selDate;
+              const dnes = cd.dateISO === dnesKey;
+              const lze = stav === 'volno' || stav === 'částečně';
+              const barvy = {
+                'volno': { bg: '#EAF6EE', color: '#1F8A4C' },
+                'částečně': { bg: '#FDF3E7', color: '#A9702E' },
+                'plno': { bg: '#FBEAEC', color: '#C1121F' },
+                'zavřeno': { bg: '#F4F5F7', color: '#B7BCC4' },
+                'mimo': { bg: '#FAFBFC', color: '#C7CCD3' },
+              }[stav];
               return (
-                <div
+                <button
                   key={i}
-                  onClick={cd.busy ? undefined : () => setSelDay(cd.day)}
-                  style={{ aspectRatio: '1', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, background: bg, color, cursor: cur }}
+                  onClick={lze ? () => vyberDen(cd.dateISO) : undefined}
+                  disabled={!lze}
+                  aria-label={`${cd.day}. ${mesicNazev} — ${stav}`}
+                  style={{
+                    aspectRatio: '1', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, fontWeight: 700, fontFamily: 'inherit', cursor: lze ? 'pointer' : 'not-allowed',
+                    border: dnes ? '2px solid #C1121F' : '1px solid transparent',
+                    background: vybrany ? '#C1121F' : barvy.bg,
+                    color: vybrany ? '#fff' : barvy.color,
+                    transition: 'background .2s, color .2s',
+                  }}
                 >
                   {cd.day}
-                </div>
+                </button>
               );
             })}
           </div>
-          <div style={{ display: 'flex', gap: 16, marginTop: 18, paddingTop: 16, borderTop: '1px solid #F2F3F5' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600, color: '#6B7280' }}>
-              <span style={{ width: 12, height: 12, borderRadius: 4, background: '#EAF6EE', border: '1px solid #BfE6CC' }} />Volno
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600, color: '#6B7280' }}>
-              <span style={{ width: 12, height: 12, borderRadius: 4, background: '#FBEAEC', border: '1px solid #F1C4CA' }} />Obsazeno
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600, color: '#6B7280' }}>
-              <span style={{ width: 12, height: 12, borderRadius: 4, background: '#C1121F' }} />Vybráno
-            </div>
+
+          <div style={{ display: 'flex', gap: 14, marginTop: 18, paddingTop: 16, borderTop: '1px solid #F2F3F5', flexWrap: 'wrap' }}>
+            {[['#EAF6EE', '#BfE6CC', 'Volno'], ['#FDF3E7', '#EBD5B8', 'Částečně'], ['#FBEAEC', '#F1C4CA', 'Plno'], ['#C1121F', '#C1121F', 'Vybráno']].map(([bg, br, label]) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600, color: '#6B7280' }}>
+                <span style={{ width: 12, height: 12, borderRadius: 4, background: bg, border: `1px solid ${br}` }} />{label}
+              </div>
+            ))}
           </div>
+
+          {/* termíny vybraného dne */}
+          {selDate && (
+            <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid #F2F3F5' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1E1E1E', marginBottom: 12 }}>
+                Volné časy — {czechDate(selDate)}
+              </div>
+              {!sloty && <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>Načítám…</div>}
+              {sloty && sloty.freeCount === 0 && (
+                <div style={{ fontSize: 13, color: '#C1121F', fontWeight: 700 }}>V tento den už je bohužel plno. Zkus jiný den.</div>
+              )}
+              {sloty && sloty.freeCount > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(74px,1fr))', gap: 8 }}>
+                  {sloty.slots.map((sl) => {
+                    const vybrany = sl.time === selTime;
+                    return (
+                      <button
+                        key={sl.time}
+                        onClick={sl.free ? () => { setSelTime(sl.time); setChyba(''); } : undefined}
+                        disabled={!sl.free}
+                        title={sl.free ? 'Volný termín' : sl.reason === 'obsazeno' ? 'Termín je už zabraný' : 'Termín je potřeba poptat dřív'}
+                        style={{
+                          padding: '11px 6px', borderRadius: 10, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                          cursor: sl.free ? 'pointer' : 'not-allowed',
+                          border: `1px solid ${vybrany ? '#C1121F' : sl.free ? '#ECEEF1' : 'transparent'}`,
+                          background: vybrany ? '#C1121F' : sl.free ? '#fff' : '#F4F5F7',
+                          color: vybrany ? '#fff' : sl.free ? '#3a3f47' : '#C7CCD3',
+                          textDecoration: sl.free ? 'none' : 'line-through',
+                          transition: 'background .2s, color .2s, border-color .2s',
+                        }}
+                      >
+                        {sl.time}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* formulář */}
         <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 28, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 10px 30px rgba(18,18,18,.06)' }}>
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#121212', marginBottom: 6 }}>Poptávka rezervace</div>
-          <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginBottom: 20 }}>Vybraný termín: <span style={{ color: '#C1121F', fontWeight: 800 }}>{selDayLabel}</span></div>
+          <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginBottom: 20 }}>
+            Vybraný termín: <span style={{ color: '#C1121F', fontWeight: 800 }}>{selDate ? `${czechDate(selDate)}${selTime ? `, ${selTime}` : ''}` : '—'}</span>
+          </div>
           {sent ? (
             <div style={{ background: '#EAF6EE', border: '1px solid #BfE6CC', borderRadius: 10, padding: 24, textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, color: '#1F8A4C' }}><Icon name="checkCircle" size={40} strokeWidth={1.7} /></div>
               <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, color: '#1F8A4C' }}>Poptávka odeslána</div>
-              <div style={{ color: '#3a3f47', fontSize: 14, fontWeight: 500, marginTop: 6, lineHeight: 1.5 }}>Děkujeme! Ozveme se vám do 24 hodin a potvrdíme dostupnost termínu.</div>
-              <div onClick={() => { setSent(false); setForm({ name: '', phone: '', email: '', area: '', note: '' }); }} style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: '#C1121F', cursor: 'pointer' }}>Odeslat další poptávku</div>
+              <div style={{ color: '#3a3f47', fontSize: 14, fontWeight: 500, marginTop: 6, lineHeight: 1.5 }}>
+                Termín jsme vám předběžně zablokovali. Ozveme se do 24 hodin a rezervaci potvrdíme.
+              </div>
+              <div onClick={() => { setSent(false); setForm({ name: '', phone: '', email: '', note: '' }); setSelDate(''); setSelTime(''); }} style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: '#C1121F', cursor: 'pointer' }}>Odeslat další poptávku</div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -168,13 +296,19 @@ export default function Pronajem() {
                 <Hov as="input" value={form.phone} onChange={setF('phone')} placeholder="Telefon" style={`flex:1;${inputBase}`} focus={inputFocus} />
                 <Hov as="input" value={form.email} onChange={setF('email')} placeholder="E-mail" style={`flex:1;${inputBase}`} focus={inputFocus} />
               </div>
-              <Hov as="select" value={form.area || (rentalPlans[0] && rentalPlans[0].name) || ''} onChange={setF('area')}
-                style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', boxSizing: 'border-box', width: '100%', backgroundColor: '#fff', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239AA1AC' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', backgroundSize: '14px', border: '1px solid #ECEEF1', borderRadius: 10, padding: '14px 44px 14px 16px', fontSize: 14, fontFamily: 'Inter', color: '#1E1E1E', outline: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(18,18,18,.05)' }}
-                focus={{ borderColor: '#C1121F', boxShadow: '0 2px 12px rgba(193,18,31,.14)' }}>
-                {rentalPlans.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
+              <Vyber ariaLabel="Plocha k pronájmu" value={aktivniPlocha} onChange={(v) => { setArea(v); setSelTime(''); }} options={areas} placeholder="Vyber plochu" />
+              <Hov as="textarea" value={form.note} onChange={setF('note')} placeholder="Poznámka (počet osob, účel)" rows={3} style={`${inputBase};resize:none`} focus={inputFocus} />
+
+              {chyba && (
+                <div style={{ background: '#FBEAEC', color: '#C1121F', borderRadius: 10, padding: '12px 16px', fontSize: 13, fontWeight: 700, lineHeight: 1.5 }}>{chyba}</div>
+              )}
+
+              <Hov as="a" onClick={odesilam ? undefined : submit} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:10px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">
+                {odesilam ? 'Odesílám…' : 'Odeslat poptávku'}
               </Hov>
-              <Hov as="textarea" value={form.note} onChange={setF('note')} placeholder="Poznámka (počet osob, čas, účel)" rows={3} style={`${inputBase};resize:none`} focus={inputFocus} />
-              <Hov as="a" onClick={submit} style="text-align:center;background:#C1121F;color:#fff;font-weight:700;font-size:16px;padding:16px;border-radius:10px;cursor:pointer;box-shadow:0 12px 30px rgba(193,18,31,.4);transition:transform .25s,background .25s" hover="transform:translateY(-2px);background:#D62839;color:#fff">Odeslat poptávku →</Hov>
+              <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, lineHeight: 1.5 }}>
+                Odesláním vzniká <b>poptávka</b>, ne závazná rezervace — termín vám podržíme a klub ji potvrdí.
+              </div>
             </div>
           )}
         </div>
