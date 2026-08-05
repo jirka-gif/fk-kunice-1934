@@ -1,6 +1,6 @@
 'use client';
 import { useState, Fragment } from 'react';
-import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem, emptyReservation } from '@/lib/store';
+import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem, emptyReservation, emptyRegistration } from '@/lib/store';
 import { czechDate, daySlots } from '@/lib/rental';
 import { postFromResult } from '@/lib/social';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
@@ -1201,27 +1201,94 @@ export function Partneri() {
 
 // ---------------------------------------------------------------- REGISTRACE
 export function Registrace() {
-  const d = useData();
+  const { cmsRegistrations, teams } = useData();
+  const [tab, setTab] = useState('nove');
+  const [open, setOpen] = useState(null);
+
+  const newCount = cmsRegistrations.filter((r) => r.status === 'nová').length;
+  const shown = cmsRegistrations
+    .map((r, i) => ({ ...r, _i: i }))
+    .filter((r) => (tab === 'vse' ? true : tab === 'nove' ? r.status === 'nová' : r.status !== 'nová'));
+
+  const update = (i, patch) => set('cmsRegistrations', cmsRegistrations.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  const remove = (i) => {
+    if (!confirm('Opravdu smazat tuto přihlášku? Tuto akci nelze vrátit zpět.')) return;
+    set('cmsRegistrations', cmsRegistrations.filter((_, idx) => idx !== i));
+    setOpen(null);
+  };
+  const add = () => {
+    set('cmsRegistrations', [{ ...emptyRegistration(), id: `prihlaska-${Date.now()}`, source: 'telefon', createdAt: new Date().toISOString() }, ...cmsRegistrations]);
+    setTab('nove');
+    setOpen(0);
+  };
+
   return (
     <div>
-      <SectionHead title="Registrace" desc="Nové přihlášky / registrace členů" count={d.cmsRegistrations.length} />
-      <ListEditor items={d.cmsRegistrations} onChange={(v) => set('cmsRegistrations', v)} itemTitle={(r) => `${r.name} · ${r.team}`}
-        newItem={{ name: '', team: '', ini: '', bg: '#C1121F', tag: 'Nová', tg: 'new' }} addLabel="+ Přidat registraci"
-        renderItem={(r, u) => (
-          <div>
-            <Row>
-              <Field label="Jméno" value={r.name} onChange={(v) => u({ name: v })} />
-              <Field label="Tým / kategorie" value={r.team} onChange={(v) => u({ team: v })} />
-              <Field label="Iniciály" value={r.ini} onChange={(v) => u({ ini: v })} width="100px" />
-            </Row>
-            <div style={{ height: 10 }} />
-            <Row>
-              <Field label="Štítek" value={r.tag} onChange={(v) => u({ tag: v })} width="140px" />
-              <Field label="Stav (new/wait/ok)" value={r.tg} onChange={(v) => u({ tg: v })} width="160px" />
-              <Field label="Barva" value={r.bg} onChange={(v) => u({ bg: v })} width="120px" />
-            </Row>
-          </div>
-        )} />
+      <SectionHead title="Přihlášky do klubu" desc="Zájemci o nábor z formuláře na webu — potvrď je, nebo zamítni" count={newCount} />
+      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+        Přihlášky chodí z formuláře <b>Přihláška do klubu</b> na stránce Kontakt. Ozvi se rodičům,
+        domluv první trénink a přihlášku pak označ jako <b>vyřízenou</b> — ať víš, koho jsi už kontaktovala.
+      </div>
+      <SubTabs tab={tab} setTab={setTab} tabs={[
+        { id: 'nove', label: 'Nové', badge: newCount },
+        { id: 'vyrizene', label: 'Vyřízené', badge: cmsRegistrations.length - newCount },
+        { id: 'vse', label: 'Vše', badge: cmsRegistrations.length },
+      ]} />
+
+      {shown.length === 0 ? (
+        <Card><div style={{ padding: 8, textAlign: 'center', color: '#9AA1AC', fontWeight: 600, fontSize: 14 }}>Žádné přihlášky v této složce.</div></Card>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {shown.map((r) => {
+            const isOpen = open === r._i;
+            const hotovo = r.status !== 'nová';
+            return (
+              <Card key={r.id || r._i} style={{ padding: 0, overflow: 'hidden' }}>
+                <div onClick={() => setOpen(isOpen ? null : r._i)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', cursor: 'pointer', background: isOpen ? '#FBF6F6' : '#fff' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>
+                      {r.name || <span style={{ color: '#C7CCD3' }}>Bez jména</span>}
+                      <span style={statusPill(r.status === 'zamítnutá' ? 'zamítnutá' : hotovo ? 'potvrzená' : 'nová')}>{r.status}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {[r.team, r.contact, formatDate(r.createdAt)].filter(Boolean).join(' · ')}
+                    </div>
+                  </div>
+                  <span style={{ color: '#C1121F', fontWeight: 700, fontSize: 12, flex: 'none' }}>Detail {isOpen ? '▲' : '▾'}</span>
+                </div>
+
+                {isOpen && (
+                  <div style={{ padding: 18, background: '#FBF6F6', borderTop: '1px solid #F2F3F5' }}>
+                    <Row>
+                      <Field label="Jméno zájemce" value={r.name} onChange={(v) => update(r._i, { name: v })} />
+                      <Field label="Datum narození" type="date" value={r.birthdate} onChange={(v) => update(r._i, { birthdate: v })} width="180px" />
+                      <Select label="Tým / kategorie" value={r.team} onChange={(v) => update(r._i, { team: v })} options={teams.map((t) => t.name)} width="220px" />
+                    </Row>
+                    <div style={{ height: 10 }} />
+                    <Row>
+                      <Field label="Rodič / zákonný zástupce" value={r.parent} onChange={(v) => update(r._i, { parent: v })} />
+                      <Field label="Kontakt (telefon / e-mail)" value={r.contact} onChange={(v) => update(r._i, { contact: v })} />
+                    </Row>
+                    <div style={{ height: 10 }} />
+                    <Field label="Poznámka" textarea rows={2} value={r.note} onChange={(v) => update(r._i, { note: v })} />
+
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <Btn small onClick={() => update(r._i, { status: hotovo ? 'nová' : 'vyřízená' })}>
+                        {hotovo ? 'Vrátit mezi nové' : 'Označit jako vyřízenou'}
+                      </Btn>
+                      {r.status !== 'zamítnutá' && <Btn small onClick={() => update(r._i, { status: 'zamítnutá' })}>Zamítnout</Btn>}
+                      {r.contact.includes('@') && <a href={`mailto:${r.contact}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem</a>}
+                      <span style={{ marginLeft: 'auto' }}><Btn small kind="danger" onClick={() => remove(r._i)}>Smazat</Btn></span>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ marginTop: 14 }}><Btn kind="primary" onClick={add}>Přidat přihlášku (telefon / osobně)</Btn></div>
     </div>
   );
 }

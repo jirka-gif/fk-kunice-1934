@@ -7,8 +7,8 @@ test('zpráva z webu dorazí do sekce Zprávy a jde označit jako vyřízená', 
 
   // 1) odeslání z veřejného formuláře
   await page.goto('/kontakt');
-  await page.getByPlaceholder('Jméno a příjmení').fill(name);
-  await page.getByPlaceholder('E-mail').fill('tazatel@example.com');
+  await page.getByPlaceholder('Jméno a příjmení', { exact: true }).fill(name);
+  await page.getByPlaceholder('E-mail', { exact: true }).fill('tazatel@example.com');
   await page.getByPlaceholder('Vaše zpráva').fill('Mám dotaz k náboru.');
   await Promise.all([
     page.waitForResponse((r) => r.url().includes('/api/submit') && r.request().method() === 'POST'),

@@ -59,7 +59,7 @@ export default function Admin() {
   // reálné počty toho, co čeká na vyřízení (dřív tu byla vymyšlená čísla)
   const newMessages = d.messages.filter((m) => m.status !== 'vyřízená').length;
   const newReservations = d.reservations.filter((r) => r.status === 'nová').length;
-  const newRegistrations = d.cmsRegistrations.filter((r) => r.tg === 'new').length;
+  const newRegistrations = d.cmsRegistrations.filter((r) => r.status === 'nová').length;
   const activeCamps = d.camps.filter((c) => !c.archived).length;
   // nejbližší zápasy podle termínů vyplněných u týmů (dřív tu byl vymyšlený seznam)
   const upcoming = d.teams
@@ -80,7 +80,7 @@ export default function Admin() {
     tymy: String(d.teams.length),
     novinky: String(d.news.length),
     zpravy: String(d.messages.filter((m) => m.status !== 'vyřízená').length),
-    registrace: String(d.cmsRegistrations.length),
+    registrace: String(d.cmsRegistrations.filter((r) => r.status === 'nová').length),
     socialni: String(d.socialPosts.filter((p) => p.status !== 'odesláno').length),
   };
   const NAV = visibleSections.map((s) => ({ ...s, badge: BADGES[s.id] }));
@@ -212,11 +212,16 @@ export default function Admin() {
             <div className="fk-admin-grid2" style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 20, marginBottom: 20 }}>
               <Card>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}><span style={{ fontWeight: 800, fontSize: 15 }}>Nové registrace</span><span onClick={() => setSectionId('registrace')} style={{ fontSize: 12, fontWeight: 700, color: RED, cursor: 'pointer' }}>Zobrazit vše</span></div>
-                {d.cmsRegistrations.map((r, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 99, background: r.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 12 }}>{r.ini}</div>
-                    <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{r.name}</div><div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{r.team}</div></div>
-                    <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 10, ...(r.tg === 'new' ? { background: '#FBEAEC', color: RED } : r.tg === 'ok' ? { background: '#EAF6EE', color: '#1F8A4C' } : { background: '#F4F5F7', color: '#9AA1AC' }) }}>{r.tag}</span>
+                {newRegistrations === 0 && (
+                  <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, padding: '8px 0' }}>Žádné nové přihlášky k vyřízení.</div>
+                )}
+                {d.cmsRegistrations.filter((r) => r.status === 'nová').slice(0, 6).map((r) => (
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{r.name}</div>
+                      <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{[r.team, r.contact].filter(Boolean).join(' · ')}</div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 10, background: '#FBEAEC', color: RED }}>nová</span>
                   </div>
                 ))}
               </Card>

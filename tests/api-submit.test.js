@@ -5,7 +5,7 @@ delete process.env.DATABASE_URL;
 delete process.env.POSTGRES_URL;
 
 const { POST } = await import('@/app/api/submit/route');
-const { DEFAULTS } = await import('@/lib/defaults');
+const { DEFAULTS, mergeStored } = await import('@/lib/defaults');
 
 const req = (body) =>
   new Request('http://localhost/api/submit', {
@@ -140,20 +140,68 @@ describe('type: reservation (pronájem)', () => {
 });
 
 describe('type: registration (nábor)', () => {
-  it('přidá registraci označenou jako nová', async () => {
-    const before = DEFAULTS.cmsRegistrations.length;
-    await POST(req({ type: 'registration', payload: { name: 'Eva Malá', team: 'Přípravka', contact: 'eva@example.com' } }));
-    const list = globalThis.__fkMemStore.data.cmsRegistrations;
-    expect(list.length).toBe(before + 1);
-    expect(list[0].name).toBe('Eva Malá');
-    expect(list[0].team).toBe('Přípravka');
-    expect(list[0].tag).toBe('Nová');
-    expect(list[0].tg).toBe('new');
+  const prihlaska = (over = {}) => ({
+    type: 'registration',
+    payload: {
+      name: 'Eva Malá', birthdate: '2017-04-08', team: 'Přípravka',
+      parent: 'Jana Malá', contact: 'eva@example.com', note: 'Hrála rok ve školce', ...over,
+    },
+  });
+
+  it('uloží přihlášku se stavem „nová" a se všemi údaji', async () => {
+    const res = await POST(req(prihlaska()));
+    expect(res.status).toBe(200);
+
+    const r = globalThis.__fkMemStore.data.cmsRegistrations[0];
+    expect(r.name).toBe('Eva Malá');
+    expect(r.birthdate).toBe('2017-04-08');
+    expect(r.team).toBe('Přípravka');
+    expect(r.parent).toBe('Jana Malá');
+    expect(r.contact).toBe('eva@example.com');
+    expect(r.note).toBe('Hrála rok ve školce');
+    expect(r.status).toBe('nová');
+    expect(r.source).toBe('web');
+    expect(new Date(r.createdAt).toString()).not.toBe('Invalid Date');
+  });
+
+  it('novější přihláška je první v seznamu', async () => {
+    await POST(req(prihlaska({ name: 'První' })));
+    await POST(req(prihlaska({ name: 'Druhá' })));
+    expect(globalThis.__fkMemStore.data.cmsRegistrations.slice(0, 2).map((r) => r.name)).toEqual(['Druhá', 'První']);
+  });
+
+  it('bez jména neuloží nic', async () => {
+    const res = await POST(req(prihlaska({ name: '  ' })));
+    expect(res.status).toBe(400);
+    expect(globalThis.__fkMemStore.data).toBe(null);
   });
 
   it('nepřepíše rezervace ani zprávy', async () => {
     await POST(req({ type: 'message', payload: { name: 'Jan', text: 'x' } }));
-    await POST(req({ type: 'registration', payload: { name: 'Eva Malá', team: 'Přípravka' } }));
+    await POST(req(prihlaska()));
     expect(globalThis.__fkMemStore.data.messages.length).toBe(1);
+  });
+});
+
+describe('přihlášky v obsahu', () => {
+  it('starý ukázkový zápis se převede na skutečná pole', () => {
+    const m = mergeStored({ cmsRegistrations: [{ name: 'Tobiáš Malý', team: 'Přípravka U9', ini: 'TM', bg: '#C1121F', tag: 'Nová', tg: 'new' }] });
+    const r = m.cmsRegistrations[0];
+    expect(r.status).toBe('nová');
+    expect(r.id).toBeTruthy();
+    // vizuální zbytky z návrhu už v datech nejsou
+    expect(r.ini).toBeUndefined();
+    expect(r.bg).toBeUndefined();
+    expect(r.tag).toBeUndefined();
+    expect(r.tg).toBeUndefined();
+  });
+
+  it('starý štítek „schváleno" se převede na vyřízenou', () => {
+    const m = mergeStored({ cmsRegistrations: [{ name: 'X', tg: 'ok' }] });
+    expect(m.cmsRegistrations[0].status).toBe('vyřízená');
+  });
+
+  it('poškozený vstup nespadne', () => {
+    expect(mergeStored({ cmsRegistrations: 'nesmysl' }).cmsRegistrations).toEqual([]);
   });
 });

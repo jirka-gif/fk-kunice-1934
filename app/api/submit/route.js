@@ -3,7 +3,7 @@
 // nepřepisuje celý obsah. Tělo: { type, payload }.
 import { NextResponse } from 'next/server';
 import { getStoredContent, saveStoredContent } from '@/lib/db';
-import { DEFAULTS, mergeStored, clone, emptyReservation } from '@/lib/defaults';
+import { DEFAULTS, mergeStored, clone, emptyReservation, emptyRegistration } from '@/lib/defaults';
 import { validateRequest, slotEnd, czechDate } from '@/lib/rental';
 import { sendMail, reservationMail } from '@/lib/mail';
 
@@ -72,16 +72,22 @@ export async function POST(req) {
     const sent = await sendMail({ to: content.rentalSettings.notifyEmail, ...mail });
     return NextResponse.json({ ok: true, emailSent: sent.ok });
   } else if (type === 'registration') {
+    if (!s(payload.name, 120).trim()) {
+      return NextResponse.json({ error: 'Vyplň prosím jméno.' }, { status: 400 });
+    }
     content.cmsRegistrations = [
       {
+        ...emptyRegistration(),
+        id: `prihlaska-${new Date().toISOString()}`,
         name: s(payload.name, 120),
+        birthdate: s(payload.birthdate, 10),
         team: s(payload.team, 120),
-        ini: s(payload.ini, 4) || s(payload.name, 2).toUpperCase(),
-        bg: '#C1121F',
-        tag: 'Nová',
-        tg: 'new',
+        parent: s(payload.parent, 120),
         contact: s(payload.contact, 200),
         note: s(payload.note, 800),
+        source: 'web',
+        status: 'nová',
+        createdAt: new Date().toISOString(),
       },
       ...(content.cmsRegistrations || []),
     ].slice(0, 500);

@@ -168,7 +168,7 @@ input, textarea, select { font-family: 'Inter', system-ui, sans-serif; }
   .fk-min [style*="repeat(2,1fr)"],
   .fk-min [style*="repeat(2, 1fr)"],
   .fk-min [style*="1fr 1fr"],
-  .fk-teams, .fk-why, .fk-foot-grid {
+  .fk-teams, .fk-why, .fk-foot-grid, .fk-nabor {
     grid-template-columns: 1fr !important;
   }
 }

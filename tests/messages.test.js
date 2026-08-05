@@ -66,11 +66,11 @@ describe('přehled v adminu stojí na reálných datech', () => {
       ...clone(DEFAULTS),
       messages: [{ status: 'nová' }, { status: 'vyřízená' }],
       reservations: [{ status: 'nová' }, { status: 'potvrzená' }, { status: 'nová' }],
-      cmsRegistrations: [{ tg: 'new' }, { tg: 'wait' }],
+      cmsRegistrations: [{ status: 'nová' }, { status: 'vyřízená' }],
     });
     expect(d.messages.filter((m) => m.status !== 'vyřízená').length).toBe(1);
     expect(d.reservations.filter((r) => r.status === 'nová').length).toBe(2);
-    expect(d.cmsRegistrations.filter((r) => r.tg === 'new').length).toBe(1);
+    expect(d.cmsRegistrations.filter((r) => r.status === 'nová').length).toBe(1);
     expect(d.camps.filter((c) => !c.archived).length).toBe(DEFAULTS.camps.length);
   });
 

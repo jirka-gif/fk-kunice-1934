@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test';
 
 test('kontaktní formulář odešle zprávu a zobrazí potvrzení', async ({ page }) => {
   await page.goto('/kontakt');
-  await page.getByPlaceholder('Jméno a příjmení').fill('E2E Tester');
-  await page.getByPlaceholder('E-mail').fill('e2e@example.com');
+  await page.getByPlaceholder('Jméno a příjmení', { exact: true }).fill('E2E Tester');
+  await page.getByPlaceholder('E-mail', { exact: true }).fill('e2e@example.com');
   await page.getByPlaceholder('Vaše zpráva').fill('Testovací zpráva z e2e testu.');
 
   const [res] = await Promise.all([
