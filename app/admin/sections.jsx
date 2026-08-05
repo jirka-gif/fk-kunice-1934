@@ -41,6 +41,7 @@ export function Nastaveni() {
           <Field label="E-mail" value={club.email} onChange={(v) => upd({ email: v })} />
           <Field label="Telefon" value={club.phone} onChange={(v) => upd({ phone: v })} />
           <Field label="Messenger" value={club.messenger} onChange={(v) => upd({ messenger: v })} />
+          <Field label="Adresa pro mapu (Kontakt)" value={club.mapQuery} onChange={(v) => upd({ mapQuery: v })} placeholder="FK Kunice, Kunice 130, 251 63 Kunice" />
         </Row>
         <div style={{ height: 12 }} />
         <Field label="Popis (patička)" textarea value={club.description} onChange={(v) => upd({ description: v })} />

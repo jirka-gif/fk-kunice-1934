@@ -27,8 +27,8 @@ node --env-file=.env.local scripts/seed-local.mjs
 
 | Účet | E-mail | Heslo | Co uvidí |
 |---|---|---|---|
-| Správce | `admin@fkkunice.cz` | `lokalniheslo` | všechno včetně uživatelů a rolí |
-| Redaktor | `redaktor@fkkunice.cz` | `redaktorheslo` | jen novinky, kempy, texty; týmy má jen ke čtení |
+| Správce | `admin@fkkunice.cz` | `admin` | všechno včetně uživatelů a rolí |
+| Redaktor | `redaktor@fkkunice.cz` | `redaktor` | jen novinky, kempy, texty; týmy má jen ke čtení |
 
 Údaje se dají změnit v `.env.local` (ten není v gitu). Po změně `ADMIN_EMAIL`
 nebo `ADMIN_PASSWORD` smaž `.data/auth.json`, aby se správce založil znovu.

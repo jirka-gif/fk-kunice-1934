@@ -9,7 +9,7 @@
 // =============================================================================
 const SITE = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 const EMAIL = process.env.ADMIN_EMAIL || 'admin@fkkunice.cz';
-const PASSWORD = process.env.ADMIN_PASSWORD || 'lokalniheslo';
+const PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 const TOKEN = process.env.MATCHES_TOKEN || 'lokalni-scraper-token';
 
 const log = (...a) => console.log('  ', ...a);
@@ -84,8 +84,8 @@ async function main() {
     log(`přihlášení správce selhalo (${login.status}) — zkontroluj ADMIN_EMAIL / ADMIN_PASSWORD`);
   } else {
     const cookie = (login.headers.get('set-cookie') || '').split(';')[0];
-    const res = await post('/api/users', { email: 'redaktor@fkkunice.cz', name: 'Radek Redaktor', role: 'redaktor', password: 'redaktorheslo' }, { cookie });
-    if (res.ok) log('uživatel redaktor@fkkunice.cz / redaktorheslo (role Redaktor)');
+    const res = await post('/api/users', { email: 'redaktor@fkkunice.cz', name: 'Radek Redaktor', role: 'redaktor', password: 'redaktor' }, { cookie });
+    if (res.ok) log('uživatel redaktor@fkkunice.cz / redaktor (role Redaktor)');
     else if (res.status === 409) log('uživatel redaktor@fkkunice.cz už existuje');
     else log(`založení redaktora selhalo (${res.status})`);
   }
@@ -94,7 +94,7 @@ async function main() {
 Hotovo. Otevři ${SITE}/admin/login
 
   Správce:  ${EMAIL} / ${PASSWORD}
-  Redaktor: redaktor@fkkunice.cz / redaktorheslo   (uvidí míň sekcí)
+  Redaktor: redaktor@fkkunice.cz / redaktor   (uvidí míň sekcí)
 `);
 }
 

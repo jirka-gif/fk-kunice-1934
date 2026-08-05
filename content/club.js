@@ -14,6 +14,8 @@ export const club = {
   email: 'info@fkkunice.cz',
   phone: '+420 777 123 456',
   messenger: '@fkkunice1934',
+  // co se vyhledá v Google Mapách na stránce Kontakt (adresa nebo souřadnice)
+  mapQuery: 'FK Kunice, Kunice 130, 251 63 Kunice',
   description:
     'Společně silnější. Moderní fotbalová akademie pro děti, mládež i dospělé ve Středočeském kraji.',
 };

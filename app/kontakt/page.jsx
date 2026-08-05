@@ -8,7 +8,8 @@ import { useContent } from '@/lib/store';
 
 export default function Kontakt() {
   useRevealEngine();
-  const { quickActions, people } = useContent();
+  const { quickActions, people, club } = useContent();
+  const mapQuery = club.mapQuery || `${club.address.street}, ${club.address.zip} ${club.address.city}`;
   const [msg, setMsg] = useState({ name: '', email: '', text: '' });
   const [sent, setSent] = useState(false);
   const setM = (k) => (e) => setMsg((m) => ({ ...m, [k]: e.target.value }));
@@ -38,29 +39,49 @@ export default function Kontakt() {
         <p className="fk-rev" style={{ color: '#6B7280', fontSize: 19, marginTop: 18, maxWidth: 600, lineHeight: 1.55 }}>Máte zájem o nábor, pronájem nebo spolupráci? Ozvěte se — rádi vám pomůžeme.</p>
       </section>
 
-      {/* ============ STYLIZED MAP ============ */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '44px 28px 0' }}>
-        <div className="fk-rev" style={{ borderRadius: 10, overflow: 'hidden', position: 'relative', height: 360, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 14px 40px rgba(18,18,18,.08)', background: 'linear-gradient(135deg,#1d2127,#3b4452)' }}>
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px)', backgroundSize: '34px 34px' }} />
-          <div style={{ position: 'absolute', left: 0, top: '42%', right: 0, height: 30, background: 'rgba(193,18,31,.25)', transform: 'rotate(-4deg)' }} />
-          <div style={{ position: 'absolute', left: '36%', top: 0, bottom: 0, width: 26, background: 'rgba(255,255,255,.06)' }} />
-          <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 54, height: 54, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)', background: COLORS.red, boxShadow: '0 12px 28px rgba(193,18,31,.5)' }} />
-            <div style={{ background: '#fff', borderRadius: 10, padding: '10px 16px', fontWeight: 700, fontSize: 14, color: COLORS.ink, boxShadow: '0 8px 20px rgba(0,0,0,.2)' }}>Areál FK Kunice</div>
+      {/* ============ KONTAKTY VLEVO + MAPA VPRAVO ============ */}
+      <section className="fk-kontakt-mapa" style={{ maxWidth: 1200, margin: '0 auto', padding: '44px 28px 0', display: 'grid', gridTemplateColumns: '1fr 1.15fr', gap: 28, alignItems: 'stretch' }}>
+        {/* vlevo: adresa a rychlé kontakty */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div className="fk-rev" style={{ background: '#fff', borderRadius: 10, padding: 26, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: COLORS.red, marginBottom: 12 }}>KDE NÁS NAJDETE</div>
+            <div style={{ fontFamily: "'Bebas Neue'", fontSize: 26, color: COLORS.ink, letterSpacing: '.3px' }}>Areál FK Kunice</div>
+            <div style={{ fontSize: 15, color: '#3a3f47', fontWeight: 500, lineHeight: 1.7, marginTop: 8 }}>
+              {club.address.street}<br />{club.address.zip} {club.address.city}
+            </div>
+            <Hov
+              as="a"
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style="display:inline-block;margin-top:18px;background:#C1121F;color:#fff;font-weight:700;font-size:14px;padding:13px 22px;border-radius:10px;cursor:pointer;transition:background .25s,transform .25s"
+              hover="background:#D62839;transform:translateY(-2px);color:#fff"
+            >
+              Navigovat do areálu
+            </Hov>
+          </div>
+
+          <div className="fk-kontakt-dlazdice" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
+            {quickActions.map((qa, i) => (
+              <Hov key={i} className="fk-rev" style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05);cursor:pointer;transition:transform .3s,box-shadow .3s" hover="transform:translateY(-6px);box-shadow:0 22px 44px rgba(18,18,18,.12)">
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(193,18,31,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>{emojiIcon(qa.emoji) ? <Icon name={emojiIcon(qa.emoji)} size={20} color={COLORS.red} /> : qa.emoji}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>{qa.title}</div>
+                <div style={{ fontSize: 13, color: COLORS.red, fontWeight: 600, marginTop: 4 }}>{qa.value}</div>
+              </Hov>
+            ))}
           </div>
         </div>
-      </section>
 
-      {/* ============ QUICK ACTIONS ============ */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 28px 0' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
-          {quickActions.map((qa, i) => (
-            <Hov key={i} className="fk-rev" style="background:#fff;border-radius:10px;padding:26px;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05);cursor:pointer;transition:transform .3s,box-shadow .3s" hover="transform:translateY(-6px);box-shadow:0 22px 44px rgba(18,18,18,.12)">
-              <div style={{ width: 46, height: 46, borderRadius: 10, background: 'rgba(193,18,31,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>{emojiIcon(qa.emoji) ? <Icon name={emojiIcon(qa.emoji)} size={22} color={COLORS.red} /> : qa.emoji}</div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: COLORS.text }}>{qa.title}</div>
-              <div style={{ fontSize: 14, color: COLORS.red, fontWeight: 600, marginTop: 4 }}>{qa.value}</div>
-            </Hov>
-          ))}
+        {/* vpravo: živá Google mapa (adresa se nastavuje v administraci) */}
+        <div className="fk-rev" style={{ borderRadius: 10, overflow: 'hidden', minHeight: 420, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 14px 40px rgba(18,18,18,.08)', background: '#EFF1F4' }}>
+          <iframe
+            title="Mapa — Areál FK Kunice"
+            src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&hl=cs&z=15&output=embed`}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+            style={{ border: 0, width: '100%', height: '100%', minHeight: 420, display: 'block' }}
+          />
         </div>
       </section>
 
