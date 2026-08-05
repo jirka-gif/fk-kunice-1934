@@ -59,7 +59,7 @@ describe('type: message (kontaktní formulář)', () => {
   it('zachová dříve uložené úpravy obsahu', async () => {
     globalThis.__fkMemStore.data = { sponsors: ['JEDINÝ PARTNER'] };
     await POST(req({ type: 'message', payload: { name: 'Jan', text: 'x' } }));
-    expect(globalThis.__fkMemStore.data.sponsors).toEqual(['JEDINÝ PARTNER']);
+    expect(globalThis.__fkMemStore.data.sponsors.map((s) => s.name)).toEqual(['JEDINÝ PARTNER']);
     expect(globalThis.__fkMemStore.data.messages.length).toBe(1);
   });
 

@@ -19,7 +19,7 @@ function WhyIcon({ k }) {
 
 export default function Home() {
   useRevealEngine();
-  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, facilities, news, sponsors, homeTexts } = useContent();
+  const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, facilities, news, sponsors, gallery, homeTexts } = useContent();
   const T = homeTexts;
   const heroCtas = T.hero.ctas || [];
   const featured = news[0];
@@ -30,7 +30,7 @@ export default function Home() {
     id: t.id, name: t.name, age: t.cat, league: t.comp.toUpperCase(),
     coach: t.coaches[0] ? t.coaches[0].n : 'Připravujeme',
     initials: t.coaches[0] ? initials(t.coaches[0].n) : 'FK',
-    img: PH_ARR[i % PH_ARR.length], coachBg: t.coaches[0] ? COLORS.red : '#2a2a2a',
+    img: t.photo ? `url(${t.photo})` : PH_ARR[i % PH_ARR.length], coachBg: t.coaches[0] ? COLORS.red : '#2a2a2a',
   }));
 
   const table = leagueTable.slice(0, 4).map((t) => ({
@@ -310,10 +310,13 @@ export default function Home() {
         <div className="fk-gallery" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gridAutoRows: 172, gap: 14 }}>
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
             const cells = ['grid-column:span 2;grid-row:span 2', '', '', 'grid-column:span 2', '', '', 'grid-column:span 2', ''];
-            const imgs = [PH.dusk, PH.sunset, PH.slate, PH.cool, PH.warm, PH.char, PH.red, PH.ember];
+            const fallback = [PH.dusk, PH.sunset, PH.slate, PH.cool, PH.warm, PH.char, PH.red, PH.ember];
+            // fotka z administrace; bez ní zůstane barevný přechod
+            const item = gallery[i];
+            const bg = item && item.image ? `url(${item.image})` : fallback[i];
             return (
               <Hov key={i} className="fk-rev fk-zoom" style={`${cells[i]};border-radius:10px;overflow:hidden;cursor:pointer;position:relative`}>
-                <div className="fk-zi" style={{ position: 'absolute', inset: 0, background: imgs[i], backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                <div className="fk-zi" role="img" aria-label={(item && item.alt) || ''} style={{ position: 'absolute', inset: 0, background: bg, backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 <Hov style="position:absolute;inset:0;background:rgba(193,18,31,0);transition:background .3s" hover="background:rgba(193,18,31,.28)" />
               </Hov>
             );
@@ -326,11 +329,17 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px' }}>
           <div className="fk-rev" style={{ textAlign: 'center', marginBottom: 40 }}><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#9AA1AC' }}>{T.sponsors.title}</div></div>
           <div className="fk-sponsors" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
-            {sponsors.map((sp, i) => (
-              <Hov key={i} className="fk-rev" style="background:#fff;border:1px solid #ECEEF1;border-radius:10px;height:96px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s,box-shadow .3s,border-color .3s;color:#B7BCC4" hover="transform:translateY(-5px);box-shadow:0 18px 40px rgba(18,18,18,.1);border-color:#fff;color:#C1121F">
-                <span style={{ fontFamily: "'Bebas Neue'", fontSize: 24, letterSpacing: '1px', transition: 'color .3s' }}>{sp}</span>
-              </Hov>
-            ))}
+            {sponsors.map((sp, i) => {
+              const box = 'background:#fff;border:1px solid #ECEEF1;border-radius:10px;height:96px;display:flex;align-items:center;justify-content:center;padding:14px;cursor:pointer;transition:transform .3s,box-shadow .3s,border-color .3s;color:#B7BCC4';
+              const lift = 'transform:translateY(-5px);box-shadow:0 18px 40px rgba(18,18,18,.1);border-color:#fff;color:#C1121F';
+              const inner = sp.logo
+                ? <img src={sp.logo} alt={sp.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                : <span style={{ fontFamily: "'Bebas Neue'", fontSize: 24, letterSpacing: '1px', transition: 'color .3s' }}>{sp.name}</span>;
+              // partner s vyplněnou adresou je odkaz, ostatní jen dlaždice
+              return sp.url
+                ? <Hov key={sp.id || i} as="a" href={sp.url} target="_blank" rel="noopener noreferrer" className="fk-rev" style={box} hover={lift}>{inner}</Hov>
+                : <Hov key={sp.id || i} className="fk-rev" style={box} hover={lift}>{inner}</Hov>;
+            })}
           </div>
         </div>
       </section>

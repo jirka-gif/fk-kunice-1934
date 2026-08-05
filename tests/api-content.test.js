@@ -74,7 +74,7 @@ describe('GET /api/content', () => {
   it('vrátí uložený obsah sloučený s výchozím', async () => {
     globalThis.__fkMemStore.data = { sponsors: ['JEDINÝ PARTNER'] };
     const json = await (await GET()).json();
-    expect(json.sponsors).toEqual(['JEDINÝ PARTNER']);
+    expect(json.sponsors.map((s) => s.name)).toEqual(['JEDINÝ PARTNER']);
     expect(json.teams.length).toBe(DEFAULTS.teams.length);
   });
 
@@ -127,7 +127,7 @@ describe('PUT /api/content — přihlášený správce', () => {
     expect((await res.json()).ok).toBe(true);
 
     const json = await (await GET()).json();
-    expect(json.sponsors).toEqual(['NOVÝ PARTNER']);
+    expect(json.sponsors.map((s) => s.name)).toEqual(['NOVÝ PARTNER']);
   });
 
   it('odmítne neplatný JSON', async () => {

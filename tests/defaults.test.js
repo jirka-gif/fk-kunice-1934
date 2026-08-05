@@ -131,7 +131,7 @@ describe('mergeStored', () => {
     const saved = clone(DEFAULTS);
     saved.sponsors = ['JEDINÝ PARTNER'];
     const m = mergeStored(saved);
-    expect(m.sponsors).toEqual(['JEDINÝ PARTNER']);
+    expect(m.sponsors.map((s) => s.name)).toEqual(['JEDINÝ PARTNER']);
   });
 
   it('vždy zajistí pole messages', () => {

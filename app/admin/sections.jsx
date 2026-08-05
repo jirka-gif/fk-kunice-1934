@@ -1,6 +1,6 @@
 'use client';
 import { useState, Fragment } from 'react';
-import { useData, setSection, updateData, emptyCamp, emptyNews, slugify } from '@/lib/store';
+import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem } from '@/lib/store';
 import { postFromResult } from '@/lib/social';
 import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField } from './adminui';
 
@@ -72,7 +72,7 @@ function SectionTexts({ label, value, onChange, extra }) {
 }
 
 export function Domu() {
-  const { homeTexts, whyCards, footer } = useData();
+  const { homeTexts, whyCards, footer, gallery } = useData();
   const [tab, setTab] = useState('hero');
   const setHome = (patch) => set('homeTexts', { ...homeTexts, ...patch });
   const sec = (key) => (patch) => setHome({ [key]: { ...homeTexts[key], ...patch } });
@@ -86,6 +86,7 @@ export function Domu() {
         { id: 'hero', label: 'Hero' },
         { id: 'sekce', label: 'Nadpisy sekcí' },
         { id: 'proc', label: 'Proč my', badge: whyCards.length },
+        { id: 'galerie', label: 'Galerie', badge: gallery.filter((g) => g.image).length },
         { id: 'paticka', label: 'Patička' },
       ]} />
 
@@ -173,6 +174,29 @@ export function Domu() {
                 </Row>
                 <div style={{ height: 10 }} />
                 <Field label="Text" textarea rows={2} value={w.text} onChange={(v) => u({ text: v })} />
+              </div>
+            )}
+          />
+        </div>
+      )}
+
+      {tab === 'galerie' && (
+        <div>
+          <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+            Sekce <b>Momenty</b> na hlavní stránce má osm dlaždic. První je velká (2 × 2),
+            čtvrtá a sedmá široké. Dlaždice bez nahrané fotky zůstane barevná.
+          </div>
+          <ListEditor
+            items={gallery}
+            onChange={(v) => set('gallery', v)}
+            itemTitle={(g, i) => `Dlaždice ${i + 1}${i === 0 ? ' (velká)' : i === 3 || i === 6 ? ' (široká)' : ''}`}
+            newItem={() => ({ ...emptyGalleryItem(), id: `foto-${Date.now()}` })}
+            addLabel="Přidat fotku"
+            renderItem={(g, u) => (
+              <div>
+                <ImageField label="Fotka" value={g.image} onChange={(v) => u({ image: v })} />
+                <div style={{ height: 12 }} />
+                <Field label="Popis pro čtečky (nepovinný)" value={g.alt} onChange={(v) => u({ alt: v })} placeholder="Áčko po vítězném zápase" />
               </div>
             )}
           />
@@ -283,6 +307,11 @@ export function Tymy() {
           <Field label="Kontakt" value={t.contact} onChange={(v) => updateTeam({ contact: v })} placeholder="nepovinné" />
           <Field label="ID (URL)" value={t.id} onChange={(v) => updateTeam({ id: v })} width="160px" />
         </Row>
+        <div style={{ height: 14 }} />
+        <ImageField label="Fotka týmu (karta na homepage)" value={t.photo} onChange={(v) => updateTeam({ photo: v })} />
+        <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 6 }}>
+          Bez nahrané fotky zůstane na kartě barevný přechod.
+        </div>
 
         <div style={{ marginTop: 20, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>REALIZAČNÍ TÝM ({t.coaches.length})</div>
         <div style={{ height: 8 }} />
@@ -1040,6 +1069,29 @@ export function Pronajem() {
               </div>
             )} />
 
+          <div style={{ fontWeight: 800, fontSize: 15, margin: '24px 0 10px' }}>Plochy na hlavní stránce <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(blok „Pronajmi si náš areál")</span></div>
+          <ListEditor
+            items={d.facilities}
+            onChange={(v) => set('facilities', v)}
+            itemTitle={(f) => `${f.name} — ${f.price}`}
+            newItem={{ name: 'Nová plocha', spec: '', price: '0 Kč', status: 'VOLNO', img: 'char' }}
+            addLabel="Přidat plochu"
+            renderItem={(f, u) => (
+              <div>
+                <Row>
+                  <Field label="Název" value={f.name} onChange={(v) => u({ name: v })} />
+                  <Field label="Specifikace" value={f.spec} onChange={(v) => u({ spec: v })} />
+                </Row>
+                <div style={{ height: 10 }} />
+                <Row>
+                  <Field label="Cena / hod" value={f.price} onChange={(v) => u({ price: v })} width="140px" />
+                  <Select label="Stav" value={f.status} onChange={(v) => u({ status: v })} options={['VOLNO', 'OBSAZENO']} width="170px" />
+                  <Field label="Obrázek" value={f.img} onChange={(v) => u({ img: v })} width="130px" />
+                </Row>
+              </div>
+            )}
+          />
+
           <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 6px' }}>Obsazené dny v kalendáři (čísla dnů)</div>
           <Card>
             <StringListEditor items={busyStr} onChange={(v) => set('rentalBusyDays', v.map((x) => Number(x) || 0).filter(Boolean))} placeholder="den" columns={4} />
@@ -1090,10 +1142,27 @@ export function Partneri() {
   const { sponsors } = useData();
   return (
     <div>
-      <SectionHead title="Partneři" desc="Loga / názvy partnerů klubu" count={sponsors.length} />
-      <Card>
-        <StringListEditor items={sponsors} onChange={(v) => set('sponsors', v)} placeholder="partner" columns={2} />
-      </Card>
+      <SectionHead title="Partneři" desc="Loga partnerů klubu — bez nahraného loga se zobrazí název" count={sponsors.length} />
+      <ListEditor
+        items={sponsors}
+        onChange={(v) => set('sponsors', v)}
+        itemTitle={(sp) => sp.name || 'Nový partner'}
+        newItem={() => ({ ...emptySponsor(), id: `partner-${Date.now()}` })}
+        addLabel="Přidat partnera"
+        renderItem={(sp, u) => (
+          <div>
+            <Row>
+              <Field label="Název" value={sp.name} onChange={(v) => u({ name: v, id: slugify(v) || sp.id })} placeholder="STAVOSPOL" />
+              <Field label="Odkaz na web (nepovinný)" value={sp.url} onChange={(v) => u({ url: v })} placeholder="https://…" />
+            </Row>
+            <div style={{ height: 12 }} />
+            <ImageField label="Logo" value={sp.logo} onChange={(v) => u({ logo: v })} />
+          </div>
+        )}
+      />
+      <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
+        Nejlépe vypadá logo na průhledném pozadí (PNG) nebo na bílém. Dlaždice je vysoká 96 px, logo se do ní vejde samo.
+      </div>
     </div>
   );
 }

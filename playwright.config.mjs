@@ -32,6 +32,8 @@ export default defineConfig({
       DATABASE_URL: '',
       // e2e běží vždy nad čistým úložištěm v paměti, ne nad lokálními soubory
       FK_LOCAL_STORE: '',
+      // vlastní složka se sestaveným kódem, ať e2e nekoliduje s `npm run dev`
+      NEXT_DIST_DIR: '.next-e2e',
       POSTGRES_URL: '',
     },
   },

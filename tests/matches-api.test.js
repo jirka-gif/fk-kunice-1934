@@ -78,7 +78,7 @@ describe('uložení návrhu', () => {
     globalThis.__fkMemStore.data = { sponsors: ['JEDINÝ PARTNER'] };
     await POST(req({ proposals: [proposal()] }));
     const content = mergeStored(globalThis.__fkMemStore.data);
-    expect(content.sponsors).toEqual(['JEDINÝ PARTNER']);
+    expect(content.sponsors.map((s) => s.name)).toEqual(['JEDINÝ PARTNER']);
     expect(content.news.length).toBe(DEFAULTS.news.length);
   });
 
