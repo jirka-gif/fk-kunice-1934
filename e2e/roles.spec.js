@@ -13,15 +13,30 @@ async function createUser(page, role) {
 
 test('správce vidí sekci Uživatelé a role, redaktor ne', async ({ page }) => {
   await loginToAdmin(page);
-  await expect(page.locator('[data-sec="uzivatele"]')).toBeVisible();
+  // menu je seskupené — sekce se nabídne po otevření skupiny
+  await openAdminSection(page, 'uzivatele');
+  await expect(page.getByText('Kdo se dostane do administrace a co tam smí')).toBeVisible();
 
   const redaktor = await createUser(page, 'redaktor');
   await page.request.post('/api/logout');
 
   await loginToAdmin(page, redaktor.email, redaktor.password);
-  await expect(page.locator('[data-sec="uzivatele"]')).toHaveCount(0);
-  await expect(page.locator('[data-sec="nastaveni"]')).toHaveCount(0);
-  await expect(page.locator('[data-sec="novinky"]')).toBeVisible();
+  // do skupiny se mu Uživatelé ani Nastavení vůbec nezařadí
+  await expect(page.locator('[data-group-has~="uzivatele"]')).toHaveCount(0);
+  await expect(page.locator('[data-group-has~="nastaveni"]')).toHaveCount(0);
+  // ale novinky ano
+  await expect(page.locator('[data-group-has~="novinky"]')).toBeVisible();
+});
+
+test('menu má šest skupin místo čtrnácti položek', async ({ page }) => {
+  await loginToAdmin(page);
+  const skupiny = page.locator('[data-group]');
+  await expect(skupiny).toHaveCount(6);
+
+  // skupina s víc sekcemi nabídne uvnitř záložky
+  await page.locator('[data-group="hriste"]').click();
+  await expect(page.locator('[data-sec="zapasy"]')).toBeVisible();
+  await expect(page.locator('[data-sec="tymy"]')).toBeVisible();
 });
 
 test('sekce jen pro čtení se dá otevřít, ale needituje', async ({ page }) => {

@@ -9,7 +9,7 @@ import { Nastaveni, Domu, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partn
 import { Uzivatele } from './users';
 import { Socialni } from './social';
 import { ZmenaHesla } from './account';
-import { ADMIN_SECTIONS, canView, canEdit } from '@/lib/permissions';
+import { canView, canEdit, visibleGroups, visibleSectionsInGroup, sectionLabel } from '@/lib/permissions';
 
 const RED = '#C1121F';
 
@@ -42,9 +42,13 @@ export default function Admin() {
   useEffect(() => onSaveStatus(setSaveStatus), []);
 
   const perms = me ? me.permissions : null;
-  const visibleSections = ADMIN_SECTIONS.filter((s) => canView(perms, s.id));
+  const groups = visibleGroups(perms);
+  const visibleSections = groups.flatMap((g) => visibleSectionsInGroup(g, perms));
   // „ucet" (změna vlastního hesla) je dostupný vždy, bez ohledu na roli
-  const allowedIds = [...visibleSections.map((s) => s.id), 'ucet'].join(',');
+  const allowedIds = [...visibleSections, 'ucet'].join(',');
+  // skupina, ve které právě jsme (kvůli zvýraznění v menu a záložkám uvnitř)
+  const currentGroup = groups.find((g) => g.sections.includes(section)) || null;
+  const groupSections = currentGroup ? visibleSectionsInGroup(currentGroup, perms) : [];
 
   // když uživatel na aktuální sekci nemá právo, přepneme ho na první dostupnou
   useEffect(() => {
@@ -83,7 +87,12 @@ export default function Admin() {
     registrace: String(d.cmsRegistrations.filter((r) => r.status === 'nová').length),
     socialni: String(d.socialPosts.filter((p) => p.status !== 'odesláno').length),
   };
-  const NAV = visibleSections.map((s) => ({ ...s, badge: BADGES[s.id] }));
+  // číslo u skupiny = součet nevyřízených věcí ve všech jejích sekcích
+  const NAV = groups.map((g) => {
+    const secs = visibleSectionsInGroup(g, perms);
+    const pocet = secs.reduce((sum, id) => sum + (Number(BADGES[id]) || 0), 0);
+    return { ...g, sections: secs, badge: pocet > 0 ? String(pocet) : undefined };
+  });
 
   const doExport = () => {
     const blob = new Blob([exportJson()], { type: 'application/json' });
@@ -129,9 +138,9 @@ export default function Admin() {
           <div><div style={{ fontFamily: "'Bebas Neue'", fontSize: 14, color: '#121212', letterSpacing: '.3px' }}>FK KUNICE</div><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#9AA1AC' }}>ADMIN</div></div>
         </div>
         {NAV.map((n) => {
-          const active = section === n.id;
+          const active = currentGroup && currentGroup.id === n.id;
           return (
-            <div key={n.id} data-sec={n.id} onClick={() => setSectionId(n.id)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 3, ...(active ? { background: '#FBEAEC', color: RED } : { color: '#3a3f47' }) }}>
+            <div key={n.id} data-group={n.id} data-group-has={n.sections.join(' ')} onClick={() => setSectionId(n.sections[0])} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 3, ...(active ? { background: '#FBEAEC', color: RED } : { color: '#3a3f47' }) }}>
               <span style={{ display: 'inline-flex', width: 19, justifyContent: 'center' }}><Icon name={n.icon} size={19} /></span><span>{n.label}</span>
               {n.badge && <span style={{ marginLeft: 'auto', background: active ? RED : '#EFF1F4', color: active ? '#fff' : '#9AA1AC', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 10 }}>{n.badge}</span>}
             </div>
@@ -164,6 +173,26 @@ export default function Admin() {
                 : saveStatus && saveStatus.state === 'saved' ? 'Změny uloženy na server.'
                 : 'Administrace je plně funkční — úpravy se ukládají automaticky a hned se projeví na webu.'}
             </span>
+          </div>
+        )}
+
+        {groupSections.length > 1 && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+            {groupSections.map((id) => {
+              const on = id === section;
+              const pocet = Number(BADGES[id]) || 0;
+              return (
+                <button
+                  key={id}
+                  data-sec={id}
+                  onClick={() => setSectionId(id)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', border: on ? `1px solid ${RED}` : '1px solid #ECEEF1', background: on ? RED : '#fff', color: on ? '#fff' : '#3a3f47' }}
+                >
+                  {sectionLabel(id)}
+                  {pocet > 0 && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 10, background: on ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: on ? '#fff' : '#9AA1AC' }}>{pocet}</span>}
+                </button>
+              );
+            })}
           </div>
         )}
 
