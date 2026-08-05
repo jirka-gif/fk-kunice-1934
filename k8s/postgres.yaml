@@ -1,0 +1,106 @@
+# Vlastní Postgres v clusteru — náhrada za hostovanou Neon databázi.
+#
+# Spravuje ho operátor CloudNativePG, který v clusteru už běží (v1.24.1).
+# Ten se stará o založení databáze, uživatele, hesla i o restart při pádu.
+#
+# Po založení vznikne SÁM secret `fk-kunice-db-app` a v něm klíč `uri` —
+# hotový připojovací řetězec. Deployment webu si ho bere přímo odtud
+# (viz `fk-kunice.yaml`), takže heslo k databázi nikdy neprochází přes
+# schránku ani přes ruční příkaz.
+#
+# ── Poznámka k úložišti ────────────────────────────────────────────────
+# Jediná dostupná storage class je `nfs` a má `reclaimPolicy: Delete` —
+# smazání PVC smaže i data. Postgres na NFS navíc není mezi doporučenými
+# konfiguracemi CloudNativePG. Pro web tohoto rozsahu (jednotky kilobajtů
+# JSONu) je to v pořádku, ale právě proto je níže noční záloha: je to
+# jediná obrana proti smazanému nebo poškozenému svazku.
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: fk-kunice-db
+  namespace: fk-kunice
+spec:
+  instances: 1
+  # `nfs` je v tomhle clusteru výchozí; uvádíme ji natvrdo, aby se nasazení
+  # nezměnilo, kdyby se výchozí třída někdy přepnula.
+  storage:
+    size: 5Gi
+    storageClass: nfs
+  bootstrap:
+    initdb:
+      database: fkkunice
+      owner: fkkunice
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: '1', memory: 512Mi }
+---
+# Noční záloha do souboru. Postgres se zálohuje `pg_dump`em do svazku, který
+# je oddělený od databázového — kdyby se poškodil ten databázový, zálohy
+# zůstanou. Drží se posledních 14 dní.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fk-kunice-db-backup
+  namespace: fk-kunice
+spec:
+  accessModes: ['ReadWriteOnce']
+  storageClassName: nfs
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fk-kunice-db-backup
+  namespace: fk-kunice
+spec:
+  # 02:15 v čase clusteru (UTC).
+  schedule: '15 2 * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 26 # uživatel `postgres` v oficiálním obrazu
+          containers:
+            - name: dump
+              # Stejná hlavní verze jako databáze — `pg_dump` novější verze
+              # umí číst starší server, ale ne naopak.
+              image: ghcr.io/cloudnative-pg/postgresql:16.4
+              command: ['/bin/sh', '-c']
+              args:
+                - |
+                  set -eu
+                  STAMP=$(date +%Y-%m-%d)
+                  OUT="/backup/fkkunice-${STAMP}.sql.gz"
+                  # Zapisujeme přes dočasný soubor, aby přerušený běh
+                  # nezanechal useknutou zálohu, která vypadá platně.
+                  pg_dump --no-owner --no-privileges "$DATABASE_URL" | gzip > "${OUT}.tmp"
+                  mv "${OUT}.tmp" "$OUT"
+                  # Starší než 14 dní pryč.
+                  find /backup -name 'fkkunice-*.sql.gz' -mtime +14 -delete
+                  ls -la /backup
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: fk-kunice-db-app
+                      key: uri
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+              resources:
+                requests: { cpu: 50m, memory: 128Mi }
+                limits: { cpu: 500m, memory: 256Mi }
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: fk-kunice-db-backup

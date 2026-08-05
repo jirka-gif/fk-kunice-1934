@@ -1,0 +1,75 @@
+# Účet pro Báru — plná práva, ale JEN v namespace `fk-kunice`.
+#
+# Cluster: ~/.kube/frankee-dev-config, context client-admin@frankee-dev
+#
+# Proč vlastní namespace a ne omezená práva v cizím: aby si mohla web
+# vytvořit, měnit a rozbít bez toho, že se někoho zeptá — a zároveň se to
+# nemohlo dotknout frenkee.cz, insurecrm ani ostatních věcí v clusteru.
+# Vestavěná role `admin` jí v jejím namespace dovolí všechno: deploymenty,
+# služby, ingressy, configmapy, secrety, `exec` do vlastních podů.
+#
+# Co NEUMÍ: nic mimo `fk-kunice`. Ani číst, ani měnit.
+---
+# Namespace je tady, ne v `fk-kunice.yaml`: zakládá ho správce clusteru
+# zároveň s účtem, protože účet sám na namespacy nedosáhne.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fk-kunice
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bara
+  namespace: fk-kunice
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bara-admin
+  namespace: fk-kunice
+subjects:
+  - kind: ServiceAccount
+    name: bara
+    namespace: fk-kunice
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  # Vestavěná role. Jako RoleBinding (ne ClusterRoleBinding) platí jen
+  # v tomhle jednom namespace — to je celý rozdíl.
+  name: admin
+---
+# Vestavěná role `admin` pokrývá jen zabudované typy Kubernetes. Databáze
+# CloudNativePG je vlastní typ (CRD) a ten do `admin` nespadá — ověřeno:
+# `auth can-i create clusters.postgresql.cnpg.io` vracelo `no`. Bez tohohle
+# by databázi v kroku „vlastní Postgres" nešlo založit.
+#
+# Platí zase jen v namespace `fk-kunice`; operátor sám běží v `cnpg-system`
+# a na ten účet nedosáhne.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: bara-cnpg
+  namespace: fk-kunice
+rules:
+  - apiGroups: ['postgresql.cnpg.io']
+    resources:
+      - clusters
+      - backups
+      - scheduledbackups
+      - poolers
+    verbs: ['get', 'list', 'watch', 'create', 'update', 'patch', 'delete']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bara-cnpg
+  namespace: fk-kunice
+subjects:
+  - kind: ServiceAccount
+    name: bara
+    namespace: fk-kunice
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: bara-cnpg
