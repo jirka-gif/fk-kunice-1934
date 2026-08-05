@@ -55,6 +55,12 @@ spec:
               value: production
             - name: PORT
               value: '3000'
+            # Next standalone poslouchá na adrese z HOSTNAME, a tu Kubernetes
+            # nastavuje na jméno podu. Web by pak odpovídal jen na IP podu:
+            # `kubectl port-forward` (krok 5 návodu) by skončil chybou spojení,
+            # i když v logu stojí „Ready". Ověřeno smoke testem v clusteru.
+            - name: HOSTNAME
+              value: '0.0.0.0'
             # Připojení k vlastnímu Postgresu v clusteru. Secret zakládá
             # operátor CloudNativePG sám, když se použije `postgres.yaml` —
             # heslo tak nikdy neprochází přes schránku ani ruční příkaz.

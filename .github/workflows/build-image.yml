@@ -4,9 +4,10 @@ name: Build image
 # Vercel tenhle workflow nepotřebuje a nijak se ho nedotýká.
 #
 # Obraz jde do GHCR pod tímhle repem a je VEŘEJNÝ — cluster ho pak stáhne
-# bez pull secretu, stejně jako frenkee-web. Po prvním buildu je potřeba
-# balíček jednou ručně přepnout na public (GitHub → Packages → Settings),
-# jinak deployment skončí na ImagePullBackOff.
+# bez pull secretu, stejně jako frenkee-web. Ověřeno anonymním stažením
+# manifestu (HTTP 200), ruční přepínání viditelnosti tedy není potřeba.
+# Kdyby se balíček někdy přepnul na private, deployment skončí na
+# ImagePullBackOff a do namespace se musí doplnit pull secret.
 
 on:
   push:
