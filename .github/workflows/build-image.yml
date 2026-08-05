@@ -1,0 +1,53 @@
+name: Build image
+
+# Staví obraz pro nethost cluster (ns `fk-kunice`, doména www.fkkunice.cz).
+# Vercel tenhle workflow nepotřebuje a nijak se ho nedotýká.
+#
+# Obraz jde do GHCR pod tímhle repem a je VEŘEJNÝ — cluster ho pak stáhne
+# bez pull secretu, stejně jako frenkee-web. Po prvním buildu je potřeba
+# balíček jednou ručně přepnout na public (GitHub → Packages → Settings),
+# jinak deployment skončí na ImagePullBackOff.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Tag je commit sha, ne `latest`. Deployment pak ukazuje na konkrétní
+      # kód a jde poznat, co běží — `latest` se přepisuje a to poznat nejde.
+      - id: meta
+        run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:sha-${{ steps.meta.outputs.sha }}
+            ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - run: |
+          echo "### Obraz postaven" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "ghcr.io/${{ github.repository }}:sha-${{ steps.meta.outputs.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "Nasazení: viz k8s/README.md" >> "$GITHUB_STEP_SUMMARY"
