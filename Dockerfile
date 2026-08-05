@@ -27,6 +27,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+# Next standalone se váže na adresu z HOSTNAME. Bez tohohle řádku by
+# poslouchal na jménu stroje místo na všech adresách a nebyl by dostupný
+# zvenčí kontejneru. Pozor: běhové prostředí umí HOSTNAME přepsat, proto
+# je totéž ještě v k8s/fk-kunice.yaml.
+ENV HOSTNAME=0.0.0.0
 
 # Nonroot. Uživatel 1001 odpovídá tomu, co v clusteru běží u ostatních webů.
 RUN groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs -m nextjs
