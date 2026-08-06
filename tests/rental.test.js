@@ -4,6 +4,7 @@ import {
   emptyRentalSettings, normalizeRentalSettings, daySlots, bookedTimes, blockingReservations,
   dayAvailability, dayState, validateRequest, slotEnd, monthGrid, dateKey, czechDate,
   toMinutes, toTime, isTooSoon, isBeyondHorizon,
+  occursOn, occurrencesInRange, shiftDays,
 } from '@/lib/rental';
 
 const NOW = '2026-07-01T09:00:00';
@@ -195,5 +196,87 @@ describe('pomocné', () => {
     expect(cells[2].day).toBe(1);
     expect(cells[2].dateISO).toBe('2026-07-01');
     expect(cells.filter((c) => c.day).length).toBe(31);
+  });
+});
+
+// --- dlouhodobé (opakované) pronájmy ----------------------------------------
+// Klíčové je, že opakování zná `blockingReservations` — přes ně počítá
+// obsazenost web i validace na serveru. Kdyby to uměl jen kalendář,
+// web by nabízel termíny, které má dlouhodobý nájemce zabrané.
+describe('opakované pronájmy', () => {
+  const tydenni = rez({ dateISO: '2026-09-01', repeat: 'weekly', repeatUntil: '2026-09-29' });
+
+  it('platí ve stejný den v týdnu v rámci období', () => {
+    expect(occursOn(tydenni, '2026-09-01')).toBe(true);   // první termín
+    expect(occursOn(tydenni, '2026-09-08')).toBe(true);
+    expect(occursOn(tydenni, '2026-09-29')).toBe(true);   // poslední den období
+  });
+
+  it('neplatí jiný den v týdnu, před začátkem ani po konci', () => {
+    expect(occursOn(tydenni, '2026-09-02')).toBe(false);  // středa místo úterý
+    expect(occursOn(tydenni, '2026-08-25')).toBe(false);  // před prvním termínem
+    expect(occursOn(tydenni, '2026-10-06')).toBe(false);  // za obdobím
+  });
+
+  it('jednorázová rezervace platí jen svůj den', () => {
+    const jednou = rez({ dateISO: '2026-09-01' });
+    expect(occursOn(jednou, '2026-09-01')).toBe(true);
+    expect(occursOn(jednou, '2026-09-08')).toBe(false);
+  });
+
+  it('každý druhý týden přeskakuje liché týdny', () => {
+    const sude = rez({ dateISO: '2026-09-01', repeat: 'biweekly', repeatUntil: '2026-10-31' });
+    expect(occursOn(sude, '2026-09-15')).toBe(true);
+    expect(occursOn(sude, '2026-09-08')).toBe(false);
+  });
+
+  it('bez data konce běží dál do budoucna', () => {
+    const bezKonce = rez({ dateISO: '2026-09-01', repeat: 'weekly', repeatUntil: '' });
+    expect(occursOn(bezKonce, '2027-03-02')).toBe(true);
+  });
+
+  it('vyjmutý den neplatí ani jako první termín série', () => {
+    const sVyjimkou = { ...tydenni, skipDates: ['2026-09-08', '2026-09-01'] };
+    expect(occursOn(sVyjimkou, '2026-09-08')).toBe(false);
+    expect(occursOn(sVyjimkou, '2026-09-01')).toBe(false);
+    expect(occursOn(sVyjimkou, '2026-09-15')).toBe(true);
+  });
+
+  it('drží termín i v dalších týdnech, takže ho web už nenabídne', () => {
+    const list = [tydenni];
+    expect(bookedTimes(list, 'Hlavní stadion', '2026-09-08').has('09:00')).toBe(true);
+    const kolize = validateRequest({
+      reservations: list, area: 'Hlavní stadion', dateISO: '2026-09-08', from: '09:00',
+      settings: S, now: '2026-09-01T09:00:00',
+    });
+    expect(kolize.ok).toBe(false);
+  });
+
+  it('zamítnutá série termín nedrží', () => {
+    const zamitnuta = [{ ...tydenni, status: 'zamítnutá' }];
+    expect(bookedTimes(zamitnuta, 'Hlavní stadion', '2026-09-08').size).toBe(0);
+  });
+});
+
+describe('rozvinutí termínů pro kalendář', () => {
+  it('vrátí všechny výskyty v rozmezí, seřazené podle data', () => {
+    const list = [rez({ dateISO: '2026-09-01', repeat: 'weekly', repeatUntil: '2026-09-30' })];
+    const vyskyty = occurrencesInRange(list, { fromISO: '2026-09-01', toISO: '2026-09-30' });
+    expect(vyskyty.map((v) => v.dateISO)).toEqual(['2026-09-01', '2026-09-08', '2026-09-15', '2026-09-22', '2026-09-29']);
+  });
+
+  it('filtruje podle plochy a nechává jen blokující stavy', () => {
+    const list = [
+      rez({ dateISO: '2026-09-01', area: 'Hlavní stadion' }),
+      rez({ dateISO: '2026-09-01', area: 'Sál', status: 'zamítnutá' }),
+    ];
+    expect(occurrencesInRange(list, { fromISO: '2026-09-01', toISO: '2026-09-07', area: 'Sál' })).toHaveLength(0);
+    expect(occurrencesInRange(list, { fromISO: '2026-09-01', toISO: '2026-09-07', area: 'Hlavní stadion' })).toHaveLength(1);
+  });
+
+  it('posun dnů nerozbije přechod na letní čas', () => {
+    expect(shiftDays('2026-03-28', 1)).toBe('2026-03-29');
+    expect(shiftDays('2026-03-29', 1)).toBe('2026-03-30');
+    expect(shiftDays('2026-12-31', 1)).toBe('2027-01-01');
   });
 });

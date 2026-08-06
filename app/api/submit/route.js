@@ -52,6 +52,9 @@ export async function POST(req) {
       id: `rezervace-${new Date().toISOString()}`,
       name: s(payload.name, 120),
       contact: s(payload.contact, 200),
+      // Zvlášť, aby šlo žadateli odepsat — z volného textu se adresa vytáhnout nedá.
+      email: s(payload.email, 200),
+      phone: s(payload.phone, 60),
       area,
       dateISO,
       from,

@@ -1,9 +1,10 @@
 'use client';
-import { useState, Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem, emptyReservation, emptyRegistration } from '@/lib/store';
-import { czechDate, daySlots } from '@/lib/rental';
+import { czechDate, daySlots, occurrencesInRange, shiftDays, dateKey, toMinutes, REPEAT_LABELS, REPEAT_MODES } from '@/lib/rental';
+import { matchWhenText, sortResults } from '@/lib/defaults';
 import { postFromResult } from '@/lib/social';
-import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField, Pokrocile } from './adminui';
+import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField, Pokrocile, Prepinac, IkonaKos, UdajeZakaznika } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
 const EV_TYPE_OPTS = [{ value: 'goal', label: 'Gól' }, { value: 'yellow', label: 'Žlutá karta' }, { value: 'red', label: 'Červená karta' }];
@@ -187,10 +188,7 @@ export function Domu() {
 
       {tab === 'galerie' && (
         <div>
-          <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
-            Sekce <b>Momenty</b> na hlavní stránce má osm dlaždic. První je velká (2 × 2),
-            čtvrtá a sedmá široké. Dlaždice bez nahrané fotky zůstane barevná.
-          </div>
+          
           <ListEditor
             items={gallery}
             onChange={(v) => set('gallery', v)}
@@ -337,11 +335,8 @@ export function Tymy() {
           )}
         />
 
-        {t.id === 'skolicka' ? (
-          <div style={{ marginTop: 20, background: '#FAFBFC', border: '1px solid #ECEEF1', borderRadius: 10, padding: '14px 16px', fontSize: 13, color: '#6B7280', lineHeight: 1.5 }}>
-            U <b>fotbalové školičky</b> (4–6 let) se soupiska ani statistiky nevedou — spravuj jen kontakt a realizační tým. Na webu se místo soupisky zobrazí výzva k náboru.
-          </div>
-        ) : (
+        {/* U školičky (4–6 let) se soupiska nevede — na webu je místo ní výzva k náboru. */}
+        {t.id === 'skolicka' ? null : (
           <>
             <div style={{ marginTop: 20, fontSize: 11, fontWeight: 800, color: '#9AA1AC', letterSpacing: '.4px' }}>SOUPISKA ({t.players.length})</div>
             <div style={{ height: 8 }} />
@@ -407,16 +402,6 @@ export function Zapasy() {
       ) : (
       <>
       <TeamSwitcher teams={teams} activeIndex={idx} onSelect={setSel} badge={null} />
-      <Card style={{ marginBottom: 18 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>Zdroj dat pro automatické stahování</div>
-        <Row>
-          <Field label="Adresa soutěže na fotbal.cz" value={t.sourceUrl} onChange={(v) => updateTeam({ sourceUrl: v })} placeholder="https://www.fotbal.cz/souteze/turnaje/…" />
-          <Field label="Odkaz na FAČR (zobrazí se na webu)" value={t.facrUrl} onChange={(v) => updateTeam({ facrUrl: v })} />
-        </Row>
-        <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
-          Z této adresy se 4× týdně stahují návrhy zápasů. Prázdné pole = tým se nestahuje.
-        </div>
-      </Card>
 
       {/* PŘÍŠTÍ ZÁPAS */}
       <Card style={{ marginBottom: 18 }}>
@@ -428,11 +413,27 @@ export function Zapasy() {
           <Field label="Hosté — název" value={away.name} onChange={(v) => updNm({ away: { ...away, name: v } })} />
         </Row>
         <div style={{ height: 10 }} />
+        <div style={{ height: 10 }} />
+        {/* Datum se zadává JEDNOU. Text pro web („NE 16:30 · III. TŘÍDA") se
+            z data a soutěže složí sám — dřív se vyplňoval zvlášť a šlo tak
+            snadno mít v odpočtu jiný termín než v popisku. */}
         <Row>
-          <Field label="Kdy / soutěž (text)" value={nm.when} onChange={(v) => updNm({ when: v })} placeholder="NE 16:30 · III. TŘÍDA" />
-          <Field label="Datum a čas (pro odpočet)" type="datetime-local" value={(nm.dateISO || '').slice(0, 16)} onChange={(v) => updNm({ dateISO: v })} width="230px" />
+          <Field
+            label="Datum a čas" type="datetime-local" width="230px"
+            value={(nm.dateISO || '').slice(0, 16)}
+            onChange={(v) => updNm({ dateISO: v, when: matchWhenText(v, nm.competition) })}
+          />
+          <Field
+            label="Soutěž" value={nm.competition} placeholder="III. TŘÍDA"
+            onChange={(v) => updNm({ competition: v, when: matchWhenText(nm.dateISO, v) })}
+          />
           <Field label="Kde se hraje" value={nm.venue} onChange={(v) => updNm({ venue: v })} placeholder="Areál Kunice" />
         </Row>
+        {nm.when && (
+          <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
+            Na webu se ukáže: <b style={{ color: '#3a3f47' }}>{nm.when}</b>
+          </div>
+        )}
       </Card>
 
       {/* POSLEDNÍ ZÁPAS + STŘELCI */}
@@ -447,11 +448,17 @@ export function Zapasy() {
         <Field label="Střelci" value={lm.scorers} onChange={(v) => updLm({ scorers: v })} placeholder="A. Pokorný, J. Svoboda, F. Veselý" />
       </Card>
 
-      {/* ODKAZ NA FAČR */}
-      <Card style={{ marginBottom: 18 }}>
-        <Field label="Odkaz na soutěž FAČR (kompletní tabulka + výsledky)" value={t.facrUrl} onChange={(v) => updateTeam({ facrUrl: v })} placeholder="https://www.fotbal.cz/souteze/..." />
-        <div style={{ fontSize: 12, color: '#9AA1AC', marginTop: 8, lineHeight: 1.5 }}>Vlož odkaz na stránku <b>své soutěže na fotbal.cz</b> — na webu se u tohoto týmu zobrazí tlačítko „Kompletní tabulka a výsledky na FAČR". FAČR data sám aktualizuje, klub je nemusí přepisovat. Tabulka níže slouží jen jako rychlý náhled na webu (nepovinná).</div>
-      </Card>
+      {/* Adresy se mění jednou za sezónu, proto dole a sbalené.
+          Odkaz na FAČR tu byl dvakrát — zůstal jeden. */}
+      <Pokrocile title="Odkazy na fotbal.cz" hint="Nastavuje se jednou za sezónu.">
+        <Row>
+          <Field label="Adresa soutěže pro stahování zápasů" value={t.sourceUrl} onChange={(v) => updateTeam({ sourceUrl: v })} placeholder="https://www.fotbal.cz/souteze/turnaje/…" />
+          <Field label="Odkaz na FAČR (tlačítko na webu)" value={t.facrUrl} onChange={(v) => updateTeam({ facrUrl: v })} placeholder="https://www.fotbal.cz/souteze/..." />
+        </Row>
+        <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
+          Z první adresy se 4× týdně stahují návrhy zápasů. Prázdné pole znamená, že se tým nestahuje.
+        </div>
+      </Pokrocile>
 
       {/* TABULKA */}
       <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Tabulka soutěže <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(náhled na webu — nepovinné)</span></div>
@@ -478,14 +485,17 @@ export function Zapasy() {
       {isA && (
         <>
           <div style={{ fontWeight: 800, fontSize: 15, margin: '24px 0 10px' }}>Poslední výsledky <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(blok na homepage)</span></div>
+          {/* Ručně se výsledek přidává jen tehdy, když se nestáhne z fotbal.cz.
+              Seznam se sám řadí od nejnovějšího podle data. */}
           <ListEditor
             items={t.results || []}
-            onChange={(v) => updateTeam({ results: v })}
-            itemTitle={(r) => `${r.opp} ${r.score}`}
-            newItem={{ wld: 'V', opp: 'Soupeř', score: '0:0' }}
+            onChange={(v) => updateTeam({ results: sortResults(v) })}
+            itemTitle={(r) => `${r.dateISO ? czechDate(r.dateISO) + ' · ' : ''}${r.opp} ${r.score}`}
+            newItem={{ wld: 'V', opp: 'Soupeř', score: '0:0', dateISO: '' }}
             addLabel="+ Přidat výsledek"
             renderItem={(r, u) => (
               <Row>
+                <Field label="Datum" type="date" value={r.dateISO || ''} onChange={(v) => u({ dateISO: v })} width="170px" />
                 <Select label="Výsledek" value={r.wld} onChange={(v) => u({ wld: v })} options={WLD_OPTS} width="150px" />
                 <Field label="Soupeř" value={r.opp} onChange={(v) => u({ opp: v })} />
                 <Field label="Skóre" value={r.score} onChange={(v) => u({ score: v })} width="120px" />
@@ -632,9 +642,7 @@ export function Navrhy({ proposals, teams }) {
 
   return (
     <div>
-      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
-        Návrhy stažené z fotbal.cz se na web <b>nedostanou samy</b>. Zkontroluj je a potvrď — teprve pak se zapíšou k týmu.
-      </div>
+      
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {nove.map((p) => {
@@ -706,7 +714,7 @@ export function Navrhy({ proposals, teams }) {
                   </div>
                   {p.sourceUrl && (
                     <div style={{ marginTop: 10 }}>
-                      <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Otevřít zdroj na fotbal.cz →</a>
+                      <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Otevřít zdroj na fotbal.cz</a>
                     </div>
                   )}
                 </div>
@@ -722,15 +730,23 @@ export function Navrhy({ proposals, teams }) {
 // ---------------------------------------------------------------- NOVINKY
 export function Novinky() {
   const { news } = useData();
+  // Nová novinka patří na začátek — web i homepage řadí nejnovější nahoru,
+  // takže přidání na konec by ji schovalo pod všechny starší.
+  const pridatNovinku = () => set('news', [{ ...emptyNews(), title: 'Nová novinka', id: `novinka-${Date.now()}` }, ...news]);
+
   return (
     <div>
-      <SectionHead title="Novinky" desc="Fotka, pár vět, datum — a hotovo. Zobrazí se na webu i na homepage (nejnovější nahoře). Delší text se ukáže na detailu článku." count={news.length} />
+      <SectionHead
+        title="Novinky"
+        desc="Fotka, pár vět a datum. Zobrazí se na webu i na hlavní stránce, nejnovější nahoře. Delší text se ukáže na detailu článku."
+        count={news.length}
+        akce={<Btn kind="primary" small onClick={pridatNovinku}>+ Přidat novinku</Btn>}
+      />
       <ListEditor
         items={news}
         onChange={(v) => set('news', v)}
         itemTitle={(n) => n.title || 'Nová novinka'}
-        newItem={() => ({ ...emptyNews(), title: 'Nová novinka', id: `novinka-${Date.now()}` })}
-        addLabel="+ Přidat novinku"
+        bezPridat
         renderItem={(n, u) => (
           <div>
             <ImageField label="Fotka" value={n.image} onChange={(v) => u({ image: v })} />
@@ -788,30 +804,38 @@ export function Kempy() {
 
   return (
     <div>
-      <SectionHead title="Kempy" desc="Vypsané kempy — informace, program, trenéři, FAQ. Archivovaný kemp zůstane v adminu, ale zmizí z webu." count={`${activeCount} / ${camps.length}`} />
+      <SectionHead
+        title="Kempy"
+        desc="Vypsané kempy včetně programu, trenérů a častých dotazů. Vypnutý kemp zůstane v administraci, ale na webu se nezobrazí."
+        count={`${activeCount} / ${camps.length}`}
+        akce={<Btn kind="primary" small onClick={addCamp}>+ Přidat kemp</Btn>}
+      />
 
-      {/* přepínač kempů + přidání */}
+      {/* Přepínač kempů. Vypnuté jsou vybledlé, ať je na první pohled vidět,
+          co veřejnost nevidí. */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
         {camps.map((cm, i) => {
           const on = i === idx;
           return (
-            <button key={cm.id || i} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: on ? '1px solid #C1121F' : '1px solid #ECEEF1', background: on ? '#C1121F' : '#fff', color: on ? '#fff' : (cm.archived ? '#9AA1AC' : '#3a3f47') }}>
+            <button key={cm.id || i} onClick={() => setSel(i)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: on ? '1px solid #C1121F' : '1px solid #ECEEF1', background: on ? '#C1121F' : '#fff', color: on ? '#fff' : (cm.archived ? '#9AA1AC' : '#3a3f47'), opacity: cm.archived && !on ? .65 : 1 }}>
               {cm.title || 'Bez názvu'}
-              {cm.archived && <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: on ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: on ? '#fff' : '#9AA1AC' }}>ARCHIV</span>}
+              {cm.archived && <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: on ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: on ? '#fff' : '#9AA1AC' }}>VYPNUTÝ</span>}
             </button>
           );
         })}
-        <Btn kind="primary" small onClick={addCamp}>+ Přidat kemp</Btn>
       </div>
 
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F2F3F5' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: c.archived ? '#9AA1AC' : '#1F8A4C' }}>
-            {c.archived ? 'Archivovaný — na webu se nezobrazuje' : 'Aktivní — zobrazuje se na webu'}
-          </span>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <Btn small kind="ghost" onClick={() => upd({ archived: !c.archived })}>{c.archived ? 'Vrátit na web' : 'Archivovat'}</Btn>
-            <Btn small kind="danger" onClick={removeCamp}>Smazat kemp</Btn>
+          <Prepinac
+            value={!c.archived}
+            onChange={(v) => upd({ archived: !v })}
+            label="Zobrazovat kemp na webu"
+            popisZap="Zobrazuje se na webu"
+            popisVyp="Archivovaný — na webu není"
+          />
+          <div style={{ marginLeft: 'auto' }}>
+            <IkonaKos title={`Smazat kemp „${c.title}“`} onClick={removeCamp} />
           </div>
         </div>
         <Row>
@@ -837,8 +861,8 @@ export function Kempy() {
           <Field label="Začátek kempu" type="datetime-local" value={(c.startISO || '').slice(0, 16)} onChange={(v) => upd({ startISO: v })} width="230px" />
 
         </Row>
-      </Card>
-
+      {/* Všechno k jednomu kempu drží jeden rámeček — program, trenéři i dotazy
+          patří k té samé události, ne aby se rozpadly do samostatných bloků. */}
       <div style={{ fontWeight: 800, fontSize: 15, margin: '6px 0 10px' }}>Co je v ceně</div>
       <StringListEditor items={c.includes} onChange={(v) => upd({ includes: v })} placeholder="položka" columns={2} />
 
@@ -866,6 +890,7 @@ export function Kempy() {
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Časté dotazy</div>
       <ListEditor items={c.faq} onChange={(v) => upd({ faq: v })} itemTitle={(f) => f.q} newItem={{ q: '', a: '' }} addLabel="+ Přidat dotaz"
         renderItem={(f, u) => (<div><Field label="Otázka" value={f.q} onChange={(v) => u({ q: v })} /><div style={{ height: 8 }} /><Field label="Odpověď" textarea rows={2} value={f.a} onChange={(v) => u({ a: v })} /></div>)} />
+      </Card>
     </div>
   );
 }
@@ -931,7 +956,7 @@ export function Zpravy() {
                     <div style={{ background: '#fff', borderRadius: 10, padding: 16, fontSize: 14, color: '#3a3f47', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.text || 'Bez textu.'}</div>
                     <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                       <Btn small onClick={() => update(m._i, { status: done ? 'nová' : 'vyřízená' })}>{done ? 'Vrátit mezi nové' : 'Označit jako vyřízenou'}</Btn>
-                      {m.email && <a href={`mailto:${m.email}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem →</a>}
+                      {m.email && <a href={`mailto:${m.email}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem</a>}
                       <span style={{ marginLeft: 'auto' }}><Btn small kind="danger" onClick={() => remove(m._i)}>Smazat zprávu</Btn></span>
                     </div>
                   </div>
@@ -953,41 +978,54 @@ function statusPill(status) {
   return { fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10, marginLeft: 6, textTransform: 'uppercase', ...(map[status] || map['nová']) };
 }
 
-function SubTabs({ tab, setTab, tabs }) {
+// Filtr uvnitř sekce. Je to přepínač pohledu, ne hlavní akce — proto drobnější
+// než tlačítka typu „+ Přidat". Dřív byl výraznější než ona, což pletlo:
+// největší prvek na stránce nebyl ten, kterým se něco dělá.
+// `akce` = tlačítka vpravo na stejném řádku.
+function SubTabs({ tab, setTab, tabs, akce }) {
   return (
-    <div style={{ display: 'flex', gap: 8, marginBottom: 22, flexWrap: 'wrap' }}>
-      {tabs.map((t) => {
-        const active = tab === t.id;
-        return (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 10, cursor: 'pointer', transition: 'all .15s', border: active ? '1px solid #C1121F' : '1px solid #ECEEF1', background: active ? '#C1121F' : '#fff', color: active ? '#fff' : '#3a3f47' }}>
-            {t.label}
-            {t.badge != null && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 7px', borderRadius: 10, background: active ? 'rgba(255,255,255,.22)' : '#EFF1F4', color: active ? '#fff' : '#9AA1AC' }}>{t.badge}</span>}
-          </button>
-        );
-      })}
+    <div style={{ display: 'flex', gap: 12, marginBottom: 22, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'inline-flex', gap: 2, flexWrap: 'wrap', background: '#F4F5F7', borderRadius: 10, padding: 3 }}>
+        {tabs.map((t) => {
+          const active = tab === t.id;
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 700, padding: '7px 13px', borderRadius: 8, cursor: 'pointer', transition: 'all .15s', border: 'none', fontFamily: 'inherit', background: active ? '#fff' : 'transparent', color: active ? '#C1121F' : '#6B7280', boxShadow: active ? '0 1px 3px rgba(18,18,18,.12)' : 'none' }}>
+              {t.label}
+              {t.badge != null && <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: active ? '#FBEAEC' : '#E7E9ED', color: active ? '#C1121F' : '#9AA1AC' }}>{t.badge}</span>}
+            </button>
+          );
+        })}
+      </div>
+      {akce && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{akce}</div>}
     </div>
   );
 }
 
-function RezervaceTable({ reservations, areaOptions }) {
+function RezervaceTable({ reservations, areaOptions, openId, onOpenIdUsed }) {
   const [open, setOpen] = useState(null);
+  // index rezervace, u které je odemčené přepisování údajů od zákazníka
+  const [upravuji, setUpravuji] = useState(null);
+
+  // Přišlo kliknutí z kalendáře — otevřeme ten řádek. Hledá se podle `id`,
+  // ne podle pořadí: seznam se řadí od nejnovější, takže index se mění.
+  useEffect(() => {
+    if (!openId) return;
+    const i = reservations.findIndex((r) => r.id === openId);
+    if (i >= 0) setOpen(i);
+    onOpenIdUsed?.();
+  }, [openId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const update = (i, patch) => set('reservations', reservations.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   const remove = (i) => { if (confirm('Opravdu smazat tuto rezervaci?')) { set('reservations', reservations.filter((_, idx) => idx !== i)); setOpen(null); } };
-  const add = () => {
-    set('reservations', [{ ...emptyReservation(), id: `rezervace-${Date.now()}`, area: areaOptions[0] || '', source: 'telefon', createdAt: new Date().toISOString() }, ...reservations]);
-    setOpen(0);
-  };
+  // Přidání rezervace řeší sekce Pronájem (tlačítko je nahoře u filtru) —
+  // nová položka se sem propíše přes `openId` a rovnou se rozbalí.
 
   const cols = '1.5fr 1.1fr 1.1fr 90px 112px 190px';
   const cell = { padding: '12px 14px', fontSize: 13, display: 'flex', alignItems: 'center', minWidth: 0 };
 
   return (
     <div>
-      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
-        Rezervace odeslané z webu sem dorazí se stavem <b>nová</b> a termín rovnou drží.
-        Tlačítkem <b>Potvrdit</b> poptávku schválíš, tlačítkem <b>Zamítnout</b> termín zase uvolníš.
-        Klikni na řádek pro detail a úpravu. Vlastní rezervaci (když někdo zavolá / přijde osobně) přidáš tlačítkem dole.
-      </div>
+      
       <Card style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: 680 }}>
@@ -1017,9 +1055,25 @@ function RezervaceTable({ reservations, areaOptions }) {
                 </div>
                 {open === i && (
                   <div style={{ padding: 18, background: '#FBF6F6', borderBottom: '1px solid #F2F3F5' }}>
+                    {/* Co poptal zákazník z webu, se jen ukazuje — přepsat to jde
+                        po kliknutí na tužku. Rezervaci domluvenou telefonem
+                        zapisuje klub sám, tam zamykat není co. */}
+                    <UdajeZakaznika
+                      upravovat={r.source !== 'web' || upravuji === i}
+                      onUpravovat={() => setUpravuji(i)}
+                      polozky={[
+                        { label: 'Jméno / firma', value: r.name },
+                        { label: 'E-mail', value: r.email },
+                        { label: 'Telefon', value: r.phone },
+                        { label: 'Plocha', value: r.area },
+                        { label: 'Termín', value: [r.date, r.from && r.to ? `${r.from}–${r.to}` : ''].filter(Boolean).join(' · ') },
+                      ]}
+                    >
+                    <div>
                     <Row>
                       <Field label="Jméno / firma" value={r.name} onChange={(v) => update(i, { name: v })} />
-                      <Field label="Kontakt (tel. / e-mail)" value={r.contact} onChange={(v) => update(i, { contact: v })} />
+                      <Field label="E-mail" value={r.email} onChange={(v) => update(i, { email: v })} placeholder="jan@novak.cz" />
+                      <Field label="Telefon" value={r.phone} onChange={(v) => update(i, { phone: v })} placeholder="602 123 456" width="180px" />
                     </Row>
                     <div style={{ height: 10 }} />
                     <Row>
@@ -1027,6 +1081,24 @@ function RezervaceTable({ reservations, areaOptions }) {
                       <Field label="Datum" type="date" value={r.dateISO} onChange={(v) => update(i, { dateISO: v, date: czechDate(v) })} width="170px" />
                       <Field label="Od" value={r.from} onChange={(v) => update(i, { from: v, time: v })} width="100px" placeholder="18:00" />
                       <Field label="Do" value={r.to} onChange={(v) => update(i, { to: v })} width="100px" placeholder="19:00" />
+                    </Row>
+                    <div style={{ marginTop: 10 }}><Btn small onClick={() => setUpravuji(null)}>Hotovo</Btn></div>
+                    </div>
+                    </UdajeZakaznika>
+                    <div style={{ height: 10 }} />
+                    {/* Dlouhodobý pronájem: jeden záznam, který drží termín každý týden.
+                        Potvrzuje se jednou pro celou sérii. */}
+                    <Row>
+                      <Select label="Opakování" value={r.repeat} onChange={(v) => update(i, { repeat: v })} width="200px"
+                        options={REPEAT_MODES.map((m) => ({ value: m, label: REPEAT_LABELS[m] }))} />
+                      {r.repeat ? (
+                        <Field label="Opakovat do" type="date" value={r.repeatUntil} onChange={(v) => update(i, { repeatUntil: v })} width="170px" />
+                      ) : null}
+                      {r.repeat ? (
+                        <div style={{ flex: 1, minWidth: 200, alignSelf: 'end', fontSize: 12, color: '#6B7280', fontWeight: 600, paddingBottom: 12 }}>
+                          Drží stejný čas každý {r.repeat === 'biweekly' ? 'druhý ' : ''}týden{r.repeatUntil ? '' : ' — bez data konce běží dál'}.
+                        </div>
+                      ) : null}
                     </Row>
                     <div style={{ height: 10 }} />
                     <Row>
@@ -1038,7 +1110,7 @@ function RezervaceTable({ reservations, areaOptions }) {
                     <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                       {r.status !== 'potvrzená' && <Btn small kind="primary" onClick={() => update(i, { status: 'potvrzená' })}>Potvrdit rezervaci</Btn>}
                       {r.status !== 'zamítnutá' && <Btn small onClick={() => update(i, { status: 'zamítnutá' })}>Zamítnout (uvolní termín)</Btn>}
-                      {r.contact && r.contact.includes('@') && <a href={`mailto:${r.contact}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem</a>}
+                      {r.email && <a href={`mailto:${r.email}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem</a>}
                       <span style={{ marginLeft: 'auto' }}><Btn kind="danger" small onClick={() => remove(i)}>Smazat rezervaci</Btn></span>
                     </div>
                   </div>
@@ -1048,7 +1120,6 @@ function RezervaceTable({ reservations, areaOptions }) {
           </div>
         </div>
       </Card>
-      <div style={{ marginTop: 14 }}><Btn kind="primary" onClick={add}>+ Nová rezervace (telefon / osobně)</Btn></div>
     </div>
   );
 }
@@ -1059,10 +1130,7 @@ function RentalNastaveni({ settings }) {
   const sloty = daySlots(settings);
   return (
     <div>
-      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
-        Podle tohohle nastavení web nabízí volné termíny. Obsazenost se počítá z rezervací —
-        <b> nová i potvrzená</b> poptávka termín drží, zamítnutá ho zase uvolní.
-      </div>
+      
       <Card style={{ marginBottom: 16 }}>
         <Row>
           <Field label="Otevřeno od" value={settings.openFrom} onChange={(v) => upd({ openFrom: v })} width="140px" placeholder="08:00" />
@@ -1087,25 +1155,146 @@ function RentalNastaveni({ settings }) {
   );
 }
 
+// Týdenní kalendář obsazenosti. Jen zobrazuje — co je zabrané, počítá
+// `occurrencesInRange` v lib/rental.js, takže kalendář ukazuje přesně to,
+// co web nabízí a co server pouští dovnitř. Dlouhodobý nájem se tu proto
+// kreslí do všech svých termínů, i když je v datech jediný záznam.
+const DNY = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'];
+
+function pondeliTydne(dateISO) {
+  const [y, m, d] = dateISO.split('-').map(Number);
+  const den = (new Date(y, m - 1, d).getDay() + 6) % 7; // pondělí = 0
+  return shiftDays(dateISO, -den);
+}
+
+function RezervaceKalendar({ reservations, settings, areaOptions, onOpen }) {
+  const [pondeli, setPondeli] = useState(() => pondeliTydne(dateKey(new Date())));
+  const [plocha, setPlocha] = useState('');
+
+  const dny = Array.from({ length: 7 }, (_, i) => shiftDays(pondeli, i));
+  const sloty = daySlots(settings);
+  const vyskyty = occurrencesInRange(reservations, {
+    fromISO: pondeli,
+    toISO: dny[6],
+    area: plocha || undefined,
+  });
+  const dnesISO = dateKey(new Date());
+
+  // Termíny dne seřazené podle času — v buňce se vykreslí jen ty, co v ní začínají.
+  const vBunce = (dateISO, cas) => vyskyty.filter((v) => v.dateISO === dateISO && v.reservation.from === cas);
+
+  const posun = (tydnu) => setPondeli(shiftDays(pondeli, tydnu * 7));
+  const bunka = { padding: '4px 6px', borderRight: '1px solid #F2F3F5', borderBottom: '1px solid #F2F3F5', minHeight: 34, minWidth: 0 };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+        <Btn small onClick={() => posun(-1)}>Předchozí</Btn>
+        <Btn small onClick={() => setPondeli(pondeliTydne(dnesISO))}>Tento týden</Btn>
+        <Btn small onClick={() => posun(1)}>Další</Btn>
+        <div style={{ fontWeight: 800, fontSize: 14, marginLeft: 6 }}>{czechDate(pondeli)} – {czechDate(dny[6])}</div>
+        <div style={{ marginLeft: 'auto', minWidth: 200 }}>
+          <Select label="" value={plocha} onChange={setPlocha}
+            options={[{ value: '', label: 'Všechny plochy' }, ...areaOptions.map((a) => ({ value: a, label: a }))]} />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 14, fontSize: 12, color: '#6B7280', fontWeight: 600, marginBottom: 10, flexWrap: 'wrap' }}>
+        <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: '#1F8A4C', marginRight: 5 }} />potvrzená</span>
+        <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: '#fff', border: '2px dashed #C1121F', marginRight: 5 }} />nová — drží místo, čeká na tebe</span>
+        <span style={{ color: '#9AA1AC' }}>zamítnuté se nekreslí</span>
+      </div>
+
+      <Card style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <div style={{ minWidth: 760 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '64px repeat(7, 1fr)', background: '#FAFBFC', borderBottom: '1px solid #ECEEF1' }}>
+              <div style={{ ...bunka, minHeight: 0 }} />
+              {dny.map((dISO, i) => (
+                <div key={dISO} style={{ ...bunka, minHeight: 0, padding: '8px 6px', textAlign: 'center', background: dISO === dnesISO ? '#FBF6F6' : 'transparent' }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC' }}>{DNY[i].toUpperCase()}</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: dISO === dnesISO ? '#C1121F' : '#1E1E1E' }}>{Number(dISO.slice(8, 10))}. {Number(dISO.slice(5, 7))}.</div>
+                </div>
+              ))}
+            </div>
+
+            {sloty.length === 0 && <div style={{ padding: 24, textAlign: 'center', color: '#9AA1AC', fontWeight: 600, fontSize: 14 }}>Otevírací doba není nastavená — mřížka nemá co vykreslit.</div>}
+
+            {sloty.map((cas) => (
+              <div key={cas} style={{ display: 'grid', gridTemplateColumns: '64px repeat(7, 1fr)' }}>
+                <div style={{ ...bunka, fontSize: 11, fontWeight: 700, color: '#9AA1AC', background: '#FAFBFC' }}>{cas}</div>
+                {dny.map((dISO) => (
+                  <div key={dISO} style={{ ...bunka, background: dISO === dnesISO ? '#FEFBFB' : '#fff' }}>
+                    {vBunce(dISO, cas).map(({ reservation: r }, i) => {
+                      const potvrzena = r.status === 'potvrzená';
+                      return (
+                        <div key={`${r.id}-${i}`} onClick={() => onOpen(r)} title={`${r.name || 'Bez jména'} · ${r.area || '—'} · ${r.from}–${r.to}${r.repeat ? ` · ${REPEAT_LABELS[r.repeat]}` : ''}`}
+                          style={{
+                            cursor: 'pointer', borderRadius: 6, padding: '3px 6px', marginBottom: 3, fontSize: 11, fontWeight: 700, lineHeight: 1.3,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            background: potvrzena ? '#1F8A4C' : '#fff',
+                            color: potvrzena ? '#fff' : '#C1121F',
+                            border: potvrzena ? '2px solid #1F8A4C' : '2px dashed #C1121F',
+                          }}>
+                          {r.repeat ? '⟳ ' : ''}{r.name || 'Bez jména'}
+                          {!plocha && r.area ? <span style={{ opacity: .75, fontWeight: 600 }}> · {r.area}</span> : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10 }}>
+        Klikni na termín — otevře se detail v záložce Rezervace, kde se potvrzuje a upravuje.
+        Symbol ⟳ značí dlouhodobý pronájem; opakuje se, i když je v datech jediný záznam.
+      </div>
+    </div>
+  );
+}
+
 export function Pronajem() {
   const d = useData();
   const [tab, setTab] = useState('rezervace');
+  const [openId, setOpenId] = useState('');
   const areaOptions = d.rentalPlans.map((p) => p.name);
   const newCount = d.reservations.filter((r) => r.status === 'nová').length;
+
+  // Klik v kalendáři přepne na Rezervace a rozbalí ten správný řádek.
+  const otevriRezervaci = (r) => { setOpenId(r.id); setTab('rezervace'); };
+
+  // Rezervaci, kterou někdo domluvil telefonem, zakládá sekce — tlačítko patří
+  // nahoru k filtru, ne pod tabulku, kam se muselo scrollovat.
+  const pridatRezervaci = () => {
+    const id = `rezervace-${Date.now()}`;
+    set('reservations', [{ ...emptyReservation(), id, area: areaOptions[0] || '', source: 'telefon', createdAt: new Date().toISOString() }, ...d.reservations]);
+    setOpenId(id);
+    setTab('rezervace');
+  };
 
   return (
     <div>
       <SectionHead title="Pronájem areálu" desc="Správa rezervací a nastavení pronajímaných ploch" />
-      <SubTabs tab={tab} setTab={setTab} tabs={[
-        { id: 'rezervace', label: 'Rezervace', badge: newCount },
-        { id: 'plochy', label: 'Plochy & ceník' },
-        { id: 'nastaveni', label: 'Otevírací doba' },
-      ]} />
+      <SubTabs
+        tab={tab} setTab={setTab}
+        akce={<Btn kind="primary" small onClick={pridatRezervaci}>+ Nová rezervace (telefon / osobně)</Btn>}
+        tabs={[
+          { id: 'rezervace', label: 'Rezervace', badge: newCount },
+          { id: 'kalendar', label: 'Kalendář' },
+          { id: 'plochy', label: 'Plochy & ceník' },
+          { id: 'nastaveni', label: 'Otevírací doba' },
+        ]} />
 
       {tab === 'nastaveni' ? (
         <RentalNastaveni settings={d.rentalSettings} />
+      ) : tab === 'kalendar' ? (
+        <RezervaceKalendar reservations={d.reservations} settings={d.rentalSettings} areaOptions={areaOptions} onOpen={otevriRezervaci} />
       ) : tab === 'rezervace' ? (
-        <RezervaceTable reservations={d.reservations} areaOptions={areaOptions} />
+        <RezervaceTable reservations={d.reservations} areaOptions={areaOptions} openId={openId} onOpenIdUsed={() => setOpenId('')} />
       ) : (
         <div>
           <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 6px' }}>Hřiště k pronájmu</div>
@@ -1207,6 +1396,8 @@ export function Registrace() {
   const { cmsRegistrations, teams } = useData();
   const [tab, setTab] = useState('nove');
   const [open, setOpen] = useState(null);
+  // index přihlášky, u které je odemčené přepisování údajů od zájemce
+  const [upravuji, setUpravuji] = useState(null);
 
   const newCount = cmsRegistrations.filter((r) => r.status === 'nová').length;
   const shown = cmsRegistrations
@@ -1228,10 +1419,7 @@ export function Registrace() {
   return (
     <div>
       <SectionHead title="Přihlášky do klubu" desc="Zájemci o nábor z formuláře na webu — potvrď je, nebo zamítni" count={newCount} />
-      <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
-        Přihlášky chodí z formuláře <b>Přihláška do klubu</b> na stránce Kontakt. Ozvi se rodičům,
-        domluv první trénink a přihlášku pak označ jako <b>vyřízenou</b> — ať víš, koho jsi už kontaktovala.
-      </div>
+      
       <SubTabs tab={tab} setTab={setTab} tabs={[
         { id: 'nove', label: 'Nové', badge: newCount },
         { id: 'vyrizene', label: 'Vyřízené', badge: cmsRegistrations.length - newCount },
@@ -1262,18 +1450,37 @@ export function Registrace() {
 
                 {isOpen && (
                   <div style={{ padding: 18, background: '#FBF6F6', borderTop: '1px solid #F2F3F5' }}>
-                    <Row>
-                      <Field label="Jméno zájemce" value={r.name} onChange={(v) => update(r._i, { name: v })} />
-                      <Field label="Datum narození" type="date" value={r.birthdate} onChange={(v) => update(r._i, { birthdate: v })} width="180px" />
-                      <Select label="Tým / kategorie" value={r.team} onChange={(v) => update(r._i, { team: v })} options={teams.map((t) => t.name)} width="220px" />
-                    </Row>
-                    <div style={{ height: 10 }} />
-                    <Row>
-                      <Field label="Rodič / zákonný zástupce" value={r.parent} onChange={(v) => update(r._i, { parent: v })} />
-                      <Field label="Kontakt (telefon / e-mail)" value={r.contact} onChange={(v) => update(r._i, { contact: v })} />
-                    </Row>
-                    <div style={{ height: 10 }} />
-                    <Field label="Poznámka" textarea rows={2} value={r.note} onChange={(v) => update(r._i, { note: v })} />
+                    {/* Co vyplnil zájemce, se jen ukazuje. Psát do toho jde až
+                        po kliknutí na tužku — jinak se snadno přepíše, co
+                        člověk skutečně odeslal. */}
+                    <UdajeZakaznika
+                      upravovat={upravuji === r._i}
+                      onUpravovat={() => setUpravuji(r._i)}
+                      polozky={[
+                        { label: 'Jméno zájemce', value: r.name },
+                        { label: 'Datum narození', value: r.birthdate },
+                        { label: 'Tým / kategorie', value: r.team },
+                        { label: 'Rodič / zákonný zástupce', value: r.parent },
+                        { label: 'Kontakt', value: r.contact },
+                        { label: 'Poznámka', value: r.note },
+                      ]}
+                    >
+                      <div>
+                        <Row>
+                          <Field label="Jméno zájemce" value={r.name} onChange={(v) => update(r._i, { name: v })} />
+                          <Field label="Datum narození" type="date" value={r.birthdate} onChange={(v) => update(r._i, { birthdate: v })} width="180px" />
+                          <Select label="Tým / kategorie" value={r.team} onChange={(v) => update(r._i, { team: v })} options={teams.map((t) => t.name)} width="220px" />
+                        </Row>
+                        <div style={{ height: 10 }} />
+                        <Row>
+                          <Field label="Rodič / zákonný zástupce" value={r.parent} onChange={(v) => update(r._i, { parent: v })} />
+                          <Field label="Kontakt (telefon / e-mail)" value={r.contact} onChange={(v) => update(r._i, { contact: v })} />
+                        </Row>
+                        <div style={{ height: 10 }} />
+                        <Field label="Poznámka" textarea rows={2} value={r.note} onChange={(v) => update(r._i, { note: v })} />
+                        <div style={{ marginTop: 10 }}><Btn small onClick={() => setUpravuji(null)}>Hotovo</Btn></div>
+                      </div>
+                    </UdajeZakaznika>
 
                     <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
                       <Btn small onClick={() => update(r._i, { status: hotovo ? 'nová' : 'vyřízená' })}>

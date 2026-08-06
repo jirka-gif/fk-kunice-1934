@@ -8,6 +8,8 @@ import {
   toPlayer,
   clone,
   emptyNextMatch,
+  matchWhenText,
+  sortResults,
   emptyLastMatch,
   emptyMatchDetail,
 } from '@/lib/defaults';
@@ -157,5 +159,38 @@ describe('prázdné zápasové struktury', () => {
     expect(emptyNextMatch().home.name).toBe('KUNICE');
     expect(emptyLastMatch()).toHaveProperty('scorers');
     expect(emptyMatchDetail().score).toEqual({ home: 0, away: 0 });
+  });
+});
+
+// --- zápasy: jedno zadání data, řazení výsledků ------------------------------
+describe('text termínu zápasu', () => {
+  it('složí den, čas a soutěž', () => {
+    expect(matchWhenText('2026-09-06T16:30', 'III. TŘÍDA')).toBe('NE 16:30 · III. TŘÍDA');
+  });
+  it('bez soutěže vrátí jen termín', () => {
+    expect(matchWhenText('2026-09-06T16:30', '')).toBe('NE 16:30');
+  });
+  it('bez data vrátí jen soutěž — nevznikne osamocený oddělovač', () => {
+    expect(matchWhenText('', 'III. TŘÍDA')).toBe('III. TŘÍDA');
+    expect(matchWhenText('nesmysl', 'III. TŘÍDA')).toBe('III. TŘÍDA');
+  });
+});
+
+describe('řazení výsledků', () => {
+  it('řadí od nejnovějšího', () => {
+    const out = sortResults([
+      { opp: 'A', dateISO: '2026-05-01' },
+      { opp: 'B', dateISO: '2026-06-01' },
+      { opp: 'C', dateISO: '2026-04-01' },
+    ]);
+    expect(out.map((r) => r.opp)).toEqual(['B', 'A', 'C']);
+  });
+  it('záznamy bez data nechá na konci v původním pořadí', () => {
+    const out = sortResults([
+      { opp: 'bez data 1' },
+      { opp: 'S datem', dateISO: '2026-06-01' },
+      { opp: 'bez data 2' },
+    ]);
+    expect(out.map((r) => r.opp)).toEqual(['S datem', 'bez data 1', 'bez data 2']);
   });
 });
