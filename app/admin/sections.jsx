@@ -61,15 +61,36 @@ const WHY_ICONS = [
 ];
 
 // dvojice „nadpis sekce" (eyebrow + titulek) na hlavní stránce
+// Náhled textu, který se upravuje přímo na webu. V administraci se jen
+// ukazuje, aby bylo vidět, co na webu je — měnit se má na jednom místě,
+// ne na dvou.
+function NaWebu({ polozky, odkaz = '/?upravy=1' }) {
+  return (
+    <div style={{ background: '#FAFBFC', border: '1px solid #ECEEF1', borderRadius: 10, padding: '12px 14px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 26px' }}>
+        {polozky.filter((p) => p).map((p) => (
+          <div key={p.label} style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', textTransform: 'uppercase' }}>{p.label}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: p.value ? '#1E1E1E' : '#C7CCD3', marginTop: 2, whiteSpace: 'pre-wrap' }}>{p.value || 'nevyplněno'}</div>
+          </div>
+        ))}
+      </div>
+      <a href={odkaz} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 10, fontSize: 12, fontWeight: 700, color: '#C1121F' }}>
+        Upravit přímo na webu
+      </a>
+    </div>
+  );
+}
+
 function SectionTexts({ label, value, onChange, extra }) {
   return (
     <Card style={{ marginBottom: 12 }}>
       <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>{label}</div>
-      <Row>
-        <Field label="Malý nadpis nad" value={value.eyebrow} onChange={(v) => onChange({ eyebrow: v })} width="240px" />
-        <Field label="Nadpis" value={value.title} onChange={(v) => onChange({ title: v })} />
-      </Row>
-      {/* popisky tlačítek a jednotky měníš jednou za rok — ať nepřekáží */}
+      <NaWebu polozky={[
+        { label: 'Malý nadpis nad', value: value.eyebrow },
+        { label: 'Nadpis', value: value.title },
+      ]} />
+      {/* popisky tlačítek a jednotky se na webu upravit nedají, zůstávají tady */}
       {extra && <Pokrocile title="Texty tlačítek a popisky">{extra}</Pokrocile>}
     </Card>
   );
@@ -97,12 +118,11 @@ export function Domu() {
       {tab === 'hero' && (
         <div>
           <Card style={{ marginBottom: 16 }}>
-            <Row>
-              <Field label="Hlavní nadpis" value={h.title} onChange={(v) => sec('hero')({ title: v })} />
-              <Field label="Psaný podtitulek" value={h.script} onChange={(v) => sec('hero')({ script: v })} />
-            </Row>
-            <div style={{ height: 12 }} />
-            <Field label="Odstavec (každý řádek se zalomí zvlášť)" textarea rows={3} value={h.perex} onChange={(v) => sec('hero')({ perex: v })} />
+            <NaWebu polozky={[
+              { label: 'Hlavní nadpis', value: h.title },
+              { label: 'Psaný podtitulek', value: h.script },
+              { label: 'Odstavec', value: h.perex },
+            ]} />
 
             <Pokrocile title="Drobnosti">
               <Field label="Popisek u šipky dolů" value={h.scrollLabel} onChange={(v) => sec('hero')({ scrollLabel: v })} width="220px" />

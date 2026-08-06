@@ -4,9 +4,18 @@ import Link from 'next/link';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { Hov, Eyebrow, H2 } from './components/ui';
 import { COLORS, PH, PH_ARR, photo, initials, wldBadge } from '@/lib/design';
-import { useContent } from '@/lib/store';
+import { useContent, updateData } from '@/lib/store';
+import { useSession } from '@/lib/session';
 import { Blok, Text } from './components/Text';
 import { ProhlizecFotek } from './components/ProhlizecFotek';
+
+// Ovládání přeskládání dlaždic — jen v režimu úprav.
+const dlazdiceBtn = (vypnuto) => ({
+  width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  borderRadius: 8, border: '1px solid rgba(255,255,255,.35)', background: 'rgba(10,10,12,.72)',
+  color: vypnuto ? 'rgba(255,255,255,.35)' : '#fff', fontSize: 16, fontWeight: 800,
+  cursor: vypnuto ? 'default' : 'pointer', fontFamily: 'inherit', lineHeight: 1,
+});
 
 const cardSh = 'box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 26px rgba(18,18,18,.06)';
 
@@ -25,6 +34,21 @@ export default function Home() {
   const newsBg = (item, i) => (item && item.image ? `url(${item.image})` : PH_ARR[i % PH_ARR.length]);
   // Do prohlížeče jdou jen dlaždice se skutečnou fotkou.
   const fotkyGalerie = gallery.filter((g) => g && g.image);
+
+  // V režimu úprav jde s dlaždicemi Momentů přeskládat přímo na webu —
+  // tam je člověk vidí ve skutečném rozložení, na rozdíl od administrace.
+  const { editMode, muzeUpravit } = useSession();
+  const muzePreskladat = editMode && muzeUpravit('domu');
+  const presunDlazdici = (i, smer) => {
+    const j = i + smer;
+    if (j < 0 || j > 7) return;
+    updateData((d) => {
+      const seznam = d.gallery.slice();
+      while (seznam.length < 8) seznam.push({ ...(seznam[0] || {}), id: `foto-${seznam.length + 1}`, image: '', alt: '' });
+      [seznam[i], seznam[j]] = [seznam[j], seznam[i]];
+      d.gallery = seznam;
+    });
+  };
 
   const teamCards = teams.map((t, i) => ({
     id: t.id, name: t.name, age: t.cat, league: t.comp.toUpperCase(),
@@ -336,6 +360,15 @@ export default function Home() {
               >
                 <div className="fk-zi" role="img" aria-label={(item && item.alt) || ''} style={{ position: 'absolute', inset: 0, background: bg, backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 <Hov style="position:absolute;inset:0;background:rgba(193,18,31,0);transition:background .3s" hover="background:rgba(193,18,31,.28)" />
+                {muzePreskladat && (
+                  <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', left: 8, top: 8, display: 'flex', gap: 6, zIndex: 3 }}>
+                    <button type="button" aria-label="Posunout dlaždici dopředu" title="Posunout dopředu" disabled={i === 0}
+                      onClick={() => presunDlazdici(i, -1)} style={dlazdiceBtn(i === 0)}>‹</button>
+                    <button type="button" aria-label="Posunout dlaždici dozadu" title="Posunout dozadu" disabled={i === 7}
+                      onClick={() => presunDlazdici(i, 1)} style={dlazdiceBtn(i === 7)}>›</button>
+                    <span style={{ ...dlazdiceBtn(false), cursor: 'default', width: 'auto', padding: '0 8px' }}>{i + 1}</span>
+                  </div>
+                )}
               </Hov>
             );
           })}
