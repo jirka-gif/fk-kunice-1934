@@ -3,8 +3,9 @@ import { useState, useEffect, Fragment } from 'react';
 import { useData, setSection, updateData, emptyCamp, emptyNews, slugify, emptySponsor, emptyGalleryItem, emptyReservation, emptyRegistration } from '@/lib/store';
 import { czechDate, daySlots, occurrencesInRange, shiftDays, dateKey, toMinutes, REPEAT_LABELS, REPEAT_MODES } from '@/lib/rental';
 import { matchWhenText, sortResults } from '@/lib/defaults';
+import { reservationDecisionMail, registrationDecisionMail } from '@/lib/mail';
 import { postFromResult } from '@/lib/social';
-import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField, Pokrocile, Prepinac, IkonaKos, UdajeZakaznika } from './adminui';
+import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField, Pokrocile, Prepinac, IkonaKos, IkonaTuzka, UdajeZakaznika, ZpravaZadateli } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
 const EV_TYPE_OPTS = [{ value: 'goal', label: 'Gól' }, { value: 'yellow', label: 'Žlutá karta' }, { value: 'red', label: 'Červená karta' }];
@@ -816,12 +817,15 @@ export function Kempy() {
   const idx = Math.min(sel, Math.max(0, camps.length - 1));
   const c = camps[idx];
 
+  // Kemp je sbalený stejně jako novinka — rozbalí ho tužka. Nový se otevře sám.
+  const [rozbaleno, setRozbaleno] = useState(false);
   const upd = (patch) => set('camps', camps.map((cm, i) => (i === idx ? { ...cm, ...patch } : cm)));
   const addCamp = () => {
     const id = `kemp-${Date.now()}`;
     // Nový kemp je vypnutý — na web ho pustí až přepínač, až bude vyplněný.
     set('camps', [...camps, { ...emptyCamp(), id, title: 'Nový kemp', tag: 'NOVÝ', badge: 'NOVÝ KEMP', img: 'sunset', archived: true }]);
     setSel(camps.length);
+    setRozbaleno(true);
   };
   const removeCamp = () => {
     if (!confirm(`Opravdu smazat kemp „${c.title}“? Tuto akci nelze vrátit zpět.`)) return;
@@ -872,10 +876,13 @@ export function Kempy() {
             popisZap="Zobrazuje se na webu"
             popisVyp="Archivovaný — na webu není"
           />
-          <div style={{ marginLeft: 'auto' }}>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+            <IkonaTuzka title={rozbaleno ? 'Sbalit' : 'Upravit kemp'} onClick={() => setRozbaleno((o) => !o)} />
             <IkonaKos title={`Smazat kemp „${c.title}“`} onClick={removeCamp} />
           </div>
         </div>
+        {!rozbaleno ? null : (
+        <div>
         <Row>
           <Field label="Odznak (badge)" value={c.badge} onChange={(v) => upd({ badge: v })} />
           <Field label="Štítek na homepage" value={c.tag} onChange={(v) => upd({ tag: v })} width="180px" />
@@ -928,6 +935,8 @@ export function Kempy() {
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Časté dotazy</div>
       <ListEditor items={c.faq} onChange={(v) => upd({ faq: v })} itemTitle={(f) => f.q} newItem={{ q: '', a: '' }} addLabel="+ Přidat dotaz"
         renderItem={(f, u) => (<div><Field label="Otázka" value={f.q} onChange={(v) => u({ q: v })} /><div style={{ height: 8 }} /><Field label="Odpověď" textarea rows={2} value={f.a} onChange={(v) => u({ a: v })} /></div>)} />
+        </div>
+        )}
       </Card>
     </div>
   );
@@ -1039,10 +1048,13 @@ function SubTabs({ tab, setTab, tabs, akce }) {
   );
 }
 
-function RezervaceTable({ reservations, areaOptions, openId, onOpenIdUsed }) {
+// `klubEmail` se podepisuje pod zprávy žadateli, aby věděl, kam odepsat.
+function RezervaceTable({ reservations, areaOptions, openId, onOpenIdUsed, klubEmail }) {
   const [open, setOpen] = useState(null);
   // index rezervace, u které je odemčené přepisování údajů od zákazníka
   const [upravuji, setUpravuji] = useState(null);
+  // rozepsaná zpráva žadateli: { i, subject, text }
+  const [zprava, setZprava] = useState(null);
 
   // Přišlo kliknutí z kalendáře — otevřeme ten řádek. Hledá se podle `id`,
   // ne podle pořadí: seznam se řadí od nejnovější, takže index se mění.
@@ -1146,11 +1158,22 @@ function RezervaceTable({ reservations, areaOptions, openId, onOpenIdUsed }) {
                     <div style={{ height: 10 }} />
                     <Field label="Poznámka" textarea rows={2} value={r.note} onChange={(v) => update(i, { note: v })} />
                     <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                      {r.status !== 'potvrzená' && <Btn small kind="primary" onClick={() => update(i, { status: 'potvrzená' })}>Potvrdit rezervaci</Btn>}
-                      {r.status !== 'zamítnutá' && <Btn small onClick={() => update(i, { status: 'zamítnutá' })}>Zamítnout (uvolní termín)</Btn>}
-                      {r.email && <a href={`mailto:${r.email}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem</a>}
+                      {/* Změna stavu rovnou otevře předvyplněnou zprávu. Nic
+                          neodejde bez kliknutí na Odeslat. */}
+                      {r.status !== 'potvrzená' && <Btn small kind="primary" onClick={() => { update(i, { status: 'potvrzená' }); setZprava({ i, ...reservationDecisionMail(r, true, klubEmail) }); }}>Potvrdit rezervaci</Btn>}
+                      {r.status !== 'zamítnutá' && <Btn small onClick={() => { update(i, { status: 'zamítnutá' }); setZprava({ i, ...reservationDecisionMail(r, false, klubEmail) }); }}>Zamítnout (uvolní termín)</Btn>}
+                      {r.email && <Btn small onClick={() => setZprava({ i, subject: '', text: '' })}>Napsat zprávu</Btn>}
                       <span style={{ marginLeft: 'auto' }}><Btn kind="danger" small onClick={() => remove(i)}>Smazat rezervaci</Btn></span>
                     </div>
+                    {zprava && zprava.i === i && (
+                      <ZpravaZadateli
+                        typ="rezervace" id={r.id} email={r.email}
+                        predvyplneno={{ subject: zprava.subject, text: zprava.text }}
+                        historie={r.messages || []}
+                        onOdeslano={(z) => update(i, { messages: [z, ...(r.messages || [])].slice(0, 50) })}
+                        onZavrit={() => setZprava(null)}
+                      />
+                    )}
                   </div>
                 )}
               </Fragment>
@@ -1332,7 +1355,7 @@ export function Pronajem() {
       ) : tab === 'kalendar' ? (
         <RezervaceKalendar reservations={d.reservations} settings={d.rentalSettings} areaOptions={areaOptions} onOpen={otevriRezervaci} />
       ) : tab === 'rezervace' ? (
-        <RezervaceTable reservations={d.reservations} areaOptions={areaOptions} openId={openId} onOpenIdUsed={() => setOpenId('')} />
+        <RezervaceTable reservations={d.reservations} areaOptions={areaOptions} openId={openId} onOpenIdUsed={() => setOpenId('')} klubEmail={d.club.email} />
       ) : (
         <div>
           <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 6px' }}>Hřiště k pronájmu</div>
@@ -1431,11 +1454,14 @@ export function Partneri() {
 
 // ---------------------------------------------------------------- REGISTRACE
 export function Registrace() {
-  const { cmsRegistrations, teams } = useData();
+  const { cmsRegistrations, teams, club } = useData();
+  const klubEmail = club.email;
   const [tab, setTab] = useState('nove');
   const [open, setOpen] = useState(null);
   // index přihlášky, u které je odemčené přepisování údajů od zájemce
   const [upravuji, setUpravuji] = useState(null);
+  // rozepsaná zpráva rodiči: { i, subject, text }
+  const [zprava, setZprava] = useState(null);
 
   const newCount = cmsRegistrations.filter((r) => r.status === 'nová').length;
   const shown = cmsRegistrations
@@ -1499,7 +1525,7 @@ export function Registrace() {
                         { label: 'Datum narození', value: r.birthdate },
                         { label: 'Tým / kategorie', value: r.team },
                         { label: 'Rodič / zákonný zástupce', value: r.parent },
-                        { label: 'Kontakt', value: r.contact },
+                        { label: 'E-mail', value: r.email || r.contact },
                         { label: 'Poznámka', value: r.note },
                       ]}
                     >
@@ -1512,7 +1538,8 @@ export function Registrace() {
                         <div style={{ height: 10 }} />
                         <Row>
                           <Field label="Rodič / zákonný zástupce" value={r.parent} onChange={(v) => update(r._i, { parent: v })} />
-                          <Field label="Kontakt (telefon / e-mail)" value={r.contact} onChange={(v) => update(r._i, { contact: v })} />
+                          <Field label="E-mail" value={r.email} onChange={(v) => update(r._i, { email: v })} placeholder="rodic@email.cz" />
+                          <Field label="Telefon" value={r.phone} onChange={(v) => update(r._i, { phone: v })} width="180px" />
                         </Row>
                         <div style={{ height: 10 }} />
                         <Field label="Poznámka" textarea rows={2} value={r.note} onChange={(v) => update(r._i, { note: v })} />
@@ -1521,13 +1548,24 @@ export function Registrace() {
                     </UdajeZakaznika>
 
                     <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <Btn small onClick={() => update(r._i, { status: hotovo ? 'nová' : 'vyřízená' })}>
+                      {/* Vyřízení i zamítnutí otevřou předvyplněnou zprávu.
+                          Odejde až po kliknutí na Odeslat. */}
+                      <Btn small onClick={() => { update(r._i, { status: hotovo ? 'nová' : 'vyřízená' }); if (!hotovo) setZprava({ i: r._i, ...registrationDecisionMail(r, true, klubEmail) }); }}>
                         {hotovo ? 'Vrátit mezi nové' : 'Označit jako vyřízenou'}
                       </Btn>
-                      {r.status !== 'zamítnutá' && <Btn small onClick={() => update(r._i, { status: 'zamítnutá' })}>Zamítnout</Btn>}
-                      {r.contact.includes('@') && <a href={`mailto:${r.contact}`} style={{ fontSize: 12, fontWeight: 700, color: '#C1121F' }}>Odpovědět e-mailem</a>}
+                      {r.status !== 'zamítnutá' && <Btn small onClick={() => { update(r._i, { status: 'zamítnutá' }); setZprava({ i: r._i, ...registrationDecisionMail(r, false, klubEmail) }); }}>Zamítnout</Btn>}
+                      {r.email && <Btn small onClick={() => setZprava({ i: r._i, subject: '', text: '' })}>Napsat zprávu</Btn>}
                       <span style={{ marginLeft: 'auto' }}><Btn small kind="danger" onClick={() => remove(r._i)}>Smazat</Btn></span>
                     </div>
+                    {zprava && zprava.i === r._i && (
+                      <ZpravaZadateli
+                        typ="prihlaska" id={r.id} email={r.email}
+                        predvyplneno={{ subject: zprava.subject, text: zprava.text }}
+                        historie={r.messages || []}
+                        onOdeslano={(z) => update(r._i, { messages: [z, ...(r.messages || [])].slice(0, 50) })}
+                        onZavrit={() => setZprava(null)}
+                      />
+                    )}
                   </div>
                 )}
               </Card>

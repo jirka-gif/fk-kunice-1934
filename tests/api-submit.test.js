@@ -205,3 +205,17 @@ describe('přihlášky v obsahu', () => {
     expect(mergeStored({ cmsRegistrations: 'nesmysl' }).cmsRegistrations).toEqual([]);
   });
 });
+
+describe('e-mail u přihlášky', () => {
+  it('vytáhne adresu z volného kontaktu, aby šlo rodiči odepsat', async () => {
+    await POST(req({ type: 'registration', payload: { name: 'Tomáš Novák', parent: 'Eva Nová', contact: '602 123 456 · eva@novakovi.cz' } }));
+    const data = mergeStored(globalThis.__fkMemStore.data);
+    expect(data.cmsRegistrations[0].email).toBe('eva@novakovi.cz');
+  });
+
+  it('bez adresy v kontaktu zůstane e-mail prázdný (a admin to pozná)', async () => {
+    await POST(req({ type: 'registration', payload: { name: 'Petr', contact: '602 123 456' } }));
+    const data = mergeStored(globalThis.__fkMemStore.data);
+    expect(data.cmsRegistrations[0].email).toBe('');
+  });
+});

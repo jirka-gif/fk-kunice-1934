@@ -229,6 +229,11 @@ export function IkonaKos({ title = 'Smazat', onClick }) {
   return <IkonaBtn title={title} onClick={onClick} cerveny><Icon name="trash" size={15} /></IkonaBtn>;
 }
 
+// Tužka pro rozbalení k úpravě mimo seznam (role, karty).
+export function IkonaTuzka({ title = 'Upravit', onClick }) {
+  return <IkonaBtn title={title} onClick={onClick} cerveny><Icon name="pencil" size={15} /></IkonaBtn>;
+}
+
 // `bezPridat` = tlačítko na přidání si sekce kreslí sama (v hlavičce vedle
 // nadpisu), aby se k němu u dlouhého seznamu nemuselo scrollovat.
 export function ListEditor({ items, onChange, newItem, renderItem, addLabel = '+ Přidat', itemTitle, bezPridat = false, otevriIndex = null, onOtevrenoPouzito }) {
@@ -306,5 +311,84 @@ export function StringListEditor({ items, onChange, placeholder = 'Nová položk
       </div>
       <Btn kind="ghost" small onClick={() => onChange([...items, ''])}>+ Přidat ({placeholder})</Btn>
     </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+//  ZPRÁVA ŽADATELI
+//  Otevře se předvyplněná (potvrzení / zamítnutí), text jde dopsat a nic
+//  neodejde bez kliknutí na Odeslat. Pod ní je historie toho, co už odešlo —
+//  včetně neúspěchů, aby nevypadaly stejně jako doručené e-maily.
+// -----------------------------------------------------------------------------
+export function ZpravaZadateli({ typ, id, email, predvyplneno, onZavrit, historie = [], onOdeslano }) {
+  const [subject, setSubject] = useState(predvyplneno?.subject || '');
+  const [text, setText] = useState(predvyplneno?.text || '');
+  const [stav, setStav] = useState(null); // { ok, zprava }
+  const [odesilam, setOdesilam] = useState(false);
+
+  const odeslat = async () => {
+    setOdesilam(true); setStav(null);
+    try {
+      const res = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ typ, id, subject, text }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const uspech = res.ok;
+      setStav(uspech
+        ? { ok: true, zprava: `Odesláno na ${data.to || email}.` }
+        : { ok: false, zprava: data.error || 'E-mail se nepodařilo odeslat.' });
+      // Historii zapsal server. Promítneme ji i sem, aby bylo hned vidět, co
+      // se stalo — jinak by se objevila až po načtení stránky.
+      onOdeslano?.({
+        at: new Date().toISOString(), to: email, subject, text,
+        ok: uspech, error: uspech ? '' : (data.error || ''),
+      });
+    } catch {
+      setStav({ ok: false, zprava: 'Server je nedostupný. Zkus to prosím znovu.' });
+    } finally {
+      setOdesilam(false);
+    }
+  };
+
+  if (!email) {
+    return (
+      <Card style={{ marginTop: 12, background: '#FAFBFC' }}>
+        <div style={{ fontSize: 13, color: '#6B7280', fontWeight: 600 }}>
+          U záznamu není e-mail, takže odepsat nejde. Doplň ho v údajích výš.
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card style={{ marginTop: 12, background: '#FAFBFC' }}>
+      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>Zpráva pro {email}</div>
+      <Field label="Předmět" value={subject} onChange={setSubject} />
+      <div style={{ height: 10 }} />
+      <Field label="Text" textarea rows={8} value={text} onChange={setText} />
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Btn small kind="primary" onClick={odeslat}>{odesilam ? 'Odesílám…' : 'Odeslat'}</Btn>
+        {onZavrit && <Btn small onClick={onZavrit}>Zavřít</Btn>}
+        {stav && (
+          <span style={{ fontSize: 12, fontWeight: 700, color: stav.ok ? '#1F8A4C' : '#C1121F' }}>{stav.zprava}</span>
+        )}
+      </div>
+
+      {historie.length > 0 && (
+        <div style={{ marginTop: 16, borderTop: `1px solid ${LINE}`, paddingTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', textTransform: 'uppercase', marginBottom: 8 }}>Odeslané zprávy</div>
+          {historie.map((z, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 12, marginBottom: 6 }}>
+              <span style={{ fontWeight: 800, color: z.ok ? '#1F8A4C' : '#C1121F', flex: 'none' }}>{z.ok ? 'odesláno' : 'neodesláno'}</span>
+              <span style={{ color: '#9AA1AC', flex: 'none' }}>{String(z.at || '').slice(0, 16).replace('T', ' ')}</span>
+              <span style={{ color: '#3a3f47', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{z.subject}</span>
+              {!z.ok && z.error && <span style={{ color: '#C1121F' }}>— {z.error}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }

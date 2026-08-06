@@ -5,7 +5,7 @@
 //  (/api/users, /api/roles), protože obsahují hesla.
 // =============================================================================
 import { useCallback, useEffect, useState } from 'react';
-import { Card, Btn, Field, Row, Select, SectionHead } from './adminui';
+import { Card, Btn, Field, Row, Select, SectionHead, IkonaKos, IkonaTuzka } from './adminui';
 import { ADMIN_SECTIONS, LEVELS, LEVEL_LABELS } from '@/lib/permissions';
 
 const RED = '#C1121F';
@@ -116,11 +116,17 @@ export function Uzivatele() {
     setRoles((rs) => rs.map((r) => (r.id === roleId ? { ...r, permissions: { ...r.permissions, [sectionId]: level } } : r)));
   };
   const setRoleField = (roleId, patch) => setRoles((rs) => rs.map((r) => (r.id === roleId ? { ...r, ...patch } : r)));
+  // které role jsou rozbalené k úpravě
+  const [otevreneRole, setOtevreneRole] = useState(() => new Set());
+  const prepniRoli = (id) => setOtevreneRole((sada) => { const n = new Set(sada); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
   const addRole = () => {
     const id = prompt('Jak se má role jmenovat? (např. Vedoucí mládeže)');
     if (!id) return;
     const slug = id.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `role-${roles.length + 1}`;
     if (roles.some((r) => r.id === slug)) { setError('Role s tímto názvem už existuje.'); return; }
+    // nová role se rovnou rozbalí, ať se nezaloží prázdná a schovaná
+    setOtevreneRole((sada) => new Set(sada).add(slug));
     const perms = {};
     for (const s of ADMIN_SECTIONS) perms[s.id] = 'none';
     setRoles((rs) => [...rs, { id: slug, name: id, description: '', system: false, permissions: perms }]);
@@ -207,12 +213,33 @@ export function Uzivatele() {
 
           <div style={{ overflowX: 'auto' }}>
             <div style={{ minWidth: 760 }}>
-              {roles.map((r) => (
+              {/* Role jsou sbalené — v přehledu je vidět název, popis a počet
+                  sekcí, na které role dosáhne. Matice oprávnění je dlouhá a
+                  rozbalená u všech rolí naráz se v ní nedalo vyznat. */}
+              {roles.map((r) => {
+                const otevrena = otevreneRole.has(r.id);
+                const pocetSekci = ADMIN_SECTIONS.filter((sec) => r.permissions && r.permissions[sec.id] && r.permissions[sec.id] !== 'none').length;
+                return (
                 <Card key={r.id} style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div onClick={() => prepniRoli(r.id)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                      <div style={{ fontWeight: 800, fontSize: 14, color: '#1E1E1E' }}>{r.name || 'Bez názvu'}</div>
+                      <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {r.system ? 'Plný přístup ke všem sekcím' : `${pocetSekci} z ${ADMIN_SECTIONS.length} sekcí`}
+                        {r.description ? ` · ${r.description}` : ''}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, flex: 'none' }}>
+                      <IkonaTuzka title={otevrena ? 'Sbalit' : 'Upravit roli'} onClick={() => prepniRoli(r.id)} />
+                      {!r.system && <IkonaKos title={`Smazat roli „${r.name}“`} onClick={() => removeRole(r.id)} />}
+                    </div>
+                  </div>
+                  {!otevrena ? null : (
+                  <>
+                  <div style={{ height: 14 }} />
                   <Row>
                     <Field label="Název role" value={r.name} onChange={(v) => setRoleField(r.id, { name: v })} width="220px" />
                     <Field label="Popis" value={r.description} onChange={(v) => setRoleField(r.id, { description: v })} />
-                    {!r.system && <Btn small kind="danger" onClick={() => removeRole(r.id)}>Smazat roli</Btn>}
                   </Row>
                   <div style={{ height: 14 }} />
                   {r.system ? (
@@ -228,8 +255,11 @@ export function Uzivatele() {
                       ))}
                     </div>
                   )}
+                  </>
+                  )}
                 </Card>
-              ))}
+                );
+              })}
             </div>
           </div>
 
