@@ -7,7 +7,9 @@ import { useEffect, useRef, useState } from 'react';
 const RED = '#C1121F';
 const LINE = '#ECEEF1';
 
-export function Vyber({ value, onChange, options, placeholder = 'Vyber…', ariaLabel }) {
+// `sevrene` = admin: nižší řádek a světlejší podklad, aby nabídka seděla vedle
+// běžných polí. Web používá výchozí, vzdušnější rozměry.
+export function Vyber({ value, onChange, options, placeholder = 'Vyber…', ariaLabel, sevrene = false }) {
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(-1);
   const boxRef = useRef(null);
@@ -47,10 +49,10 @@ export function Vyber({ value, onChange, options, placeholder = 'Vyber…', aria
         onKeyDown={onKeyDown}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-          background: '#fff', border: `1px solid ${open ? RED : LINE}`, borderRadius: 10,
-          padding: '14px 16px', fontSize: 14, fontWeight: 600, color: selected ? '#1E1E1E' : '#9AA1AC',
+          background: sevrene && !open ? '#FAFBFC' : '#fff', border: `1px solid ${open ? RED : LINE}`, borderRadius: 10,
+          padding: sevrene ? '11px 13px' : '14px 16px', fontSize: 14, fontWeight: 600, color: selected ? '#1E1E1E' : '#9AA1AC',
           cursor: 'pointer', outline: 'none', transition: 'border-color .2s, box-shadow .2s',
-          boxShadow: open ? '0 2px 12px rgba(193,18,31,.14)' : '0 2px 8px rgba(18,18,18,.05)',
+          boxShadow: open ? '0 2px 12px rgba(193,18,31,.14)' : (sevrene ? 'none' : '0 2px 8px rgba(18,18,18,.05)'),
         }}
       >
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected ? selected.label : placeholder}</span>
@@ -80,7 +82,7 @@ export function Vyber({ value, onChange, options, placeholder = 'Vyber…', aria
                 onMouseEnter={() => setHover(i)}
                 onMouseLeave={() => setHover(-1)}
                 style={{
-                  padding: '13px 16px', fontSize: 14, fontWeight: on ? 800 : 600, cursor: 'pointer',
+                  padding: sevrene ? '10px 13px' : '13px 16px', fontSize: 14, fontWeight: on ? 800 : 600, cursor: 'pointer',
                   background: on ? RED : hover === i ? 'rgba(193,18,31,.08)' : '#fff',
                   color: on ? '#fff' : hover === i ? RED : '#3a3f47',
                   transition: 'background .15s, color .15s',

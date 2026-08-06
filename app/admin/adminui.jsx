@@ -1,6 +1,8 @@
 'use client';
 // Sdílená UI primitiva pro administraci FK Kunice.
 import { useRef, useState } from 'react';
+import { Vyber } from '@/app/components/Vyber';
+import { Icon } from '@/app/components/icons';
 
 const RED = '#C1121F';
 const LINE = '#ECEEF1';
@@ -61,15 +63,19 @@ export function Field({ label, value, onChange, type = 'text', placeholder, text
   );
 }
 
+// Rozbalovací nabídka v administraci. Vevnitř je stejná komponenta `Vyber`
+// jako na webu, takže nabídka vypadá všude stejně — bílé pozadí, červeně
+// vybraná položka, jemně červená pod myší. Nativní <select> to napříč
+// prohlížeči nakreslit neumí, proto tu není.
+//
+// Rozhraní zůstává (label, value, onChange, options, width), aby se nemuselo
+// sahat na šestnáct míst, kde se komponenta používá.
 export function Select({ label, value, onChange, options, width }) {
-  const opts = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o));
   return (
-    <label style={{ display: 'block', flex: width ? `0 0 ${width}` : 1, minWidth: 0 }}>
+    <div style={{ display: 'block', flex: width ? `0 0 ${width}` : 1, minWidth: 0 }}>
       {label && <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', marginBottom: 6, textTransform: 'uppercase' }}>{label}</div>}
-      <select value={value ?? ''} onChange={(e) => onChange(e.target.value)} style={{ display: 'block', boxSizing: 'border-box', border: `1px solid ${LINE}`, background: '#FAFBFC', borderRadius: 10, padding: '11px 34px 11px 13px', fontSize: 14, fontFamily: 'Inter', lineHeight: 1.2, color: '#1E1E1E', outline: 'none', width: '100%', cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', backgroundImage: "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239AA1AC' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '12px' }}>
-        {opts.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-    </label>
+      <Vyber value={value ?? ''} onChange={onChange} options={options} ariaLabel={label} sevrene />
+    </div>
   );
 }
 
@@ -113,12 +119,15 @@ export function Card({ children, style }) {
   return <div style={{ background: '#fff', borderRadius: 10, padding: 20, boxShadow: '0 1px 2px rgba(18,18,18,.04),0 8px 24px rgba(18,18,18,.05)', ...style }}>{children}</div>;
 }
 
-export function SectionHead({ title, desc, count }) {
+// `akce` = tlačítka vpravo od nadpisu (typicky „+ Přidat novinku"). Patří sem,
+// ne pod seznam — u dlouhého seznamu se k tlačítku dole muselo scrollovat.
+export function SectionHead({ title, desc, count, akce }) {
   return (
     <div style={{ marginBottom: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ fontFamily: "'Bebas Neue'", fontSize: 30, color: '#121212', letterSpacing: '.3px' }}>{title}</div>
         {count != null && <span style={{ background: '#FBEAEC', color: RED, fontWeight: 800, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>{count}</span>}
+        {akce && <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap' }}>{akce}</div>}
       </div>
       {desc && <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginTop: 4 }}>{desc}</div>}
     </div>
@@ -150,33 +159,125 @@ export function Pokrocile({ title = 'Pokročilé nastavení', hint, children }) 
   );
 }
 
-export function ListEditor({ items, onChange, newItem, renderItem, addLabel = '+ Přidat', itemTitle }) {
+// Přepínač zap/vyp. Na první pohled ukáže stav, což textové tlačítko
+// („Archivovat" / „Vrátit na web") nedokázalo — z něj nešlo poznat, jestli
+// popisuje současný stav, nebo to, co se stane po kliknutí.
+export function Prepinac({ value, onChange, label, popisZap = 'Zobrazuje se na webu', popisVyp = 'Skryté, na webu není' }) {
+  return (
+    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+      <span
+        role="switch" aria-checked={!!value} aria-label={label} tabIndex={0}
+        onClick={() => onChange(!value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChange(!value); } }}
+        style={{ width: 42, height: 24, borderRadius: 12, background: value ? '#1F8A4C' : '#D7DBE0', position: 'relative', transition: 'background .2s', flex: 'none' }}
+      >
+        <span style={{ position: 'absolute', top: 3, left: value ? 21 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,.25)' }} />
+      </span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: value ? '#1F8A4C' : '#9AA1AC' }}>{value ? popisZap : popisVyp}</span>
+    </label>
+  );
+}
+
+// Kulaté tlačítko s ikonou — tužka, koš, přesun. Text u nich nedává smysl,
+// v řadě jich je několik vedle sebe a názvy by řádek roztrhaly.
+function IkonaBtn({ title, onClick, children, cerveny = false }) {
+  const [h, setH] = useState(false);
+  return (
+    <button
+      type="button" title={title} aria-label={title} onClick={onClick}
+      onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+      style={{
+        width: 30, height: 30, flex: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: 8, cursor: 'pointer', transition: 'background .15s, color .15s, border-color .15s',
+        border: `1px solid ${h && cerveny ? RED : LINE}`,
+        background: h ? (cerveny ? 'rgba(193,18,31,.08)' : '#F4F5F7') : '#fff',
+        color: cerveny ? RED : (h ? '#3a3f47' : '#9AA1AC'),
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Seznam položek (novinky, kempy, partneři, řádky tabulky…).
+// Položky jsou SBALENÉ — v přehledu je vidět jen název a ovládání. Rozbalí se
+// tužkou. Dřív byly všechny rozbalené naráz a stránka byla nepřehledná.
+// Údaje, které vyplnil zákazník. Ve výchozím stavu se jen zobrazují — přepsat
+// je jde až po kliknutí na tužku. Dřív se do nich dalo psát rovnou a omylem
+// přepsat, co člověk skutečně poslal.
+export function UdajeZakaznika({ polozky, upravovat, onUpravovat, children }) {
+  if (upravovat) return children;
+  return (
+    <div style={{ position: 'relative', background: '#fff', border: `1px solid ${LINE}`, borderRadius: 10, padding: '14px 16px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px 28px', paddingRight: 40 }}>
+        {polozky.filter((p) => p).map((p) => (
+          <div key={p.label} style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', textTransform: 'uppercase' }}>{p.label}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: p.value ? '#1E1E1E' : '#C7CCD3', marginTop: 3, whiteSpace: 'pre-wrap' }}>{p.value || 'nevyplněno'}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ position: 'absolute', top: 10, right: 10 }}>
+        <IkonaBtn title="Upravit údaje" onClick={onUpravovat} cerveny><Icon name="pencil" size={15} /></IkonaBtn>
+      </div>
+    </div>
+  );
+}
+
+// Samostatný koš pro místa mimo seznam (např. smazání celého kempu).
+export function IkonaKos({ title = 'Smazat', onClick }) {
+  return <IkonaBtn title={title} onClick={onClick} cerveny><Icon name="trash" size={15} /></IkonaBtn>;
+}
+
+// `bezPridat` = tlačítko na přidání si sekce kreslí sama (v hlavičce vedle
+// nadpisu), aby se k němu u dlouhého seznamu nemuselo scrollovat.
+export function ListEditor({ items, onChange, newItem, renderItem, addLabel = '+ Přidat', itemTitle, bezPridat = false }) {
+  const [otevrene, setOtevrene] = useState(() => new Set());
   const update = (i, patch) => {
     const next = items.slice();
     next[i] = typeof patch === 'function' ? patch(next[i]) : { ...next[i], ...patch };
     onChange(next);
   };
-  const remove = (i) => { if (confirm('Opravdu smazat tuto položku?')) onChange(items.filter((_, idx) => idx !== i)); };
+  const remove = (i) => {
+    if (!confirm('Opravdu smazat tuto položku?')) return;
+    onChange(items.filter((_, idx) => idx !== i));
+    setOtevrene(new Set());
+  };
   const move = (i, dir) => {
     const j = i + dir; if (j < 0 || j >= items.length) return;
     const next = items.slice(); [next[i], next[j]] = [next[j], next[i]]; onChange(next);
+    setOtevrene(new Set());
   };
+  const prepni = (i) => setOtevrene((s) => { const n = new Set(s); if (n.has(i)) n.delete(i); else n.add(i); return n; });
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {items.map((item, i) => (
+      {items.map((item, i) => {
+        const open = otevrene.has(i);
+        return (
         <Card key={i} style={{ padding: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#9AA1AC' }}>{itemTitle ? itemTitle(item, i) : `#${i + 1}`}</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <Btn small onClick={() => move(i, -1)}>↑</Btn>
-              <Btn small onClick={() => move(i, 1)}>↓</Btn>
-              <Btn small kind="danger" onClick={() => remove(i)}>Smazat</Btn>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: open ? 12 : 0, gap: 10 }}>
+            {/* Název drží jeden řádek; delší se ukončí třemi tečkami, aby
+                ovládání vpravo nepodskočilo pod něj. */}
+            <div
+              onClick={() => prepni(i)}
+              title={typeof (itemTitle ? itemTitle(item, i) : '') === 'string' ? itemTitle(item, i) : undefined}
+              style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 800, color: '#3a3f47', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            >
+              {itemTitle ? itemTitle(item, i) : `#${i + 1}`}
+            </div>
+            <div style={{ display: 'flex', gap: 6, flex: 'none' }}>
+              <IkonaBtn title="Posunout nahoru" onClick={() => move(i, -1)}>↑</IkonaBtn>
+              <IkonaBtn title="Posunout dolů" onClick={() => move(i, 1)}>↓</IkonaBtn>
+              <IkonaBtn title={open ? 'Sbalit' : 'Upravit'} onClick={() => prepni(i)} cerveny><Icon name="pencil" size={15} /></IkonaBtn>
+              <IkonaBtn title="Smazat" onClick={() => remove(i)} cerveny><Icon name="trash" size={15} /></IkonaBtn>
             </div>
           </div>
-          {renderItem(item, (patch) => update(i, patch), i)}
+          {open && renderItem(item, (patch) => update(i, patch), i)}
         </Card>
-      ))}
-      <div><Btn kind="primary" onClick={() => onChange([...items, typeof newItem === 'function' ? newItem() : { ...newItem }])}>{addLabel}</Btn></div>
+        );
+      })}
+      {!bezPridat && <div><Btn kind="primary" onClick={() => onChange([...items, typeof newItem === 'function' ? newItem() : { ...newItem }])}>{addLabel}</Btn></div>}
     </div>
   );
 }

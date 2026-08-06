@@ -126,7 +126,7 @@ export function Uzivatele() {
     setRoles((rs) => [...rs, { id: slug, name: id, description: '', system: false, permissions: perms }]);
   };
   const removeRole = (roleId) => {
-    if (users.some((u) => u.role === roleId)) { setError('Roli používají uživatelé — nejdřív jim nastav jinou.'); return; }
+    if (users.some((u) => u.role === roleId)) { setError('Roli používají uživatelé, nejdřív jim nastav jinou.'); return; }
     if (!confirm('Opravdu smazat tuto roli?')) return;
     setRoles((rs) => rs.filter((r) => r.id !== roleId));
   };

@@ -78,11 +78,11 @@ export default function Admin() {
   const konceptu = d.socialPosts.filter((p) => p.status !== 'odesláno').length;
   // do seznamu jde jen to, co opravdu čeká — prázdné řádky nikoho nezajímají
   const ukoly = [
-    { label: 'Nové zprávy', value: newMessages, go: 'zpravy', hint: 'z kontaktního formuláře', action: 'Přečíst' },
-    { label: 'Nové přihlášky do klubu', value: newRegistrations, go: 'registrace', hint: 'zájemci o nábor', action: 'Vyřídit' },
-    { label: 'Nevyřízené rezervace', value: newReservations, go: 'pronajem', hint: 'poptávky pronájmu drží termín', action: 'Potvrdit' },
-    { label: 'Návrhy zápasů ke kontrole', value: novychNavrhu, go: 'zapasy', hint: 'stažené z fotbal.cz', action: 'Zkontrolovat' },
-    { label: 'Rozepsané příspěvky', value: konceptu, go: 'socialni', hint: 'čekají na zveřejnění', action: 'Dokončit' },
+    { label: 'Nové zprávy', value: newMessages, go: 'zpravy', hint: 'z kontaktního formuláře' },
+    { label: 'Nové přihlášky do klubu', value: newRegistrations, go: 'registrace', hint: 'zájemci o nábor' },
+    { label: 'Nevyřízené rezervace', value: newReservations, go: 'pronajem', hint: 'poptávky pronájmu drží termín' },
+    { label: 'Návrhy zápasů ke kontrole', value: novychNavrhu, go: 'zapasy', hint: 'stažené z fotbal.cz' },
+    { label: 'Rozepsané příspěvky', value: konceptu, go: 'socialni', hint: 'čekají na zveřejnění' },
   ].filter((u) => u.value > 0 && canView(perms, u.go));
 
   const BADGES = {
@@ -118,7 +118,7 @@ export default function Admin() {
         <Card>
           <div style={{ fontFamily: "'Bebas Neue'", fontSize: 28, color: '#121212' }}>Administrace se nenačetla</div>
           <div style={{ fontSize: 14, color: '#6B7280', marginTop: 8, lineHeight: 1.6 }}>Nepodařilo se ověřit přihlášení. Zkus to prosím znovu.</div>
-          <div style={{ marginTop: 14 }}><Link href="/admin/login" style={{ fontWeight: 700, color: RED, fontSize: 14 }}>Přejít na přihlášení →</Link></div>
+          <div style={{ marginTop: 14 }}><Link href="/admin/login" style={{ fontWeight: 700, color: RED, fontSize: 14 }}>Přejít na přihlášení</Link></div>
         </Card>
       </section>
     );
@@ -174,16 +174,14 @@ export default function Admin() {
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#FBEAEC', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: RED, fontWeight: 700, marginBottom: 20, lineHeight: 1.5 }}>
             <span>{saveStatus.message} Změna zůstala jen v tomto prohlížeči — po obnovení stránky zmizí.</span>
           </div>
-        ) : (
+        ) : saveStatus && (saveStatus.state === 'saving' || saveStatus.state === 'saved') ? (
+          // Jen skutečná zpětná vazba k ukládání. Věta „administrace je plně
+          // funkční…" tu svítila pořád, nic neříkala a jen ubírala místo.
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#fff', borderRadius: 10, border: '1px solid #ECEEF1', padding: '12px 16px', fontSize: 13, color: '#6B7280', marginBottom: 20, lineHeight: 1.5 }}>
             <span style={{ flex: 'none', color: '#1F8A4C', marginTop: 1 }}><Icon name="checkCircle" size={17} /></span>
-            <span>
-              {saveStatus && saveStatus.state === 'saving' ? 'Ukládám změny…'
-                : saveStatus && saveStatus.state === 'saved' ? 'Změny uloženy na server.'
-                : 'Administrace je plně funkční — úpravy se ukládají automaticky a hned se projeví na webu.'}
-            </span>
+            <span>{saveStatus.state === 'saving' ? 'Ukládám změny…' : 'Změny uloženy na server.'}</span>
           </div>
-        )}
+        ) : null}
 
         {groupSections.length > 1 && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
@@ -224,15 +222,24 @@ export default function Admin() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
                 {ukoly.map((u) => (
-                  <Card key={u.go} style={{ padding: '14px 18px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                  // Celý řádek je klikací a vpravo nahoře je tužka. Tlačítko s
+                  // vlastním názvem („Přečíst", „Vyřídit", „Potvrdit"…) tu jen
+                  // přidávalo čtyři různá slova pro tutéž akci — otevřít sekci.
+                  <Card key={u.go} style={{ padding: '14px 18px', cursor: 'pointer', position: 'relative' }}>
+                    <div onClick={() => setSectionId(u.go)} style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
                       <span style={{ minWidth: 42, height: 42, borderRadius: 10, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue'", fontSize: 24, flex: 'none' }}>{u.value}</span>
-                      <div style={{ flex: 1, minWidth: 160 }}>
+                      <div style={{ flex: 1, minWidth: 160, paddingRight: 34 }}>
                         <div style={{ fontWeight: 700, fontSize: 15, color: '#1E1E1E' }}>{u.label}</div>
                         <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, marginTop: 2 }}>{u.hint}</div>
                       </div>
-                      <Btn kind="primary" small onClick={() => setSectionId(u.go)}>{u.action}</Btn>
                     </div>
+                    <button
+                      type="button" title={`Otevřít — ${u.label}`} aria-label={`Otevřít — ${u.label}`}
+                      onClick={() => setSectionId(u.go)}
+                      style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '1px solid #ECEEF1', background: '#fff', color: RED, cursor: 'pointer' }}
+                    >
+                      <Icon name="pencil" size={15} />
+                    </button>
                   </Card>
                 ))}
               </div>
@@ -255,7 +262,7 @@ export default function Admin() {
                 <Card key={i} style={{ cursor: 'pointer' }}>
                   <div onClick={() => setSectionId(k.go)}>
                     <div style={{ fontFamily: "'Bebas Neue'", fontSize: 34, color: RED, lineHeight: 1 }}>{k.n}</div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#9AA1AC', marginTop: 6 }}>{k.l} <span style={{ color: '#C7CCD3' }}>· upravit →</span></div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#9AA1AC', marginTop: 6 }}>{k.l} <span style={{ color: '#C7CCD3' }}>· upravit</span></div>
                   </div>
                 </Card>
               ))}
