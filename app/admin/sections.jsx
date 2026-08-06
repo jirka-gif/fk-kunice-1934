@@ -732,7 +732,13 @@ export function Novinky() {
   const { news } = useData();
   // Nová novinka patří na začátek — web i homepage řadí nejnovější nahoru,
   // takže přidání na konec by ji schovalo pod všechny starší.
-  const pridatNovinku = () => set('news', [{ ...emptyNews(), title: 'Nová novinka', id: `novinka-${Date.now()}` }, ...news]);
+  // Nová novinka vzniká jako KONCEPT — na webu není, dokud ji nezveřejníš.
+  // Rovnou se rozbalí, aby se nezaložila prázdná a nemusela se hledat.
+  const [otevriNovou, setOtevriNovou] = useState(null);
+  const pridatNovinku = () => {
+    set('news', [{ ...emptyNews(), title: 'Nová novinka', id: `novinka-${Date.now()}`, draft: true }, ...news]);
+    setOtevriNovou(0);
+  };
 
   return (
     <div>
@@ -745,10 +751,21 @@ export function Novinky() {
       <ListEditor
         items={news}
         onChange={(v) => set('news', v)}
-        itemTitle={(n) => n.title || 'Nová novinka'}
+        itemTitle={(n) => `${n.draft ? 'KONCEPT · ' : ''}${n.title || 'Nová novinka'}`}
         bezPridat
+        otevriIndex={otevriNovou}
+        onOtevrenoPouzito={() => setOtevriNovou(null)}
         renderItem={(n, u) => (
           <div>
+            <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F2F3F5' }}>
+              <Prepinac
+                value={!n.draft}
+                onChange={(v) => u({ draft: !v })}
+                label="Zveřejnit novinku na webu"
+                popisZap="Zveřejněná — je na webu"
+                popisVyp="Koncept — na webu není"
+              />
+            </div>
             <ImageField label="Fotka" value={n.image} onChange={(v) => u({ image: v })} />
             <div style={{ height: 14 }} />
             <Row>
@@ -782,7 +799,8 @@ export function Kempy() {
   const upd = (patch) => set('camps', camps.map((cm, i) => (i === idx ? { ...cm, ...patch } : cm)));
   const addCamp = () => {
     const id = `kemp-${Date.now()}`;
-    set('camps', [...camps, { ...emptyCamp(), id, title: 'Nový kemp', tag: 'NOVÝ', badge: 'NOVÝ KEMP', img: 'sunset' }]);
+    // Nový kemp je vypnutý — na web ho pustí až přepínač, až bude vyplněný.
+    set('camps', [...camps, { ...emptyCamp(), id, title: 'Nový kemp', tag: 'NOVÝ', badge: 'NOVÝ KEMP', img: 'sunset', archived: true }]);
     setSel(camps.length);
   };
   const removeCamp = () => {

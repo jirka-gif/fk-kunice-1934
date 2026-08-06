@@ -17,7 +17,9 @@ export default function Novinky() {
   const [cat, setCat] = useState('Vše');
   const [page, setPage] = useState(1);
 
-  const shown = cat === 'Vše' ? news : news.filter((n) => n.category === cat);
+  // Rozepsané (koncepty) na web nepatří.
+  const zverejnene = news.filter((n) => !n.draft);
+  const shown = cat === 'Vše' ? zverejnene : zverejnene.filter((n) => n.category === cat);
   const featured = shown[0];
   const rest = shown.slice(1);
   const pages = Math.max(1, Math.ceil(rest.length / PER_PAGE));

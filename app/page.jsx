@@ -18,8 +18,10 @@ export default function Home() {
   const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, rentalPlans, news, sponsors, gallery, homeTexts } = useContent();
   const T = homeTexts;
   const heroCtas = T.hero.ctas || [];
-  const featured = news[0];
-  const sideNews = news.slice(1, 4);
+  // Koncepty se na hlavní stránku nedostanou.
+  const zverejneneNovinky = news.filter((n) => !n.draft);
+  const featured = zverejneneNovinky[0];
+  const sideNews = zverejneneNovinky.slice(1, 4);
   const newsBg = (item, i) => (item && item.image ? `url(${item.image})` : PH_ARR[i % PH_ARR.length]);
   // Do prohlížeče jdou jen dlaždice se skutečnou fotkou.
   const fotkyGalerie = gallery.filter((g) => g && g.image);

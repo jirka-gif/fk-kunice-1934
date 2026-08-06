@@ -8,6 +8,7 @@ import {
   toPlayer,
   clone,
   emptyNextMatch,
+  emptyNews,
   matchWhenText,
   sortResults,
   emptyLastMatch,
@@ -192,5 +193,17 @@ describe('řazení výsledků', () => {
       { opp: 'bez data 2' },
     ]);
     expect(out.map((r) => r.opp)).toEqual(['S datem', 'bez data 1', 'bez data 2']);
+  });
+});
+
+// --- koncepty novinek --------------------------------------------------------
+describe('koncept novinky', () => {
+  it('nová novinka má pole draft a výchozí obsah koncepty nemá', () => {
+    expect(emptyNews().draft).toBe(false);
+    expect(DEFAULTS.news.every((n) => !n.draft)).toBe(true);
+  });
+  it('normalizace zachová příznak konceptu', () => {
+    const out = mergeStored({ news: [{ title: 'Rozepsaná', draft: true }] });
+    expect(out.news[0].draft).toBe(true);
   });
 });

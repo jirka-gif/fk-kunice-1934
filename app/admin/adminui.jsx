@@ -1,6 +1,6 @@
 'use client';
 // Sdílená UI primitiva pro administraci FK Kunice.
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Vyber } from '@/app/components/Vyber';
 import { Icon } from '@/app/components/icons';
 
@@ -231,8 +231,16 @@ export function IkonaKos({ title = 'Smazat', onClick }) {
 
 // `bezPridat` = tlačítko na přidání si sekce kreslí sama (v hlavičce vedle
 // nadpisu), aby se k němu u dlouhého seznamu nemuselo scrollovat.
-export function ListEditor({ items, onChange, newItem, renderItem, addLabel = '+ Přidat', itemTitle, bezPridat = false }) {
+export function ListEditor({ items, onChange, newItem, renderItem, addLabel = '+ Přidat', itemTitle, bezPridat = false, otevriIndex = null, onOtevrenoPouzito }) {
   const [otevrene, setOtevrene] = useState(() => new Set());
+
+  // Nově přidaná položka se rozbalí sama — jinak by se založila prázdná
+  // a člověk by musel hledat, kde ji vyplnit.
+  useEffect(() => {
+    if (otevriIndex == null) return;
+    setOtevrene((s) => new Set(s).add(otevriIndex));
+    onOtevrenoPouzito?.();
+  }, [otevriIndex]); // eslint-disable-line react-hooks/exhaustive-deps
   const update = (i, patch) => {
     const next = items.slice();
     next[i] = typeof patch === 'function' ? patch(next[i]) : { ...next[i], ...patch };
