@@ -5,13 +5,15 @@ import { Hov } from '@/app/components/ui';
 import { PH_ARR } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
+import { Blok, Text } from '@/app/components/Text';
 
 const bg = (item, i) => (item && item.image ? `url(${item.image})` : PH_ARR[i % PH_ARR.length]);
 const PER_PAGE = 6; // kolik novinek se vejde na jednu stránku (pod hlavní novinkou)
 
 export default function Novinky() {
   useRevealEngine();
-  const { news, newsCategories } = useContent();
+  const { news, newsCategories, pageTexts } = useContent();
+  const PT = pageTexts;
   const [cat, setCat] = useState('Vše');
   const [page, setPage] = useState(1);
 
@@ -29,11 +31,13 @@ export default function Novinky() {
     <div style={{ background: '#F6F7F9' }}>
       {/* HERO */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '128px 28px 0' }}>
+        <Blok nazev="Úvod stránky" sekce="domu">
         <div className="fk-rev" style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18 }}>
           <span style={{ width: 28, height: 3, background: '#C1121F', borderRadius: 2 }} />
-          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#C1121F' }}>NOVINKY</span>
+          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#C1121F' }}><Text as="span" cesta="pageTexts.novinky.eyebrow" hodnota={PT.novinky.eyebrow} /></span>
         </div>
-        <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(48px,7vw,96px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#121212', letterSpacing: '.5px', marginBottom: 36 }}>Ze života klubu</h1>
+        <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(48px,7vw,96px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#121212', letterSpacing: '.5px', marginBottom: 36 }}><Text as="span" cesta="pageTexts.novinky.title" hodnota={PT.novinky.title} /></h1>
+        </Blok>
 
         {featured && (
           <Hov as={Link} href={`/novinky/${featured.id}`} className="fk-rev fk-zoom" style="border-radius:10px;overflow:hidden;position:relative;cursor:pointer;min-height:420px;display:flex;align-items:flex-end;box-shadow:0 20px 50px rgba(18,18,18,.14)">

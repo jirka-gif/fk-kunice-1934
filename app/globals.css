@@ -134,6 +134,19 @@ input, textarea, select { font-family: 'Inter', system-ui, sans-serif; }
   .fk-hero-bg { background-size: auto 52% !important; background-position: calc(100% + 50vw) bottom !important; }
 }
 
+/* ---- NOTEBOOK / přiblížený displej (≤1200px) ----
+   Mezistupeň. Bez něj drží čtyřsloupcové mřížky až do 900 px a v rozmezí
+   901–1200 px (typicky po přiblížení stránky) se sloupce zmáčknou natolik,
+   že se text láme uprostřed slov. */
+@media (max-width: 1200px) {
+  .fk-min [style*="repeat(4,1fr)"],
+  .fk-min [style*="repeat(4, 1fr)"],
+  .fk-min [style*="1.6fr 1fr 1fr 1.2fr"],
+  .fk-teams, .fk-why, .fk-sponsors, .fk-gallery, .fk-admin-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
 /* ---- TABLET / menší (≤900px): vícesloupcové → 2, obsah+sidebar → 1 ---- */
 @media (max-width: 900px) {
   .fk-min [style*="repeat(4,1fr)"],
@@ -150,6 +163,14 @@ input, textarea, select { font-family: 'Inter', system-ui, sans-serif; }
   .fk-min [style*="1.15fr 1fr"],
   .fk-min [style*="1.1fr 1fr"],
   .fk-min [style*="280px 1fr"],
+  /* Doplněno: tyhle čtyři mřížky žádné pravidlo netrefilo, takže zůstávaly
+     vícesloupcové i v úzkém prostoru — vedle zalomených sousedů to vypadalo
+     jako rozbitá stránka, hlavně při přiblížení. */
+  .fk-min [style*="240px 1fr"],
+  .fk-min [style*="1fr 1.15fr"],
+  .fk-min [style*="1fr repeat(3,110px)"],
+  .fk-min [style*="1fr repeat(3, 110px)"],
+  .fk-min [style*="1.6fr 1fr 1fr 1.2fr"],
   .fk-match-grid, .fk-news-grid, .fk-admin, .fk-admin-grid2, .fk-rent-grid,
   .fk-kontakt-mapa {
     grid-template-columns: 1fr !important;

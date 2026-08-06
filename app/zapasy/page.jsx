@@ -5,6 +5,7 @@ import { Countdown } from '@/app/components/Countdown';
 import { COLORS, PH } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
+import { Blok, Text } from '@/app/components/Text';
 
 function evIcon(type) {
   if (type === 'goal') return 'width:22px;height:22px;border-radius:99px;background:#C1121F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none';
@@ -29,7 +30,8 @@ const placeholder = (txt) => (
 
 export default function Zapasy() {
   useRevealEngine();
-  const { teams } = useContent();
+  const { teams, pageTexts } = useContent();
+  const PT = pageTexts;
   const matchTeams = teams.filter((t) => t.id !== 'skolicka');
   const [sel, setSel] = useState(0);
   const idx = Math.min(sel, matchTeams.length - 1);
@@ -61,7 +63,7 @@ export default function Zapasy() {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(150deg,#1c1c1e,#0d0d0f)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(70% 80% at 80% 0%,rgba(193,18,31,.28),transparent 60%)' }} />
         <div style={{ position: 'relative', maxWidth: 1100, margin: '0 auto', padding: '0 28px' }}>
-          <div className="fk-rev"><Eyebrow dark>ZÁPASY</Eyebrow></div>
+          <div className="fk-rev"><Eyebrow dark><Text as="span" cesta="pageTexts.zapasy.eyebrow" hodnota={PT.zapasy.eyebrow} /></Eyebrow></div>
           <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(48px,7vw,92px)', lineHeight: 1.12, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px' }}>{t.name}</h1>
           <p className="fk-rev" style={{ color: 'rgba(255,255,255,.7)', fontSize: 16, marginTop: 12, lineHeight: 1.55 }}>Výsledkový servis, příští zápas s odpočtem a aktuální tabulka týmu&nbsp;<span style={{ whiteSpace: 'nowrap' }}>{t.name}</span>.</p>
           <div className="fk-rev" style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginTop: 26 }}>
@@ -198,8 +200,10 @@ export default function Zapasy() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '2px solid #F2F3F5', fontSize: 11, fontWeight: 800, letterSpacing: '.5px', color: '#9AA1AC' }}>
               <span style={{ width: 22 }}>#</span><span style={{ flex: 1 }}>TÝM</span><span style={{ width: 40, textAlign: 'center' }}>ZÁP.</span><span style={{ width: 36, textAlign: 'right' }}>B.</span>
             </div>
+            {/* Zvýrazněný řádek má vodorovné odsazení kvůli podkladu; záporný
+                okraj se mu musí rovnat, jinak posune čísla proti ostatním. */}
             {table.map((row, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px ' + (row.me ? '10px' : '0'), borderRadius: row.me ? 10 : 0, ...(row.me ? { background: '#FBEAEC', margin: '2px -8px' } : { borderBottom: i < table.length - 1 ? '1px solid #F2F3F5' : 'none' }) }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px ' + (row.me ? '10px' : '0'), borderRadius: row.me ? 10 : 0, ...(row.me ? { background: '#FBEAEC', margin: '2px -10px' } : { borderBottom: i < table.length - 1 ? '1px solid #F2F3F5' : 'none' }) }}>
                 <span style={{ fontFamily: "'Bebas Neue'", width: 22, fontSize: 17, color: row.me ? '#C1121F' : (row.pos <= 3 ? '#1E1E1E' : '#B7BCC4') }}>{row.pos}</span>
                 <span style={{ flex: 1, fontWeight: row.me ? 800 : 600, fontSize: 14, color: '#1E1E1E' }}>{row.team}</span>
                 <span style={{ width: 40, textAlign: 'center', fontSize: 13, color: '#9AA1AC', fontWeight: 600 }}>{row.gp}</span>

@@ -14,6 +14,18 @@ const NAV = [
   ['Kontakt', '/kontakt'],
 ];
 
+// Postavička = vstup do vlastního účtu. Zámek působil spíš jako „sem nesmíš",
+// tohle čte člověk jako přihlášení. Kreslená, ne obrázek — nemá co načítat
+// a barvu bere z rodiče, takže reaguje na najetí myší spolu s ním.
+function IkonaUcet() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+    </svg>
+  );
+}
+
 export default function Nav() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -51,7 +63,14 @@ export default function Nav() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 'none' }}>
-            <Hov as={Link} href="/admin" className="fk-navlinks" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.72);cursor:pointer;padding:9px 11px;border-radius:10px" hover="color:#fff;background:rgba(255,255,255,.1)">Admin</Hov>
+            {/* Administrace jen ikonou — návštěvníka klubu nezajímá a v menu
+                mezi Domů/Týmy/Zápasy jen překážela. `aria-label` a `title`
+                drží přístupnost i nápovědu při najetí. */}
+            <Hov as={Link} href="/admin" className="fk-navlinks" aria-label="Přihlášení do administrace" title="Přihlášení do administrace"
+              style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;color:rgba(255,255,255,.6);cursor:pointer;border-radius:10px"
+              hover="color:#fff;background:rgba(255,255,255,.1)">
+              <IkonaUcet />
+            </Hov>
             <Hov as={Link} href="/kontakt" style="font-size:14px;font-weight:700;color:#fff;background:#C1121F;padding:11px 19px;border-radius:10px;cursor:pointer;box-shadow:0 8px 20px rgba(193,18,31,.32);transition:transform .2s,box-shadow .2s,background .2s" hover="transform:translateY(-2px);box-shadow:0 12px 26px rgba(193,18,31,.45);background:#D62839;color:#fff">Přidej se</Hov>
             {/* Hamburger — pouze mobil (zobrazeno přes .fk-burger v CSS) */}
             <button className="fk-burger" onClick={() => setOpen((o) => !o)} aria-label="Menu" style={{ display: 'none', alignItems: 'center', justifyContent: 'center', width: 42, height: 42, borderRadius: 10, border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', cursor: 'pointer', flex: 'none' }}>
@@ -73,7 +92,10 @@ export default function Nav() {
                 <Link key={href} href={href} onClick={() => setOpen(false)} style={{ fontSize: 15, fontWeight: 600, padding: '12px 14px', borderRadius: 10, color: active ? '#FF4D57' : 'rgba(255,255,255,.82)', background: active ? 'rgba(214,40,57,.16)' : 'transparent' }}>{label}</Link>
               );
             })}
-            <Link href="/admin" onClick={() => setOpen(false)} style={{ fontSize: 15, fontWeight: 600, padding: '12px 14px', borderRadius: 10, color: 'rgba(255,255,255,.6)', borderTop: '1px solid rgba(255,255,255,.1)', marginTop: 4 }}>Admin</Link>
+            <Link href="/admin" onClick={() => setOpen(false)} aria-label="Přihlášení do administrace" title="Přihlášení do administrace"
+              style={{ display: 'flex', alignItems: 'center', padding: '12px 14px', borderRadius: 10, color: 'rgba(255,255,255,.6)', borderTop: '1px solid rgba(255,255,255,.1)', marginTop: 4 }}>
+              <IkonaUcet />
+            </Link>
           </div>
         )}
       </div>

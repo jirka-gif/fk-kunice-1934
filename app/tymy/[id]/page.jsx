@@ -32,10 +32,10 @@ export default function TeamDetail() {
   const hasRoster = !isSchool && curTeam.players.length > 0;
   const hasCoaches = curTeam.coaches.length > 0;
   const teamDesc = isSchool
-    ? 'Fotbalová školička pro děti 4–6 let. Hravou formou objevujeme první fotbalové krůčky — přijďte se k nám podívat na nábor.'
+    ? 'Fotbalová školička pro děti 4–6 let. Hravou formou objevujeme první fotbalové krůčky. Přijďte se k nám podívat na nábor.'
     : hasRoster
     ? 'Aktuální soupiska, realizační tým a soutěž ' + curTeam.comp + '. Sleduj zápasy, výsledky a život týmu.'
-    : 'Tým ' + curTeam.name + ' je součástí naší akademie. Kompletní soupiska a rozpis se připravují — ozvi se nám pro nábor.';
+    : 'Tým ' + curTeam.name + ' je součástí naší akademie. Kompletní soupiska a rozpis se připravují, ozvi se nám pro nábor.';
   const teamContact = curTeam.contact;
 
   const teamStats = [
@@ -227,8 +227,10 @@ export default function TeamDetail() {
             <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{curTeam.comp}</div>
             {curTeam.table && curTeam.table.length > 0 ? (
               <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column' }}>
+                {/* Záporný okraj = vodorovné odsazení, jinak zvýrazněný řádek
+                    nesedí do sloupců se zbytkem tabulky. */}
                 {curTeam.table.map((row, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px ' + (row.me ? '10px' : '0'), borderRadius: row.me ? 10 : 0, ...(row.me ? { background: '#FBEAEC', margin: '2px -6px' } : { borderBottom: '1px solid #F2F3F5' }) }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px ' + (row.me ? '10px' : '0'), borderRadius: row.me ? 10 : 0, ...(row.me ? { background: '#FBEAEC', margin: '2px -10px' } : { borderBottom: '1px solid #F2F3F5' }) }}>
                     <span style={{ fontFamily: "'Bebas Neue'", width: 20, fontSize: 15, color: row.me ? '#C1121F' : (row.pos <= 3 ? '#1E1E1E' : '#B7BCC4') }}>{row.pos}</span>
                     <span style={{ flex: 1, fontWeight: row.me ? 800 : 600, fontSize: 13.5, color: '#1E1E1E' }}>{row.team}</span>
                     <span style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, width: 34, textAlign: 'center' }}>{row.gp}</span>

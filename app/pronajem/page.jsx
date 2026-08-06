@@ -4,6 +4,7 @@ import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, photo } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
+import { Blok, Text } from '@/app/components/Text';
 import { Vyber } from '@/app/components/Vyber';
 import { monthGrid, dateKey, czechDate } from '@/lib/rental';
 
@@ -14,7 +15,8 @@ const sipkaStyl = { width: 34, height: 34, borderRadius: 10, border: '1px solid 
 
 export default function Pronajem() {
   useRevealEngine();
-  const { rentalPlans, rentalFaq } = useContent();
+  const { rentalPlans, rentalFaq, pageTexts } = useContent();
+  const PT = pageTexts;
   const areas = rentalPlans.map((p) => p.name);
 
   const [area, setArea] = useState('');
@@ -95,7 +97,11 @@ export default function Pronajem() {
           type: 'reservation',
           payload: {
             name: form.name.trim(),
+            // `contact` zůstává kvůli čitelnému výpisu v administraci,
+            // e-mail a telefon jdou navíc zvlášť, aby šlo odepsat.
             contact: [form.phone, form.email].filter(Boolean).join(' · '),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
             area: aktivniPlocha,
             dateISO: selDate,
             from: selTime,
@@ -128,12 +134,14 @@ export default function Pronajem() {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(150deg,#2b323e,#11151b)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(70% 80% at 85% 0%,rgba(193,18,31,.26),transparent 60%)' }} />
         <div style={{ position: 'relative', maxWidth: 1200, margin: '0 auto', padding: '0 28px' }}>
+          <Blok nazev="Úvod stránky" sekce="domu">
           <div className="fk-rev" style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 14 }}>
             <span style={{ width: 28, height: 3, background: '#C1121F', borderRadius: 2 }} />
-            <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#D62839' }}>PRONÁJEM AREÁLU</span>
+            <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: '#D62839' }}><Text as="span" cesta="pageTexts.pronajem.eyebrow" hodnota={PT.pronajem.eyebrow} /></span>
           </div>
-          <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(54px,8.5vw,118px)', lineHeight: 1.22, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px', maxWidth: 900 }}>Pronajmi si naše hřiště</h1>
-          <p className="fk-rev" style={{ color: 'rgba(255,255,255,.82)', fontSize: 19, marginTop: 20, maxWidth: 600, lineHeight: 1.55 }}>Travnaté hřiště, umělá tráva i tréninková plocha s osvětlením — pro firemní akce, turnaje i pravidelný trénink.</p>
+          <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(54px,8.5vw,118px)', lineHeight: 1.22, textTransform: 'uppercase', color: '#fff', letterSpacing: '.5px', maxWidth: 900 }}><Text as="span" cesta="pageTexts.pronajem.title" hodnota={PT.pronajem.title} /></h1>
+          <p className="fk-rev" style={{ color: 'rgba(255,255,255,.82)', fontSize: 19, marginTop: 20, maxWidth: 600, lineHeight: 1.55 }}><Text as="span" cesta="pageTexts.pronajem.perex" hodnota={PT.pronajem.perex} viceradkovy /></p>
+          </Blok>
         </div>
       </section>
 

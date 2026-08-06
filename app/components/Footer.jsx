@@ -54,12 +54,9 @@ export default function Footer() {
             <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 14, fontWeight: 500, lineHeight: 1.75 }}>
               {footer.contactLead}<br />{club.address.street}, {club.address.zip}<br />{club.email}<br />{club.phone}
             </div>
-            <Link href="/kontakt" style={{ marginTop: 18, height: 120, borderRadius: 10, background: 'linear-gradient(135deg,#241112,#120a0b)', border: '1px solid rgba(255,255,255,.1)', position: 'relative', overflow: 'hidden', cursor: 'pointer', display: 'block' }}>
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px)', backgroundSize: '24px 24px' }} />
-              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.8)' }}>{footer.mapLabel}</span>
-              </div>
-            </Link>
+            {/* Dlaždice s naznačenou mapou tu byla jen jako ozdoba a vedla na
+                stránku Kontakt. Kontaktní údaje jsou v patičce textem výš,
+                takže nic nechybí. */}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 28, flexWrap: 'wrap', gap: 12 }}>

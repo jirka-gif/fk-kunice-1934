@@ -4,6 +4,7 @@ import { Hov, Eyebrow } from '@/app/components/ui';
 import { COLORS, initials } from '@/lib/design';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
+import { Blok, Text } from '@/app/components/Text';
 import { Vyber } from '@/app/components/Vyber';
 
 const inputBase = 'border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
@@ -11,7 +12,8 @@ const inputFocus = 'border-color:#C1121F;background:#fff';
 
 export default function Kontakt() {
   useRevealEngine();
-  const { quickActions, people, club, teams } = useContent();
+  const { quickActions, people, club, teams, pageTexts } = useContent();
+  const PT = pageTexts;
   const mapQuery = club.mapQuery || `${club.address.street}, ${club.address.zip} ${club.address.city}`;
   const [msg, setMsg] = useState({ name: '', email: '', text: '' });
   const [sent, setSent] = useState(false);
@@ -57,12 +59,14 @@ export default function Kontakt() {
     <div style={{ background: '#F6F7F9' }}>
       {/* ============ HERO ============ */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '128px 28px 0' }}>
+        <Blok nazev="Úvod stránky" sekce="domu">
         <div className="fk-rev" style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18 }}>
           <span style={{ width: 28, height: 3, background: COLORS.red, borderRadius: 2 }} />
-          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: COLORS.red }}>KONTAKT</span>
+          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '2.5px', color: COLORS.red }}><Text as="span" cesta="pageTexts.kontakt.eyebrow" hodnota={PT.kontakt.eyebrow} /></span>
         </div>
-        <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(48px,7vw,100px)', lineHeight: 1.12, textTransform: 'uppercase', color: COLORS.ink, letterSpacing: '.5px' }}>Spojte se s námi</h1>
-        <p className="fk-rev" style={{ color: '#6B7280', fontSize: 19, marginTop: 18, maxWidth: 600, lineHeight: 1.55 }}>Máte zájem o nábor, pronájem nebo spolupráci? Ozvěte se — rádi vám pomůžeme.</p>
+        <h1 className="fk-rev" style={{ fontFamily: "'Bebas Neue'", fontSize: 'clamp(48px,7vw,100px)', lineHeight: 1.12, textTransform: 'uppercase', color: COLORS.ink, letterSpacing: '.5px' }}><Text as="span" cesta="pageTexts.kontakt.title" hodnota={PT.kontakt.title} /></h1>
+        <p className="fk-rev" style={{ color: '#6B7280', fontSize: 19, marginTop: 18, maxWidth: 600, lineHeight: 1.55 }}><Text as="span" cesta="pageTexts.kontakt.perex" hodnota={PT.kontakt.perex} viceradkovy /></p>
+        </Blok>
       </section>
 
       {/* ============ KONTAKTY VLEVO + MAPA VPRAVO ============ */}

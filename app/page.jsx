@@ -1,14 +1,19 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRevealEngine } from '@/lib/useRevealEngine';
 import { Hov, Eyebrow, H2 } from './components/ui';
 import { COLORS, PH, PH_ARR, photo, initials, wldBadge } from '@/lib/design';
 import { useContent } from '@/lib/store';
 import { Blok, Text } from './components/Text';
+import { ProhlizecFotek } from './components/ProhlizecFotek';
 
 const cardSh = 'box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 26px rgba(18,18,18,.06)';
 
 export default function Home() {
+  // Fotky, které jde v galerii otevřít přes celou obrazovku (dlaždice bez
+  // nahrané fotky se do prohlížeče nedostanou).
+  const [otevrenaFotka, setOtevrenaFotka] = useState(null);
   useRevealEngine();
   const { teams, homeStats, nextMatch, results, leagueTable, whyCards, camps, rentalPlans, news, sponsors, gallery, homeTexts } = useContent();
   const T = homeTexts;
@@ -16,6 +21,8 @@ export default function Home() {
   const featured = news[0];
   const sideNews = news.slice(1, 4);
   const newsBg = (item, i) => (item && item.image ? `url(${item.image})` : PH_ARR[i % PH_ARR.length]);
+  // Do prohlížeče jdou jen dlaždice se skutečnou fotkou.
+  const fotkyGalerie = gallery.filter((g) => g && g.image);
 
   const teamCards = teams.map((t, i) => ({
     id: t.id, name: t.name, age: t.cat, league: t.comp.toUpperCase(),
@@ -29,7 +36,10 @@ export default function Home() {
     posColor: t.me ? COLORS.red : (t.pos <= 3 ? COLORS.text : '#B7BCC4'),
     weight: t.me ? 800 : 600,
     ptsColor: t.me ? COLORS.red : COLORS.ink,
-    row: `display:flex;align-items:center;gap:10px;padding:10px ${t.me ? '12px' : '0'};border-radius:${t.me ? '12px' : '0'};${t.me ? 'background:#FBEAEC;margin:2px -8px' : 'border-bottom:1px solid #F2F3F5'}`,
+    // Zvýrazněný řádek má odsazení kvůli barevnému podkladu. Záporný okraj
+    // musí být PŘESNĚ stejný, jinak se jeho čísla posunou proti ostatním
+    // řádkům — přesně to byla ta nezarovnaná tabulka.
+    row: `display:flex;align-items:center;gap:10px;padding:10px ${t.me ? '12px' : '0'};border-radius:${t.me ? '12px' : '0'};${t.me ? 'background:#FBEAEC;margin:2px -12px' : 'border-bottom:1px solid #F2F3F5'}`,
   }));
 
   const cdBoxes = [{ key: 'd', label: 'DNÍ' }, { key: 'h', label: 'HODIN' }, { key: 'm', label: 'MINUT' }, { key: 's', label: 'SEKUND' }];
@@ -282,9 +292,11 @@ export default function Home() {
               </div>
             </Hov>
           )}
+          {/* Karty vpravo se roztáhnou na výšku velké karty vlevo (`flex:1`),
+              takže sloupce lícují nahoře i dole. Bez toho zbyla dole mezera. */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {sideNews.map((n, i) => (
-              <Hov key={n.id || i} as={Link} href={`/novinky/${n.id}`} className="fk-rev" style="background:#fff;border-radius:10px;padding:16px;display:flex;gap:16px;cursor:pointer;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05);transition:transform .25s,box-shadow .25s" hover="transform:translateX(5px);box-shadow:0 16px 34px rgba(18,18,18,.1)">
+              <Hov key={n.id || i} as={Link} href={`/novinky/${n.id}`} className="fk-rev" style="flex:1;background:#fff;border-radius:10px;padding:16px;display:flex;align-items:center;gap:16px;cursor:pointer;box-shadow:0 1px 2px rgba(18,18,18,.04),0 8px 22px rgba(18,18,18,.05);transition:transform .25s,box-shadow .25s" hover="transform:translateX(5px);box-shadow:0 16px 34px rgba(18,18,18,.1)">
                 <div style={{ width: 100, height: 100, borderRadius: 10, flex: 'none', background: newsBg(n, i + 1), backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '1.2px', color: '#C1121F' }}>{(n.category || '').toUpperCase()}</span>
@@ -307,14 +319,26 @@ export default function Home() {
             // fotka z administrace; bez ní zůstane barevný přechod
             const item = gallery[i];
             const bg = item && item.image ? `url(${item.image})` : fallback[i];
+            // Otevřít jde jen dlaždice se skutečnou fotkou — barevný přechod
+            // není co prohlížet.
+            const poradiVProhlizeci = item && item.image ? fotkyGalerie.findIndex((f) => f === item) : -1;
             return (
-              <Hov key={i} className="fk-rev fk-zoom" style={`${cells[i]};border-radius:10px;overflow:hidden;cursor:pointer;position:relative`}>
+              <Hov
+                key={i} className="fk-rev fk-zoom"
+                role={poradiVProhlizeci >= 0 ? 'button' : undefined}
+                tabIndex={poradiVProhlizeci >= 0 ? 0 : undefined}
+                aria-label={poradiVProhlizeci >= 0 ? `Zvětšit fotku${item.alt ? ` — ${item.alt}` : ''}` : undefined}
+                onClick={poradiVProhlizeci >= 0 ? () => setOtevrenaFotka(poradiVProhlizeci) : undefined}
+                onKeyDown={poradiVProhlizeci >= 0 ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOtevrenaFotka(poradiVProhlizeci); } } : undefined}
+                style={`${cells[i]};border-radius:10px;overflow:hidden;cursor:${poradiVProhlizeci >= 0 ? 'zoom-in' : 'default'};position:relative`}
+              >
                 <div className="fk-zi" role="img" aria-label={(item && item.alt) || ''} style={{ position: 'absolute', inset: 0, background: bg, backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 <Hov style="position:absolute;inset:0;background:rgba(193,18,31,0);transition:background .3s" hover="background:rgba(193,18,31,.28)" />
               </Hov>
             );
           })}
         </div>
+        <ProhlizecFotek fotky={fotkyGalerie} index={otevrenaFotka} onZavrit={() => setOtevrenaFotka(null)} onZmenit={setOtevrenaFotka} />
       </section>
 
       {/* ============ SPONSORS ============ */}

@@ -398,6 +398,24 @@ Object.values(teamMatches).forEach((m) => { if (!m.facrUrl) m.facrUrl = _FACR; }
 //  Dřív byly napsané natvrdo v app/page.jsx; teď jsou editovatelné v adminu
 //  (sekce „Domů / texty"). Web bere hodnoty odsud, tohle je jen výchozí obsah.
 // -----------------------------------------------------------------------------
+// Úvodní texty samostatných stránek. Dřív byly natvrdo v kódu, takže je klub
+// nemohl změnit ani v administraci, ani přímo na webu.
+export const pageTexts = {
+  zapasy: { eyebrow: 'ZÁPASY', perex: 'Výsledky, tabulka a nejbližší zápasy všech našich týmů.' },
+  kempy: { eyebrow: 'LETNÍ KEMPY' },
+  pronajem: {
+    eyebrow: 'PRONÁJEM AREÁLU',
+    title: 'Pronajmi si naše hřiště',
+    perex: 'Travnaté hřiště, umělá tráva i tréninková plocha s osvětlením. Pro firemní akce, turnaje i pravidelný trénink.',
+  },
+  kontakt: {
+    eyebrow: 'KONTAKT',
+    title: 'Spojte se s námi',
+    perex: 'Máte zájem o nábor, pronájem nebo spolupráci? Ozvěte se, rádi vám pomůžeme.',
+  },
+  novinky: { eyebrow: 'NOVINKY', title: 'Ze života klubu' },
+};
+
 export const homeTexts = {
   hero: {
     title: 'FK Kunice',
@@ -413,7 +431,7 @@ export const homeTexts = {
   match: {
     eyebrow: 'MATCH CENTER',
     title: 'Žijeme každým zápasem',
-    link: 'Všechny zápasy →',
+    link: 'Všechny zápasy',
     nextLabel: 'PŘÍŠTÍ ZÁPAS',
     resultsTitle: 'POSLEDNÍ VÝSLEDKY',
     tableTitle: 'TABULKA · III. TŘÍDA',
@@ -421,9 +439,9 @@ export const homeTexts = {
   },
   teams: { eyebrow: 'NAŠE TÝMY', title: 'Od přípravky po dospělé' },
   why: { eyebrow: 'PROČ RODIČE VOLÍ NÁS', title: 'Víc než jen fotbal' },
-  camps: { eyebrow: 'LETNÍ KEMPY', title: 'Léto plné fotbalu', ctaLabel: 'Registrovat →' },
-  rental: { eyebrow: 'PRONÁJEM', title: 'Pronajmi si náš areál', link: 'Rezervovat →', unit: '/ hodina' },
-  news: { eyebrow: 'NOVINKY', title: 'Ze života klubu', link: 'Magazín →' },
+  camps: { eyebrow: 'LETNÍ KEMPY', title: 'Léto plné fotbalu', ctaLabel: 'Registrovat' },
+  rental: { eyebrow: 'PRONÁJEM', title: 'Pronajmi si náš areál', link: 'Rezervovat', unit: '/ hodina' },
+  news: { eyebrow: 'NOVINKY', title: 'Ze života klubu', link: 'Magazín' },
   gallery: { eyebrow: 'GALERIE', title: 'Momenty' },
   sponsors: { title: 'PARTNEŘI KLUBU' },
 };
@@ -448,7 +466,6 @@ export const footer = {
       { label: 'Letní kempy', href: '/kempy' },
       { label: 'Pronájem areálu', href: '/pronajem' },
       { label: 'Nábor dětí', href: '/kontakt' },
-      { label: 'Admin / CMS', href: '/admin' },
     ],
   },
   contactTitle: 'KONTAKT',

@@ -114,16 +114,17 @@ metadata:
   annotations:
     # Stejný issuer, jakým si certifikát bere frenkee-web.
     cert-manager.io/cluster-issuer: le-nethost-issuer
-    # Anotace i `ingressClassName` schválně obojí: frenkee-web v tomhle
-    # clusteru používá anotaci a prokazatelně funguje, `ingressClassName`
-    # je novější tvar. Když je obojí shodné, nekoliduje to.
+    # JEN anotace, `ingressClassName` schválně NE. Řadič v tomhle clusteru
+    # jede ve starším režimu (`--ingress-class`) a ingress s vyplněným
+    # `spec.ingressClassName` si nevezme — ověřeno: ingress zůstal bez
+    # adresy, bez událostí, a doména vracela 404, zatímco solver od
+    # cert-manageru (jen anotace, žádné pole) adresu dostal.
     kubernetes.io/ingress.class: nginx
     # fkkunice.cz → www.fkkunice.cz. Bez tohohle by apex vracel obsah přímo
     # a Google by to viděl jako dvě stránky s týmž textem.
     nginx.ingress.kubernetes.io/from-to-www-redirect: 'true'
     nginx.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
-  ingressClassName: nginx
   tls:
     - hosts: [www.fkkunice.cz, fkkunice.cz]
       secretName: fk-kunice-tls
