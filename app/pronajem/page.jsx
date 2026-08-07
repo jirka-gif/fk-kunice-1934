@@ -6,7 +6,7 @@ import { useRevealEngine } from '@/lib/useRevealEngine';
 import { useContent } from '@/lib/store';
 import { Blok, Text } from '@/app/components/Text';
 import { Vyber } from '@/app/components/Vyber';
-import { monthGrid, dateKey, czechDate } from '@/lib/rental';
+import { monthGrid, dateKey, czechDate, REPEAT_LABELS } from '@/lib/rental';
 
 const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 const inputBase = 'width:100%;min-width:0;box-sizing:border-box;border:1px solid #ECEEF1;background:#FAFBFC;border-radius:10px;padding:14px 16px;font-size:14px;font-family:Inter;color:#1E1E1E;outline:none';
@@ -26,7 +26,10 @@ export default function Pronajem() {
   const [dni, setDni] = useState({});      // stav dnů v měsíci z API
   const [sloty, setSloty] = useState(null); // termíny vybraného dne
   const [faqOpen, setFaqOpen] = useState({});
-  const [form, setForm] = useState({ name: '', phone: '', email: '', note: '' });
+  // `repeat` je PŘÁNÍ pravidelného termínu, ne rezervace série. Zabere se jen
+  // vybraný termín; opakování zapne klub v administraci. Kdyby se zabíralo hned,
+  // jedna neschválená poptávka by zablokovala půl roku kalendáře.
+  const [form, setForm] = useState({ name: '', phone: '', email: '', note: '', repeat: '', repeatUntil: '' });
   const [sent, setSent] = useState(false);
   const [chyba, setChyba] = useState('');
   const [odesilam, setOdesilam] = useState(false);
@@ -106,6 +109,8 @@ export default function Pronajem() {
             dateISO: selDate,
             from: selTime,
             note: form.note,
+            repeat: form.repeat,
+            repeatUntil: form.repeatUntil,
           },
         }),
       });
@@ -295,7 +300,7 @@ export default function Pronajem() {
               <div style={{ color: '#3a3f47', fontSize: 14, fontWeight: 500, marginTop: 6, lineHeight: 1.5 }}>
                 Termín jsme vám předběžně zablokovali. Ozveme se do 24 hodin a rezervaci potvrdíme.
               </div>
-              <div onClick={() => { setSent(false); setForm({ name: '', phone: '', email: '', note: '' }); setSelDate(''); setSelTime(''); }} style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: '#C1121F', cursor: 'pointer' }}>Odeslat další poptávku</div>
+              <div onClick={() => { setSent(false); setForm({ name: '', phone: '', email: '', note: '', repeat: '', repeatUntil: '' }); setSelDate(''); setSelTime(''); }} style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: '#C1121F', cursor: 'pointer' }}>Odeslat další poptávku</div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -305,6 +310,42 @@ export default function Pronajem() {
                 <Hov as="input" value={form.email} onChange={setF('email')} placeholder="E-mail" style={`flex:1 1 150px;${inputBase}`} focus={inputFocus} />
               </div>
               <Vyber ariaLabel="Plocha k pronájmu" value={aktivniPlocha} onChange={(v) => { setArea(v); setSelTime(''); }} options={areas} placeholder="Vyber plochu" />
+              {/* Dlouhodobý pronájem: „chci to každý týden". Posílá se jako přání,
+                  klub ho potvrdí a teprve pak se zaberou další termíny. */}
+              <div style={{ background: '#FAFBFC', border: '1px solid #ECEEF1', borderRadius: 10, padding: '12px 14px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#1E1E1E' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!form.repeat}
+                    onChange={(e) => setForm((f) => ({ ...f, repeat: e.target.checked ? 'weekly' : '', repeatUntil: e.target.checked ? f.repeatUntil : '' }))}
+                    style={{ width: 17, height: 17, accentColor: '#C1121F', cursor: 'pointer', flex: 'none' }}
+                  />
+                  Chci tento termín pravidelně
+                </label>
+                {form.repeat && (
+                  <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 190px', minWidth: 0 }}>
+                      <Vyber
+                        ariaLabel="Jak často"
+                        value={form.repeat}
+                        onChange={(v) => setForm((f) => ({ ...f, repeat: v }))}
+                        options={[
+                          { value: 'weekly', label: REPEAT_LABELS.weekly },
+                          { value: 'biweekly', label: REPEAT_LABELS.biweekly },
+                        ]}
+                      />
+                    </div>
+                    <Hov as="input" type="date" value={form.repeatUntil} onChange={setF('repeatUntil')} aria-label="Přibližně do" style={`flex:1 1 160px;${inputBase}`} focus={inputFocus} />
+                  </div>
+                )}
+                {form.repeat && (
+                  <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 10, lineHeight: 1.5 }}>
+                    Zablokujeme zatím jen vybraný termín. Pravidelné termíny s vámi domluvíme,
+                    až se ozveme.
+                  </div>
+                )}
+              </div>
+
               <Hov as="textarea" value={form.note} onChange={setF('note')} placeholder="Poznámka (počet osob, účel)" rows={3} style={`${inputBase};resize:none`} focus={inputFocus} />
 
               {chyba && (

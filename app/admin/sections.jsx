@@ -1143,6 +1143,22 @@ function RezervaceTable({ reservations, areaOptions, openId, onOpenIdUsed, klubE
                     </div>
                     </UdajeZakaznika>
                     <div style={{ height: 10 }} />
+                    {/* Žadatel si z webu řekl o pravidelný termín. Je to jen přání —
+                        blokuje se pořád jen ten první termín, dokud ho klub nezapne.
+                        Jinak by jedna nepotvrzená poptávka zabrala půl roku kalendáře. */}
+                    {r.repeatWanted && !r.repeat && (
+                      <div data-prani-opakovani style={{ background: '#FFF6E5', borderRadius: 10, padding: '12px 14px', marginBottom: 10, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: 240, fontSize: 13, fontWeight: 700, color: '#8A5A00' }}>
+                          Žadatel chce termín pravidelně — {REPEAT_LABELS[r.repeatWanted]}
+                          {r.repeatUntilWanted ? `, přibližně do ${czechDate(r.repeatUntilWanted)}` : ''}.
+                          <div style={{ fontWeight: 600, marginTop: 3 }}>Zatím je zabraný jen první termín.</div>
+                        </div>
+                        <Btn small kind="primary" onClick={() => update(i, { repeat: r.repeatWanted, repeatUntil: r.repeatUntilWanted || '', repeatWanted: '', repeatUntilWanted: '' })}>
+                          Zapnout opakování
+                        </Btn>
+                        <Btn small onClick={() => update(i, { repeatWanted: '', repeatUntilWanted: '' })}>Nechat jednorázově</Btn>
+                      </div>
+                    )}
                     {/* Dlouhodobý pronájem: jeden záznam, který drží termín každý týden.
                         Potvrzuje se jednou pro celou sérii. */}
                     <Row>

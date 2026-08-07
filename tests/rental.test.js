@@ -280,3 +280,40 @@ describe('rozvinutí termínů pro kalendář', () => {
     expect(shiftDays('2026-12-31', 1)).toBe('2027-01-01');
   });
 });
+
+// -----------------------------------------------------------------------------
+//  PŘÁNÍ PRAVIDELNÉHO TERMÍNU (z webu)
+//  `repeatWanted` je jen poznámka k poptávce. Termíny drží až `repeat`, které
+//  vyplní klub — jinak by jedna neschválená poptávka zabrala půl roku kalendáře.
+// -----------------------------------------------------------------------------
+describe('přání pravidelného termínu neblokuje', () => {
+  const prani = {
+    id: 'p-1', area: 'Hlavní stadion', dateISO: '2026-09-01', from: '18:00', to: '19:00',
+    status: 'nová', repeat: '', repeatUntil: '',
+    repeatWanted: 'weekly', repeatUntilWanted: '2026-12-31',
+  };
+
+  it('platí jen pro vybraný termín, ne pro další týdny', () => {
+    expect(occursOn(prani, '2026-09-01')).toBe(true);
+    expect(occursOn(prani, '2026-09-08')).toBe(false);
+    expect(occursOn(prani, '2026-09-15')).toBe(false);
+  });
+
+  it('další týden zůstává volný k poptání', () => {
+    const kontrola = validateRequest({
+      reservations: [prani],
+      area: 'Hlavní stadion',
+      dateISO: '2026-09-08',
+      from: '18:00',
+      settings: { openFrom: '08:00', openTo: '22:00', slotMinutes: 60, leadHours: 0, horizonDays: 400 },
+      now: new Date('2026-08-01T10:00:00'),
+    });
+    expect(kontrola.ok).toBe(true);
+  });
+
+  it('když klub opakování zapne, termíny se zaberou', () => {
+    const zapnuto = { ...prani, repeat: 'weekly', repeatUntil: '2026-12-31', repeatWanted: '', repeatUntilWanted: '' };
+    expect(occursOn(zapnuto, '2026-09-08')).toBe(true);
+    expect(occursOn(zapnuto, '2026-09-15')).toBe(true);
+  });
+});

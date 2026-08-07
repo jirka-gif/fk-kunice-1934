@@ -6,6 +6,7 @@ delete process.env.POSTGRES_URL;
 
 const { POST } = await import('@/app/api/submit/route');
 const { DEFAULTS, mergeStored } = await import('@/lib/defaults');
+const { shiftDays, bookedTimes } = await import('@/lib/rental');
 
 const req = (body) =>
   new Request('http://localhost/api/submit', {
@@ -311,5 +312,56 @@ describe('upozornění klubu na novou poštu', () => {
     const ulozeno = globalThis.__fkMemStore.data;
     expect(ulozeno.cmsRegistrations[0].name).toBe('Bez pošty');
     expect(ulozeno.messages[0].text).toBe('dotaz');
+  });
+});
+
+// -----------------------------------------------------------------------------
+//  PŘÁNÍ PRAVIDELNÉHO TERMÍNU
+//  Z webu chodí jako nezávazné přání — zabere se jen vybraný termín. Sérii
+//  založí klub v administraci, jinak by neschválená poptávka zablokovala
+//  půl roku kalendáře.
+// -----------------------------------------------------------------------------
+describe('poptávka na pravidelný termín', () => {
+  // termín musí být v budoucnu a uvnitř povoleného horizontu
+  const den = new Date(Date.now() + 7 * 86400000);
+  const VOLNY_DEN = `${den.getFullYear()}-${String(den.getMonth() + 1).padStart(2, '0')}-${String(den.getDate()).padStart(2, '0')}`;
+
+  const poptavka = (over = {}) => ({
+    type: 'reservation',
+    payload: {
+      name: 'Pravidelný nájemce', email: 'n@example.cz', area: 'Hlavní stadion',
+      dateISO: VOLNY_DEN, from: '18:00', ...over,
+    },
+  });
+
+  it('uloží se jako přání, ne jako opakování', async () => {
+    const res = await POST(req(poptavka({ repeat: 'weekly', repeatUntil: '2026-12-31' })));
+    expect(res.status).toBe(200);
+
+    const r = mergeStored(globalThis.__fkMemStore.data).reservations[0];
+    expect(r.repeatWanted).toBe('weekly');
+    expect(r.repeatUntilWanted).toBe('2026-12-31');
+    expect(r.repeat).toBe('');         // klub to teprve potvrdí
+    expect(r.repeatUntil).toBe('');
+  });
+
+  it('další týden zůstane volný', async () => {
+    await POST(req(poptavka({ repeat: 'weekly' })));
+    const obsah = mergeStored(globalThis.__fkMemStore.data);
+    const zaTyden = shiftDays(VOLNY_DEN, 7);
+    expect(bookedTimes(obsah.reservations, 'Hlavní stadion', zaTyden).has('18:00')).toBe(false);
+  });
+
+  it('nesmyslnou hodnotu opakování zahodí', async () => {
+    await POST(req(poptavka({ repeat: 'kazdy-den', repeatUntil: 'brzy' })));
+    const r = mergeStored(globalThis.__fkMemStore.data).reservations[0];
+    expect(r.repeatWanted).toBe('');
+    expect(r.repeatUntilWanted).toBe('');
+  });
+
+  it('bez zaškrtnutí zůstane přání prázdné', async () => {
+    await POST(req(poptavka()));
+    const r = mergeStored(globalThis.__fkMemStore.data).reservations[0];
+    expect(r.repeatWanted).toBe('');
   });
 });

@@ -4,7 +4,7 @@
 import { NextResponse } from 'next/server';
 import { getStoredContent, saveStoredContent } from '@/lib/db';
 import { DEFAULTS, mergeStored, clone, emptyReservation, emptyRegistration } from '@/lib/defaults';
-import { validateRequest, slotEnd, czechDate } from '@/lib/rental';
+import { validateRequest, slotEnd, czechDate, REPEAT_MODES } from '@/lib/rental';
 import { sendMail, reservationMail, registrationMail, messageMail, notifyAddress } from '@/lib/mail';
 
 export const dynamic = 'force-dynamic';
@@ -62,6 +62,10 @@ export async function POST(req) {
       date: czechDate(dateISO),
       time: from,
       note: s(payload.note, 800),
+      // Přání pravidelného termínu — jen poznámka k poptávce, termíny neblokuje.
+      // Sérii založí klub v administraci, viz `repeatWanted` v lib/defaults.js.
+      repeatWanted: REPEAT_MODES.includes(payload.repeat) ? payload.repeat : '',
+      repeatUntilWanted: /^\d{4}-\d{2}-\d{2}$/.test(s(payload.repeatUntil, 10)) ? s(payload.repeatUntil, 10) : '',
       source: 'web',
       status: 'nová',
       createdAt: new Date().toISOString(),
