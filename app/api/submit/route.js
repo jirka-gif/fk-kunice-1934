@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import { getStoredContent, saveStoredContent } from '@/lib/db';
 import { DEFAULTS, mergeStored, clone, emptyReservation, emptyRegistration } from '@/lib/defaults';
 import { validateRequest, slotEnd, czechDate } from '@/lib/rental';
-import { sendMail, reservationMail } from '@/lib/mail';
+import { sendMail, reservationMail, registrationMail, messageMail, notifyAddress } from '@/lib/mail';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -71,40 +71,42 @@ export async function POST(req) {
 
     // Upozornění e-mailem je bonus — když není nastavené, poptávka už je uložená
     // v administraci a odeslání formuláře kvůli tomu nesmí selhat.
-    const mail = reservationMail(reservation);
-    const sent = await sendMail({ to: content.rentalSettings.notifyEmail, ...mail });
+    const sent = await sendMail({ to: notifyAddress(content), ...reservationMail(reservation) });
     return NextResponse.json({ ok: true, emailSent: sent.ok });
   } else if (type === 'registration') {
     if (!s(payload.name, 120).trim()) {
       return NextResponse.json({ error: 'Vyplň prosím jméno.' }, { status: 400 });
     }
-    content.cmsRegistrations = [
-      {
-        ...emptyRegistration(),
-        id: `prihlaska-${new Date().toISOString()}`,
-        name: s(payload.name, 120),
-        birthdate: s(payload.birthdate, 10),
-        team: s(payload.team, 120),
-        parent: s(payload.parent, 120),
-        contact: s(payload.contact, 200),
-        note: s(payload.note, 800),
-        source: 'web',
-        status: 'nová',
-        createdAt: new Date().toISOString(),
-      },
-      ...(content.cmsRegistrations || []),
-    ].slice(0, 500);
+    const registration = {
+      ...emptyRegistration(),
+      id: `prihlaska-${new Date().toISOString()}`,
+      name: s(payload.name, 120),
+      birthdate: s(payload.birthdate, 10),
+      team: s(payload.team, 120),
+      parent: s(payload.parent, 120),
+      contact: s(payload.contact, 200),
+      email: s(payload.email, 200),
+      note: s(payload.note, 800),
+      source: 'web',
+      status: 'nová',
+      createdAt: new Date().toISOString(),
+    };
+    content.cmsRegistrations = [registration, ...(content.cmsRegistrations || [])].slice(0, 500);
+    await saveStoredContent(content);
+    const sent = await sendMail({ to: notifyAddress(content), ...registrationMail(registration) });
+    return NextResponse.json({ ok: true, emailSent: sent.ok });
   } else if (type === 'message') {
-    content.messages = [
-      {
-        name: s(payload.name, 120),
-        email: s(payload.email, 200),
-        text: s(payload.text, 2000),
-        date: new Date().toISOString(),
-        status: 'nová',
-      },
-      ...(content.messages || []),
-    ].slice(0, 500);
+    const message = {
+      name: s(payload.name, 120),
+      email: s(payload.email, 200),
+      text: s(payload.text, 2000),
+      date: new Date().toISOString(),
+      status: 'nová',
+    };
+    content.messages = [message, ...(content.messages || [])].slice(0, 500);
+    await saveStoredContent(content);
+    const sent = await sendMail({ to: notifyAddress(content), ...messageMail(message) });
+    return NextResponse.json({ ok: true, emailSent: sent.ok });
   }
 
   await saveStoredContent(content);

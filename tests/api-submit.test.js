@@ -1,5 +1,5 @@
 // Integrační testy route handleru /api/submit (veřejné odeslání formulářů).
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 delete process.env.DATABASE_URL;
 delete process.env.POSTGRES_URL;
@@ -217,5 +217,79 @@ describe('e-mail u přihlášky', () => {
     await POST(req({ type: 'registration', payload: { name: 'Petr', contact: '602 123 456' } }));
     const data = mergeStored(globalThis.__fkMemStore.data);
     expect(data.cmsRegistrations[0].email).toBe('');
+  });
+});
+
+// -----------------------------------------------------------------------------
+//  UPOZORNĚNÍ KLUBU
+//  Dřív chodil e-mail jen u pronájmu. Přihláška do týmu ani zpráva z kontaktu
+//  klubu nikde nezacinkaly, takže se o nich nikdo nedozvěděl, dokud sám
+//  neotevřel administraci.
+// -----------------------------------------------------------------------------
+describe('upozornění klubu na novou poštu', () => {
+  const odeslane = [];
+
+  beforeEach(() => {
+    odeslane.length = 0;
+    process.env.RESEND_API_KEY = 'test-klic';
+    process.env.MAIL_FROM = 'web@fkkunice.cz';
+    vi.stubGlobal('fetch', async (url, opts) => {
+      odeslane.push(JSON.parse(opts.body));
+      return { ok: true, status: 200, json: async () => ({ id: 'msg' }) };
+    });
+  });
+
+  afterEach(() => {
+    delete process.env.RESEND_API_KEY;
+    delete process.env.MAIL_FROM;
+    vi.unstubAllGlobals();
+  });
+
+  const sAdresou = (adresa) => {
+    const c = mergeStored(null);
+    c.rentalSettings = { ...c.rentalSettings, notifyEmail: adresa };
+    globalThis.__fkMemStore.data = c;
+  };
+
+  it('přihláška do klubu pošle klubu upozornění', async () => {
+    sAdresou('klub@fkkunice.cz');
+    const res = await POST(req({ type: 'registration', payload: { name: 'Malý Novák', team: 'U11', parent: 'Jan Novák', contact: 'jan@novak.cz' } }));
+    expect(res.status).toBe(200);
+    expect(odeslane).toHaveLength(1);
+    expect(odeslane[0].to).toEqual(['klub@fkkunice.cz']);
+    expect(odeslane[0].subject).toContain('Nová přihláška');
+    expect(odeslane[0].text).toContain('Malý Novák');
+  });
+
+  it('zpráva z kontaktu pošle klubu upozornění i s textem', async () => {
+    sAdresou('klub@fkkunice.cz');
+    const res = await POST(req({ type: 'message', payload: { name: 'Eva', email: 'eva@example.cz', text: 'Kdy máte trénink?' } }));
+    expect(res.status).toBe(200);
+    expect(odeslane).toHaveLength(1);
+    expect(odeslane[0].subject).toContain('Nová zpráva');
+    expect(odeslane[0].text).toContain('Kdy máte trénink?');
+  });
+
+  it('bez adresy pro upozornění se použije klubový e-mail', async () => {
+    const c = mergeStored(null);
+    c.rentalSettings = { ...c.rentalSettings, notifyEmail: '' };
+    c.club = { ...c.club, email: 'info@fkkunice.cz' };
+    globalThis.__fkMemStore.data = c;
+
+    await POST(req({ type: 'message', payload: { name: 'Eva', text: 'dotaz' } }));
+    expect(odeslane[0].to).toEqual(['info@fkkunice.cz']);
+  });
+
+  it('bez nastavené pošty se přihláška i zpráva přesto uloží', async () => {
+    delete process.env.RESEND_API_KEY;
+    sAdresou('klub@fkkunice.cz');
+
+    expect((await POST(req({ type: 'registration', payload: { name: 'Bez pošty' } }))).status).toBe(200);
+    expect((await POST(req({ type: 'message', payload: { name: 'Eva', text: 'dotaz' } }))).status).toBe(200);
+    expect(odeslane).toHaveLength(0);
+
+    const ulozeno = globalThis.__fkMemStore.data;
+    expect(ulozeno.cmsRegistrations[0].name).toBe('Bez pošty');
+    expect(ulozeno.messages[0].text).toBe('dotaz');
   });
 });
