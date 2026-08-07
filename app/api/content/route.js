@@ -5,7 +5,8 @@ import { NextResponse } from 'next/server';
 import { getStoredContent, saveStoredContent, hasDatabase } from '@/lib/db';
 import { DEFAULTS, mergeStored } from '@/lib/defaults';
 import { getSession } from '@/lib/apiauth';
-import { canSaveContent } from '@/lib/permissions';
+import { canSaveContent, changedContentKeys } from '@/lib/permissions';
+import { zapisZaznam, AKCE } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -48,6 +49,13 @@ export async function PUT(req) {
     );
   }
 
+  // Co se změnilo, zjistíme dřív, než se `after` uloží — potom už není s čím
+  // porovnávat. Zapisuje se AŽ po úspěšném uložení, aby záznam netvrdil něco
+  // jiného, než co je na webu.
+  const zmenene = changedContentKeys(before, after);
   const result = await saveStoredContent(after);
+  if (zmenene.length) {
+    await zapisZaznam({ akce: AKCE.obsahZmena, user: session.user, detail: zmenene.join(', ') });
+  }
   return NextResponse.json({ ok: true, ...result });
 }

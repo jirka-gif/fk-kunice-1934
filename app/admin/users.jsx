@@ -187,7 +187,15 @@ export function Uzivatele() {
                       {u.id === meId && <span style={{ fontSize: 10, fontWeight: 800, color: RED, marginLeft: 8 }}>TO JSI TY</span>}
                       {!u.active && <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC', marginLeft: 8 }}>DEAKTIVOVANÝ</span>}
                     </div>
-                    <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2 }}>{u.email}</div>
+                    <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 2 }}>
+                      {u.email}
+                      {/* Poslední přihlášení: pozná se z něj nepoužívaný účet. */}
+                      <span style={{ marginLeft: 10 }}>
+                        {u.lastLoginAt
+                          ? `naposledy přihlášen ${new Date(u.lastLoginAt).toLocaleDateString('cs-CZ')} ${String(new Date(u.lastLoginAt).getHours()).padStart(2, '0')}:${String(new Date(u.lastLoginAt).getMinutes()).padStart(2, '0')}`
+                          : 'zatím se nepřihlásil'}
+                      </span>
+                    </div>
                   </div>
                   <Select label="Role" value={u.role} onChange={(v) => updateUser(u.id, { role: v }, 'Role změněna.')} options={roleOptions} width="200px" />
                   <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>

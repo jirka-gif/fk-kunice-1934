@@ -83,7 +83,9 @@ describe('první spuštění', () => {
     const auth = await users.ensureSeedUser();
     expect(auth.users.length).toBe(1);
     expect(auth.users[0].email).toBe('spravce@fkkunice.cz');
-    expect(auth.users[0].role).toBe('spravce');
+    // první uživatel nového webu je Super správce — jinak by záznam změn
+    // neviděl vůbec nikdo
+    expect(auth.users[0].role).toBe('superspravce');
   });
 
   it('podruhé už nic nezakládá', async () => {
@@ -214,7 +216,14 @@ describe('/api/users — jen pro sekci Uživatelé a role', () => {
   });
 
   it('nejde odstranit posledního správce', async () => {
-    const me = await loginAs('spravce');
+    // Zakládající uživatel webu je Super správce; `loginAs` přidá ještě
+    // Správce. Dokud existují dva, zamknout se ven nejde — proto se jeden
+    // nejdřív odstraní a teprve pak se zkouší sáhnout na toho posledního.
+    const me = await loginAs('superspravce');
+    const auth = await users.readAuth();
+    auth.users = auth.users.filter((u) => u.id === me.id);
+    await users.writeAuth(auth);
+
     const off = await usersApi.PUT(json('http://localhost/api/users', 'PUT', { id: me.id, active: false }));
     expect(off.status).toBe(400);
     const down = await usersApi.PUT(json('http://localhost/api/users', 'PUT', { id: me.id, role: 'redaktor' }));

@@ -31,3 +31,17 @@ describe('lib/db bez DATABASE_URL', () => {
     expect((await getStoredContent()).sponsors).toEqual(['B']);
   });
 });
+
+// Souborový režim (`FK_LOCAL_STORE=1`) musí znát všechna tři úložiště.
+// Chybějící název souboru se v testech neprojeví — zapisovalo by se do
+// `.data/undefined` a záznam by tiše mizel. Přesně to se jednou stalo.
+describe('názvy souborů lokálního úložiště', () => {
+  it('obsah, uživatelé i záznam mají svůj soubor', async () => {
+    const zdroj = await import('node:fs/promises').then((fs) => fs.readFile('lib/db.js', 'utf8'));
+    const radek = zdroj.split('\n').find((l) => l.includes('const LOCAL_FILES'));
+    expect(radek).toContain("content:");
+    expect(radek).toContain("auth:");
+    expect(radek).toContain("audit:");
+    expect(radek).not.toContain('undefined');
+  });
+});

@@ -6,17 +6,31 @@
 import { NextResponse } from 'next/server';
 import { requireEdit } from '@/lib/apiauth';
 import { readAuth, writeAuth, publicUser, hashPassword, randomToken, normalizeEmail, isStrongEnough } from '@/lib/users';
+import { SUPER_ROLE } from '@/lib/permissions';
+import { zapisZaznam, AKCE } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const SECTION = 'uzivatele';
 
-// Poslední aktivní správce se nesmí zamknout ven z administrace.
+// Poslední aktivní správce se nesmí zamknout ven z administrace. Počítá se
+// Správce i Super správce — do administrace se dostanou oba.
+const SPRAVCOVSKE = [SUPER_ROLE, 'spravce'];
 function wouldLockOut(users, changedId, patch) {
   const next = users.map((u) => (u.id === changedId ? { ...u, ...patch } : u));
-  return !next.some((u) => u.active && u.role === 'spravce');
+  return !next.some((u) => u.active && SPRAVCOVSKE.includes(u.role));
 }
+
+// Roli Super správce smí přidělit i odebrat JEN Super správce, a jen on smí
+// takového uživatele měnit. Bez toho by si běžný správce roli přidal sám a
+// rozdíl mezi rolemi by nic neznamenal. Kontrola patří na server — rozhraní
+// se dá obejít.
+function jeSuper(session) {
+  return session?.user?.role === SUPER_ROLE;
+}
+const odepreno = () =>
+  NextResponse.json({ error: 'S rolí Super správce smí pracovat jen Super správce.' }, { status: 403 });
 
 export async function GET() {
   const { session, response } = await requireEdit(SECTION);
@@ -29,7 +43,7 @@ export async function GET() {
 }
 
 export async function POST(req) {
-  const { response } = await requireEdit(SECTION);
+  const { session, response } = await requireEdit(SECTION);
   if (response) return response;
 
   let body;
@@ -44,6 +58,7 @@ export async function POST(req) {
   }
   const role = String(body?.role || '');
   if (!auth.roles.some((r) => r.id === role)) return NextResponse.json({ error: 'Neznámá role' }, { status: 400 });
+  if (role === SUPER_ROLE && !jeSuper(session)) return odepreno();
 
   // Heslo buď zadané ručně, nebo vygenerované — správce ho předá uživateli.
   const password = isStrongEnough(body?.password) ? body.password : randomToken(9);
@@ -62,6 +77,7 @@ export async function POST(req) {
   };
   auth.users = [...auth.users, user];
   await writeAuth(auth);
+  await zapisZaznam({ akce: AKCE.uzivatelZmena, user: session.user, detail: `pozvání: ${email} (${role})` });
   return NextResponse.json({ ok: true, user: publicUser(user, auth.roles), password });
 }
 
@@ -80,11 +96,14 @@ export async function PUT(req) {
   if (typeof body.name === 'string') patch.name = body.name.slice(0, 120);
   if (typeof body.role === 'string') {
     if (!auth.roles.some((r) => r.id === body.role)) return NextResponse.json({ error: 'Neznámá role' }, { status: 400 });
+    if (body.role === SUPER_ROLE && !jeSuper(session)) return odepreno();
     patch.role = body.role;
   }
+  // Ani zásah do stávajícího Super správce (přejmenování, deaktivace, reset hesla)
+  if (user.role === SUPER_ROLE && !jeSuper(session)) return odepreno();
   if (typeof body.active === 'boolean') patch.active = body.active;
 
-  if ((patch.active === false || (patch.role && patch.role !== 'spravce')) && wouldLockOut(auth.users, user.id, patch)) {
+  if ((patch.active === false || (patch.role && !SPRAVCOVSKE.includes(patch.role))) && wouldLockOut(auth.users, user.id, patch)) {
     return NextResponse.json({ error: 'Musí zůstat aspoň jeden aktivní správce' }, { status: 400 });
   }
 
@@ -97,6 +116,11 @@ export async function PUT(req) {
 
   auth.users = auth.users.map((u) => (u.id === user.id ? { ...u, ...patch } : u));
   await writeAuth(auth);
+  // Do detailu jdou jen názvy změněných polí, nikdy hodnoty (heslo!).
+  await zapisZaznam({
+    akce: AKCE.uzivatelZmena, user: session.user,
+    detail: `${user.email}: ${[...Object.keys(patch).filter((k) => !['passwordHash', 'salt', 'iterations'].includes(k)), body.resetPassword ? 'reset hesla' : ''].filter(Boolean).join(', ')}`,
+  });
   const updated = auth.users.find((u) => u.id === user.id);
   return NextResponse.json({ ok: true, user: publicUser(updated, auth.roles), password: newPassword, meId: session.user.id });
 }
@@ -110,11 +134,15 @@ export async function DELETE(req) {
   if (!auth.users.some((u) => u.id === id)) return NextResponse.json({ error: 'Uživatel nenalezen' }, { status: 404 });
   if (id === session.user.id) return NextResponse.json({ error: 'Sám sebe smazat nemůžeš' }, { status: 400 });
 
+  const mazany = auth.users.find((u) => u.id === id);
+  if (mazany.role === SUPER_ROLE && !jeSuper(session)) return odepreno();
+
   const rest = auth.users.filter((u) => u.id !== id);
-  if (!rest.some((u) => u.active && u.role === 'spravce')) {
+  if (!rest.some((u) => u.active && SPRAVCOVSKE.includes(u.role))) {
     return NextResponse.json({ error: 'Musí zůstat aspoň jeden aktivní správce' }, { status: 400 });
   }
   auth.users = rest;
   await writeAuth(auth);
+  await zapisZaznam({ akce: AKCE.uzivatelZmena, user: session.user, detail: `smazán: ${mazany.email}` });
   return NextResponse.json({ ok: true });
 }

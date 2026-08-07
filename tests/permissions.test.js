@@ -1,6 +1,7 @@
 // Testy modelu oprávnění: úrovně po sekcích a kontrola ukládání obsahu.
 import { describe, it, expect } from 'vitest';
 import {
+  SUPER_ROLE,
   ADMIN_SECTIONS, SECTION_IDS, LEVELS, SECTION_CONTENT_KEYS, CONTENT_KEY_SECTIONS,
   emptyPermissions, normalizePermissions, canView, canEdit,
   changedContentKeys, canSaveContent, defaultRoles, permissionsForRole,
@@ -133,13 +134,25 @@ describe('canSaveContent', () => {
 });
 
 describe('výchozí role', () => {
-  it('správce má plný přístup ke všem sekcím', () => {
-    const p = permissionsForRole(defaultRoles(), 'spravce');
+  it('super správce má plný přístup ke všem sekcím', () => {
+    const p = permissionsForRole(defaultRoles(), SUPER_ROLE);
     expect(SECTION_IDS.every((id) => p[id] === 'edit')).toBe(true);
   });
 
-  it('žádná další role nesmí spravovat uživatele', () => {
-    for (const r of defaultRoles().filter((r) => r.id !== 'spravce')) {
+  it('správce má vše kromě záznamu změn — to je jediný rozdíl', () => {
+    const p = permissionsForRole(defaultRoles(), 'spravce');
+    expect(p.zaznam).toBe('none');
+    expect(SECTION_IDS.filter((id) => id !== 'zaznam').every((id) => p[id] === 'edit')).toBe(true);
+  });
+
+  it('záznam změn nevidí žádná role kromě super správce', () => {
+    for (const r of defaultRoles().filter((r) => r.id !== SUPER_ROLE)) {
+      expect(r.permissions.zaznam, `role ${r.id}`).toBe('none');
+    }
+  });
+
+  it('uživatele spravují jen systémové role', () => {
+    for (const r of defaultRoles().filter((r) => !r.system)) {
       expect(r.permissions.uzivatele, `role ${r.id}`).toBe('none');
     }
   });

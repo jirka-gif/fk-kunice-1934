@@ -4,6 +4,7 @@
 import { NextResponse } from 'next/server';
 import { requireEdit } from '@/lib/apiauth';
 import { readAuth, writeAuth } from '@/lib/users';
+import { zapisZaznam, AKCE } from '@/lib/audit';
 import { normalizePermissions, defaultRoles } from '@/lib/permissions';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +20,7 @@ export async function GET() {
 }
 
 export async function PUT(req) {
-  const { response } = await requireEdit(SECTION);
+  const { session, response } = await requireEdit(SECTION);
   if (response) return response;
 
   let body;
@@ -49,5 +50,9 @@ export async function PUT(req) {
 
   auth.roles = roles;
   await writeAuth(auth);
+  await zapisZaznam({
+    akce: AKCE.roleZmena, user: session.user,
+    detail: `role: ${auth.roles.map((r) => r.name).join(', ')}`,
+  });
   return NextResponse.json({ ok: true, roles: auth.roles });
 }
