@@ -1,6 +1,6 @@
 // Texty e-mailů žadateli — čistá logika, nic se neodesílá.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { reservationDecisionMail, registrationDecisionMail, historyEntry, missingMailConfig, sendMail, mailStatus } from '@/lib/mail';
+import { reservationDecisionMail, registrationDecisionMail, historyEntry, missingMailConfig, sendMail, mailStatus, reservationMail, registrationMail, messageMail } from '@/lib/mail';
 
 const rez = { name: 'Jan Novák', area: 'Hlavní stadion', date: '12. července 2026', from: '17:00', to: '18:00' };
 
@@ -138,5 +138,47 @@ describe('pojistka proti omylem odeslané poště', () => {
     const stav = mailStatus();
     expect(stav.configured).toBe(false);
     expect(stav.error).toContain('FK_MAIL_LIVE');
+  });
+});
+
+// -----------------------------------------------------------------------------
+//  ODSTAVCE V E-MAILECH
+//  Filtr na nevyplněné volitelné řádky vyhazoval i prázdné řádky, které tam mají
+//  být schválně. Texty pak chodily slepené na sobě, bez odstavců a s podpisem
+//  nalepeným na poslední větě — a týkalo se to i zpráv, co chodí žadatelům.
+// -----------------------------------------------------------------------------
+describe('e-maily mají odstavce', () => {
+  const maPrazdnyRadek = (text) => text.split('\n').some((l) => l === '');
+
+  it('upozornění na poptávku', () => {
+    expect(maPrazdnyRadek(reservationMail({ area: 'Hlavní stadion', name: 'Jan' }).text)).toBe(true);
+  });
+
+  it('upozornění na přihlášku', () => {
+    expect(maPrazdnyRadek(registrationMail({ name: 'Malý Novák' }).text)).toBe(true);
+  });
+
+  it('upozornění na zprávu', () => {
+    expect(maPrazdnyRadek(messageMail({ name: 'Eva', text: 'dotaz' }).text)).toBe(true);
+  });
+
+  it('potvrzení rezervace má mezeru i před podpisem', () => {
+    const text = reservationDecisionMail(rez, true, 'info@fkkunice.cz').text;
+    expect(maPrazdnyRadek(text)).toBe(true);
+    const radky = text.split('\n');
+    expect(radky[radky.indexOf('S pozdravem') - 1]).toBe('');
+  });
+
+  it('zamítnutí přihlášky taky', () => {
+    const text = registrationDecisionMail({ name: 'Malý Novák' }, false, 'info@fkkunice.cz').text;
+    const radky = text.split('\n');
+    expect(radky[radky.indexOf('S pozdravem') - 1]).toBe('');
+  });
+
+  it('nevyplněné volitelné řádky se pořád vyhazují', () => {
+    const bezPoznamky = reservationMail({ area: 'X', name: 'Jan' }).text;
+    expect(bezPoznamky).not.toContain('Poznámka:');
+    const sPoznamkou = reservationMail({ area: 'X', name: 'Jan', note: 'Turnaj' }).text;
+    expect(sPoznamkou).toContain('Poznámka: Turnaj');
   });
 });
