@@ -1097,8 +1097,15 @@ function RezervaceTable({ reservations, areaOptions, openId, onOpenIdUsed, klubE
                   <div style={{ ...cell, color: '#9AA1AC', fontWeight: 600 }}>{r.source}</div>
                   <div style={cell}><span style={statusPill(r.status)}>{r.status}</span></div>
                   <div style={{ ...cell, justifyContent: 'flex-end', gap: 6 }} onClick={(e) => e.stopPropagation()}>
-                    {r.status !== 'potvrzená' && <Btn small kind="primary" onClick={() => update(i, { status: 'potvrzená' })}>Potvrdit</Btn>}
-                    {r.status !== 'zamítnutá' && <Btn small onClick={() => update(i, { status: 'zamítnutá' })}>Zamítnout</Btn>}
+                    {/* Stejné chování jako v rozbaleném detailu: změní stav a rovnou
+                        nabídne předvyplněnou zprávu. Dřív tahle tlačítka jen tiše
+                        přepnula stav, takže se žadatel o rozhodnutí nedozvěděl. */}
+                    {r.status !== 'potvrzená' && (
+                      <Btn small kind="primary" onClick={() => { update(i, { status: 'potvrzená' }); setOpen(i); setZprava({ i, ...reservationDecisionMail(r, true, klubEmail) }); }}>Potvrdit</Btn>
+                    )}
+                    {r.status !== 'zamítnutá' && (
+                      <Btn small onClick={() => { update(i, { status: 'zamítnutá' }); setOpen(i); setZprava({ i, ...reservationDecisionMail(r, false, klubEmail) }); }}>Zamítnout</Btn>
+                    )}
                     {r.status === 'zamítnutá' && <Btn small onClick={() => update(i, { status: 'nová' })}>Vrátit</Btn>}
                     <span onClick={() => setOpen(open === i ? null : i)} style={{ color: '#C1121F', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>{open === i ? '▲' : '▾'}</span>
                   </div>
@@ -1320,10 +1327,19 @@ function RezervaceKalendar({ reservations, settings, areaOptions, onOpen }) {
   );
 }
 
-export function Pronajem() {
+// `otevritId` = rezervace, kterou má sekce rovnou rozbalit. Posílá ji Přehled,
+// když člověk klikne na „Vyřídit" u konkrétní poptávky — vyřizuje se tady, kde
+// je u tlačítek i předvyplněná zpráva žadateli.
+export function Pronajem({ otevritId = '' }) {
   const d = useData();
   const [tab, setTab] = useState('rezervace');
   const [openId, setOpenId] = useState('');
+
+  useEffect(() => {
+    if (!otevritId) return;
+    setOpenId(otevritId);
+    setTab('rezervace');
+  }, [otevritId]);
   const areaOptions = d.rentalPlans.map((p) => p.name);
   const newCount = d.reservations.filter((r) => r.status === 'nová').length;
 

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useData, updateData, onSaveStatus } from '@/lib/store';
+import { useData, onSaveStatus } from '@/lib/store';
 import { Card, Btn } from './adminui';
 import { Icon } from '../components/icons';
 import { Nastaveni, Domu, Tymy, Zapasy, Novinky, Kempy, Pronajem, Kontakt, Partneri, Registrace, Zpravy } from './sections';
@@ -28,6 +28,8 @@ export default function Admin() {
   // Kolik pošty přibylo od chvíle, kdy si administrace načetla obsah. Sama se
   // neaktualizuje, takže bez tohohle nebyla nová poptávka vidět až do reloadu.
   const [novaPosta, setNovaPosta] = useState(null);
+  // Rezervace, kterou má sekce Pronájem po přepnutí rovnou rozbalit.
+  const [otevritRezervaci, setOtevritRezervaci] = useState('');
 
   // kdo je přihlášený a co smí — bez toho administraci nevykreslujeme
   useEffect(() => {
@@ -365,18 +367,18 @@ export default function Admin() {
                 <div style={{ fontSize: 13, color: '#9AA1AC', fontWeight: 600, padding: '8px 0' }}>Žádné nové rezervace k vyřízení.</div>
               )}
               {d.reservations.filter((r) => r.status === 'nová').slice(0, 6).map((r) => {
-                const idx = d.reservations.indexOf(r);
                 return (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: '1px solid #F2F3F5' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: 14, color: '#1E1E1E' }}>{r.name} {r.source === 'web' ? <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC' }}>· WEB</span> : <span style={{ fontSize: 10, fontWeight: 800, color: '#9AA1AC' }}>· {String(r.source || '').toUpperCase()}</span>}</div>
                       <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600 }}>{[r.area, r.date, r.time].filter(Boolean).join(' · ')}</div>
                     </div>
+                    {/* Dřív tu byla fajfka a křížek, které jen tiše přepnuly stav.
+                        Žadatel se o rozhodnutí nedozvěděl a nikde to nebylo vidět.
+                        Teď se vyřizuje v Pronájmu, kde je u tlačítek předvyplněná
+                        zpráva — tohle jen otevře tu správnou poptávku. */}
                     {canEditReservations && (
-                      <>
-                        <span title="Potvrdit" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'potvrzená'; })} style={{ width: 30, height: 30, borderRadius: 10, background: '#EAF6EE', color: '#1F8A4C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✓</span>
-                        <span title="Zamítnout" onClick={() => updateData((dd) => { dd.reservations[idx].status = 'zamítnutá'; })} style={{ width: 30, height: 30, borderRadius: 10, background: '#FBEAEC', color: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, cursor: 'pointer' }}>✕</span>
-                      </>
+                      <Btn small kind="primary" onClick={() => { setOtevritRezervaci(r.id); setSectionId('pronajem'); }}>Vyřídit</Btn>
                     )}
                   </div>
                 );
@@ -397,11 +399,11 @@ export default function Admin() {
             </div>
             {/* fieldset s disabled vypne všechna pole i tlačítka uvnitř */}
             <fieldset disabled style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
-              <Current />
+              <Current otevritId={otevritRezervaci} />
             </fieldset>
           </div>
         ) : (
-          <Current />
+          <Current otevritId={otevritRezervaci} />
         )}
       </div>
     </section>

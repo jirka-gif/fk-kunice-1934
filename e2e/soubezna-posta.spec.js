@@ -4,23 +4,7 @@
 // přepsala seznam rezervací starší verzí a poptávka, která mezitím dorazila,
 // zmizela. Tenhle test to hlídá v opravdovém prohlížeči, ne jen na route handleru.
 import { test, expect } from '@playwright/test';
-import { loginToAdmin, openAdminSection } from './helpers.js';
-
-// Volný termín z pohledu serveru — bere se z veřejné dostupnosti, ať test
-// nespadne na tom, že si vymyslíme obsazený nebo zavřený čas.
-async function volnyTermin(page, area) {
-  const dnes = new Date();
-  for (let i = 3; i < 40; i++) {
-    const d = new Date(dnes.getTime() + i * 86400000);
-    const dateISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const res = await page.request.get(`/api/availability?area=${encodeURIComponent(area)}&date=${dateISO}`);
-    if (!res.ok()) continue;
-    const json = await res.json();
-    const volny = (json.slots || []).find((s) => s.free);
-    if (volny) return { dateISO, from: volny.time };
-  }
-  throw new Error('Nenašel se volný termín pro test.');
-}
+import { loginToAdmin, openAdminSection, volnyTermin } from './helpers.js';
 
 test('poptávka doručená během otevřené administrace přežije uložení', async ({ page }) => {
   await loginToAdmin(page);
