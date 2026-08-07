@@ -320,6 +320,84 @@ export function StringListEditor({ items, onChange, placeholder = 'Nová položk
 //  neodejde bez kliknutí na Odeslat. Pod ní je historie toho, co už odešlo —
 //  včetně neúspěchů, aby nevypadaly stejně jako doručené e-maily.
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+//  STAV ODESÍLÁNÍ POŠTY
+//  Bez tohohle se dalo poznat jen podle toho, že e-maily prostě nechodí.
+//  Ukazuje, jestli je pošta napojená, z jaké adresy se posílá, a umí poslat
+//  zkušební e-mail — klíč se nastavuje v proměnných prostředí, ne tady.
+// -----------------------------------------------------------------------------
+export function StavPosty({ vychoziEmail = '' }) {
+  const [stav, setStav] = useState(null); // null = ještě se načítá
+  const [komu, setKomu] = useState(vychoziEmail);
+  const [odesilam, setOdesilam] = useState(false);
+  const [vysledek, setVysledek] = useState(null); // { ok, zprava }
+
+  useEffect(() => {
+    let zahozeno = false;
+    fetch('/api/mail')
+      .then((r) => r.json())
+      .then((d) => { if (!zahozeno) setStav(d); })
+      .catch(() => { if (!zahozeno) setStav({ configured: false, from: '', error: 'Stav se nepodařilo zjistit — server neodpověděl.' }); });
+    return () => { zahozeno = true; };
+  }, []);
+
+  // Adresu z nastavení převezmeme jen dokud si ji člověk sám nepřepsal.
+  useEffect(() => { setKomu((k) => k || vychoziEmail); }, [vychoziEmail]);
+
+  const poslat = async () => {
+    if (!confirm(`Opravdu poslat zkušební e-mail na ${komu}?`)) return;
+    setOdesilam(true); setVysledek(null);
+    try {
+      const res = await fetch('/api/mail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: komu }),
+      });
+      const data = await res.json().catch(() => ({}));
+      setVysledek(res.ok
+        ? { ok: true, zprava: `Odesláno na ${data.to || komu}. Když nedorazí, mrkni do spamu.` }
+        : { ok: false, zprava: data.error || 'E-mail se nepodařilo odeslat.' });
+    } catch {
+      setVysledek({ ok: false, zprava: 'Server je nedostupný. Zkus to prosím znovu.' });
+    } finally {
+      setOdesilam(false);
+    }
+  };
+
+  const nacita = stav === null;
+  const ok = !!(stav && stav.configured);
+  const barva = nacita ? '#9AA1AC' : ok ? '#1F8A4C' : RED;
+
+  return (
+    <Card style={{ marginBottom: 16, background: '#FAFBFC' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{ width: 10, height: 10, borderRadius: '50%', background: barva, flex: 'none' }} />
+        <span style={{ fontWeight: 800, fontSize: 14 }}>Odesílání e-mailů</span>
+        <span style={{ fontWeight: 800, fontSize: 13, color: barva }}>
+          {nacita ? 'zjišťuje se…' : ok ? 'připojeno' : 'nefunguje'}
+        </span>
+      </div>
+
+      <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 600, marginTop: 8, lineHeight: 1.6 }}>
+        {nacita && 'Načítám stav…'}
+        {!nacita && ok && <>Posílá se z adresy <b>{stav.from}</b>. Upozornění na poptávky i odpovědi žadatelům odcházejí.</>}
+        {!nacita && !ok && <>{stav.error || 'Pošta není nastavená.'} E-maily se neposílají — poptávky se ale do administrace ukládají vždycky.</>}
+        <div style={{ marginTop: 4, color: '#9AA1AC' }}>
+          Nastavuje se v proměnných prostředí <b>RESEND_API_KEY</b> a <b>MAIL_FROM</b> (v clusteru secret <b>fk-kunice-secrets</b>), ne v administraci.
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <Field label="Zkušební e-mail na adresu" value={komu} onChange={setKomu} placeholder="jmeno@example.cz" width="260px" />
+        <Btn small kind="primary" onClick={poslat}>{odesilam ? 'Odesílám…' : 'Poslat zkušební e-mail'}</Btn>
+        {vysledek && (
+          <span style={{ fontSize: 12, fontWeight: 700, color: vysledek.ok ? '#1F8A4C' : RED, paddingBottom: 10 }}>{vysledek.zprava}</span>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 export function ZpravaZadateli({ typ, id, email, predvyplneno, onZavrit, historie = [], onOdeslano }) {
   const [subject, setSubject] = useState(predvyplneno?.subject || '');
   const [text, setText] = useState(predvyplneno?.text || '');

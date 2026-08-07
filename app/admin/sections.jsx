@@ -5,7 +5,7 @@ import { czechDate, daySlots, occurrencesInRange, shiftDays, dateKey, toMinutes,
 import { matchWhenText, sortResults } from '@/lib/defaults';
 import { reservationDecisionMail, registrationDecisionMail } from '@/lib/mail';
 import { postFromResult } from '@/lib/social';
-import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField, Pokrocile, Prepinac, IkonaKos, IkonaTuzka, UdajeZakaznika, ZpravaZadateli } from './adminui';
+import { Field, Row, Btn, Card, SectionHead, ListEditor, StringListEditor, Select, TeamSwitcher, ImageField, Pokrocile, Prepinac, IkonaKos, IkonaTuzka, UdajeZakaznika, ZpravaZadateli, StavPosty } from './adminui';
 
 const WLD_OPTS = [{ value: 'V', label: 'Výhra' }, { value: 'R', label: 'Remíza' }, { value: 'P', label: 'Prohra' }];
 const EV_TYPE_OPTS = [{ value: 'goal', label: 'Gól' }, { value: 'yellow', label: 'Žlutá karta' }, { value: 'red', label: 'Červená karta' }];
@@ -1206,9 +1206,11 @@ function RentalNastaveni({ settings }) {
         </Row>
         <div style={{ fontSize: 12, color: '#9AA1AC', fontWeight: 600, marginTop: 12 }}>
           Denně to dělá <b>{sloty.length}</b> termínů{sloty.length ? `: ${sloty[0]} – ${sloty[sloty.length - 1]}` : ' — zkontroluj otevírací dobu'}.
-          E-mail se odešle jen s nastaveným klíčem RESEND_API_KEY; poptávka se do administrace uloží vždycky.
+          Jestli e-maily odcházejí, ukazuje pole níž; poptávka se do administrace uloží vždycky.
         </div>
       </Card>
+
+      <StavPosty vychoziEmail={settings.notifyEmail} />
 
       <div style={{ fontWeight: 800, fontSize: 15, margin: '20px 0 10px' }}>Zavřené dny <span style={{ fontWeight: 600, fontSize: 12, color: '#9AA1AC' }}>(turnaj, údržba — web je vůbec nenabídne)</span></div>
       <StringListEditor items={settings.closedDays} onChange={(v) => upd({ closedDays: v })} placeholder="2026-07-04" columns={3} />

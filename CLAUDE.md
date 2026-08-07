@@ -146,6 +146,12 @@ odolné a **vždy s ruční kontrolou**.
   serveru a při kolizi vrací **409** — jinak by dva lidé poptali stejný čas.
 - `lib/mail.js` — upozornění přes Resend HTTP API (bez SMTP knihovny).
   Bez `RESEND_API_KEY` se e-mail neodešle, ale poptávka se uloží.
+  Důvod odmítnutí čteme z `error.message` i z `message` — Resend vrací obojí.
+- `app/api/mail/route.js` — `GET` vrací stav pošty (`configured`, odesílatel,
+  co chybí; **klíč nikdy**), `POST { to }` pošle zkušební e-mail. Stav vidí, kdo
+  smí prohlížet Pronájem, odeslat smí jen ten, kdo ho edituje. V administraci to
+  ukazuje `StavPosty` (Pronájem → Otevírací doba) — bez toho šlo nefunkční
+  odesílání poznat jen podle toho, že e-maily nechodí.
 - Obsah: `reservations` (s `dateISO`/`from`/`to`) + `rentalSettings`
   (otevírací doba, délka termínu, zavřené dny, e-mail pro upozornění).
 - `app/components/Vyber.jsx` — rozbalovací nabídka v klubovém stylu
