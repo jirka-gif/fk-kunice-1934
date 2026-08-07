@@ -43,8 +43,8 @@ test('přehled ukazuje jen to, co opravdu čeká, a vede rovnou tam', async ({ p
   await expect(page.getByText('Co je potřeba udělat')).toBeVisible();
   await expect(page.getByText('Nové zprávy')).toBeVisible();
 
-  // tlačítko u úkolu otevře příslušnou sekci
-  await page.getByRole('button', { name: 'Přečíst' }).first().click();
+  // tužka u úkolu otevře příslušnou sekci
+  await page.getByRole('button', { name: 'Otevřít — Nové zprávy' }).first().click();
   await expect(page.getByText('Zprávy odeslané z kontaktního formuláře na webu')).toBeVisible();
 });
 

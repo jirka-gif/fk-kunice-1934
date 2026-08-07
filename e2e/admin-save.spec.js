@@ -26,15 +26,18 @@ test('úprava nastavení klubu přetrvá po reloadu i na webu', async ({ page })
 });
 
 test('text hero na hlavní stránce se dá upravit v adminu a projeví se na webu', async ({ page }) => {
-  const title = `Hero ${Date.now()}`;
+  const popisek = `SCROLL ${Date.now()}`;
 
   await loginToAdmin(page);
   await openAdminSection(page, 'domu');
-  await page.getByLabel('Hlavní nadpis').fill(title);
+  // Hlavní nadpis, podtitulek a odstavec se upravují přímo na webu
+  // (viz upravy-na-webu.spec.js) — v adminu zůstaly drobnosti kolem nich.
+  await page.getByRole('button', { name: /Drobnosti/ }).click();
+  await page.getByLabel('Popisek u šipky dolů').fill(popisek);
   await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
 
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
+  await expect(page.getByText(popisek)).toBeVisible();
 });
 
 test('text v patičce se dá upravit v adminu a projeví se na webu', async ({ page }) => {
