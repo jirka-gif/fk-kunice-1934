@@ -317,3 +317,46 @@ describe('přání pravidelného termínu neblokuje', () => {
     expect(occursOn(zapnuto, '2026-09-15')).toBe(true);
   });
 });
+
+// -----------------------------------------------------------------------------
+//  VYNECHANÉ DNY U SÉRIE
+//  Dlouhodobý pronájem musí jít přerušit na prázdniny a turnaje. Vynechaný den
+//  se uvolní ostatním, série ale pokračuje dál.
+// -----------------------------------------------------------------------------
+describe('vynechané dny uvolní termín, série pokračuje', () => {
+  const serie = {
+    id: 'serie-1', area: 'Hlavní stadion', dateISO: '2026-09-01', from: '18:00', to: '19:00',
+    status: 'potvrzená', repeat: 'weekly', repeatUntil: '2026-09-29',
+    skipDates: ['2026-09-15'],
+  };
+  const nastaveni = { openFrom: '08:00', openTo: '22:00', slotMinutes: 60, leadHours: 0, horizonDays: 400 };
+  const ted = new Date('2026-08-01T10:00:00');
+
+  it('vynechaný den termín neblokuje', () => {
+    expect(bookedTimes([serie], 'Hlavní stadion', '2026-09-15').has('18:00')).toBe(false);
+  });
+
+  it('a dá se v něm poptat', () => {
+    const kontrola = validateRequest({
+      reservations: [serie], area: 'Hlavní stadion', dateISO: '2026-09-15', from: '18:00',
+      settings: nastaveni, now: ted,
+    });
+    expect(kontrola.ok).toBe(true);
+  });
+
+  it('okolní termíny série drží dál', () => {
+    expect(bookedTimes([serie], 'Hlavní stadion', '2026-09-08').has('18:00')).toBe(true);
+    expect(bookedTimes([serie], 'Hlavní stadion', '2026-09-22').has('18:00')).toBe(true);
+  });
+
+  it('vynechat jde i úplně první termín série', () => {
+    const bezPrvniho = { ...serie, skipDates: ['2026-09-01'] };
+    expect(occursOn(bezPrvniho, '2026-09-01')).toBe(false);
+    expect(occursOn(bezPrvniho, '2026-09-08')).toBe(true);
+  });
+
+  it('nesmyslný zápis data nic nevynechá (a nic nerozbije)', () => {
+    const spatne = { ...serie, skipDates: ['15. 9. 2026'] };
+    expect(bookedTimes([spatne], 'Hlavní stadion', '2026-09-15').has('18:00')).toBe(true);
+  });
+});

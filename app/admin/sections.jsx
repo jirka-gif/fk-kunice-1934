@@ -1173,6 +1173,29 @@ function RezervaceTable({ reservations, areaOptions, openId, onOpenIdUsed, klubE
                         </div>
                       ) : null}
                     </Row>
+
+                    {/* Vynechané dny — bez nich se dlouhodobý pronájem nedá provozovat
+                        přes prázdniny a turnaje. Termín se v ten den uvolní ostatním,
+                        série ale pokračuje dál. Zapisuje se strojově (2026-07-04),
+                        stejně jako zavřené dny v nastavení pronájmu. */}
+                    {r.repeat ? (
+                      <div data-vynechane-dny style={{ marginTop: 12 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.4px', color: '#9AA1AC', marginBottom: 6, textTransform: 'uppercase' }}>
+                          Vynechané dny <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 600 }}>(prázdniny, turnaj — termín se ten den uvolní)</span>
+                        </div>
+                        <StringListEditor
+                          items={r.skipDates || []}
+                          onChange={(v) => update(i, { skipDates: v })}
+                          placeholder="2026-07-04"
+                          columns={3}
+                        />
+                        {(r.skipDates || []).some((d) => !/^\d{4}-\d{2}-\d{2}$/.test(d)) && (
+                          <div style={{ fontSize: 12, color: '#C1121F', fontWeight: 700, marginTop: 8 }}>
+                            Datum piš ve tvaru 2026-07-04, jinak se den nevynechá.
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
                     <div style={{ height: 10 }} />
                     <Row>
                       <Select label="Zdroj" value={r.source} onChange={(v) => update(i, { source: v })} options={RES_SOURCE} width="150px" />
