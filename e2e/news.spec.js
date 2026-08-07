@@ -29,6 +29,8 @@ test('stránkování se objeví, když je novinek víc než jedna stránka', asy
   await openAdminSection(page, 'novinky');
   for (let i = 0; i < 3; i++) {
     await page.getByRole('button', { name: '+ Přidat novinku' }).click();
+    // nová novinka vzniká jako koncept — na web ji pustí až přepínač
+    await page.getByRole('switch', { name: 'Zveřejnit novinku na webu' }).click();
   }
   await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
 

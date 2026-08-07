@@ -86,7 +86,9 @@ test('u týmu se dá nastavit adresa zdroje', async ({ page }) => {
   await loginToAdmin(page);
   await openAdminSection(page, 'zapasy');
   const url = `https://www.fotbal.cz/souteze/test-${Date.now()}`;
-  await page.getByLabel('Adresa soutěže na fotbal.cz').fill(url);
+  // adresy se mění jednou za sezónu, proto jsou sbalené
+  await page.getByRole('button', { name: /Odkazy na fotbal\.cz/ }).click();
+  await page.getByLabel('Adresa soutěže pro stahování zápasů').fill(url);
   await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
 
   const content = await (await page.request.get('/api/content')).json();

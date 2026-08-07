@@ -28,15 +28,16 @@ test('přihláška z webu dorazí do adminu a jde vyřídit', async ({ page }) =
   // 3) v adminu je mezi novými a dá se vyřídit
   await loginToAdmin(page);
   await openAdminSection(page, 'registrace');
-  await expect(page.getByText(jmeno)).toBeVisible();
-  await page.getByText(jmeno).click();
+  await expect(page.getByText(jmeno).first()).toBeVisible();
+  await page.getByText(jmeno).first().click();
   await page.getByRole('button', { name: 'Označit jako vyřízenou' }).click();
   await page.waitForResponse((rq) => rq.url().includes('/api/content') && rq.request().method() === 'PUT' && rq.ok());
 
   await page.getByRole('button', { name: /^Nové/ }).click();
   await expect(page.getByText(jmeno)).toHaveCount(0);
   await page.getByRole('button', { name: /^Vyřízené/ }).click();
-  await expect(page.getByText(jmeno)).toBeVisible();
+  // jméno je i v rozbaleném detailu a v předvyplněné zprávě rodiči
+  await expect(page.getByText(jmeno).first()).toBeVisible();
 });
 
 test('přihláška bez jména se neodešle', async ({ page }) => {

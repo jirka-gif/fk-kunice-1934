@@ -1,6 +1,7 @@
 // E2E: uživatelé, role a jejich vynucení v administraci i v API.
 import { test, expect } from '@playwright/test';
 import { ADMIN_EMAIL, ADMIN_PASSWORD, loginToAdmin, openAdminSection } from './helpers.js';
+import { ADMIN_GROUPS, ADMIN_SECTIONS } from '../lib/permissions.js';
 
 // Založí uživatele přes API a vrátí { email, password }.
 async function createUser(page, role) {
@@ -28,15 +29,17 @@ test('správce vidí sekci Uživatelé a role, redaktor ne', async ({ page }) =>
   await expect(page.locator('[data-group-has~="novinky"]')).toBeVisible();
 });
 
-test('menu má šest skupin místo čtrnácti položek', async ({ page }) => {
+test('menu je seskupené, ne řada jednotlivých sekcí', async ({ page }) => {
   await loginToAdmin(page);
+  // první správce má roli Super správce, takže vidí všechny skupiny
   const skupiny = page.locator('[data-group]');
-  await expect(skupiny).toHaveCount(6);
+  await expect(skupiny).toHaveCount(ADMIN_GROUPS.length);
+  expect(ADMIN_GROUPS.length).toBeLessThan(ADMIN_SECTIONS.length);
 
   // skupina s víc sekcemi nabídne uvnitř záložky
-  await page.locator('[data-group="hriste"]').click();
-  await expect(page.locator('[data-sec="zapasy"]')).toBeVisible();
-  await expect(page.locator('[data-sec="tymy"]')).toBeVisible();
+  await page.locator('[data-group="obsah"]').click();
+  await expect(page.locator('[data-sec="novinky"]')).toBeVisible();
+  await expect(page.locator('[data-sec="kempy"]')).toBeVisible();
 });
 
 test('sekce jen pro čtení se dá otevřít, ale needituje', async ({ page }) => {

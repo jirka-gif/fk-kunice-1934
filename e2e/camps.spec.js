@@ -9,24 +9,28 @@ test('web ukazuje přepínač kempů a detail vybraného kempu', async ({ page }
   await expect(page.getByText('DENNÍ PROGRAM')).toBeVisible();
 });
 
-test('nový kemp přidaný v adminu se objeví na webu a po archivaci zmizí', async ({ page }) => {
+test('nový kemp se zapne, objeví na webu a po vypnutí zmizí', async ({ page }) => {
   const title = `Podzimní kemp ${Date.now()}`;
 
   await loginToAdmin(page);
   await openAdminSection(page, 'kempy');
   await page.getByRole('button', { name: '+ Přidat kemp' }).click();
   await page.getByLabel('Titulek').fill(title);
+  // nový kemp je vypnutý — na web ho pustí až přepínač
+  await expect(page.getByRole('switch', { name: 'Zobrazovat kemp na webu' })).toHaveAttribute('aria-checked', 'false');
+  await page.getByRole('switch', { name: 'Zobrazovat kemp na webu' }).click();
   await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
 
   // na webu je nový kemp v přepínači
   await page.goto('/kempy');
-  await expect(page.getByText(title)).toBeVisible();
+  await expect(page.getByText(title).first()).toBeVisible();
 
-  // archivace ho z webu odstraní
+  // vypnutí ho z webu odstraní
   await page.goto('/admin');
   await openAdminSection(page, 'kempy');
-  await page.getByRole('button', { name: title }).click();
-  await page.getByRole('button', { name: 'Archivovat' }).click();
+  // v záložce kempu je za názvem ještě odznak stavu, proto hledáme podle výskytu
+  await page.getByRole('button', { name: new RegExp(title) }).click();
+  await page.getByRole('switch', { name: 'Zobrazovat kemp na webu' }).click();
   await page.waitForResponse((r) => r.url().includes('/api/content') && r.request().method() === 'PUT' && r.ok());
 
   await page.goto('/kempy');
