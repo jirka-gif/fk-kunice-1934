@@ -20,10 +20,15 @@ const { hasDatabase } = await import('@/lib/db');
 const { ensureSeedUser, readAuth, writeAuth, hashPassword, randomToken } = await import('@/lib/users');
 
 // pomocník: PUT požadavek s JSON tělem
-const putReq = (body) =>
+const putReq = (body, smazane) =>
   new Request('http://localhost/api/content', {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      // Co administrace smazala. Bez toho server nic z příchozích seznamů
+      // neodstraní — raději nechá navíc, než by ztratil poptávku.
+      ...(smazane ? { 'x-fk-inbox-removed': JSON.stringify(smazane) } : {}),
+    },
     body: typeof body === 'string' ? body : JSON.stringify(body),
   });
 
@@ -186,5 +191,133 @@ describe('PUT /api/content — omezení podle role', () => {
     await loginAs('bez-prav');
     const res = await PUT(putReq(clone(DEFAULTS)));
     expect(res.status).toBe(200);
+  });
+});
+
+// -----------------------------------------------------------------------------
+//  SOUBĚŽNÁ POŠTA
+//  Administrace posílá obsah tak, jak si ho načetla při otevření stránky. Poptávka,
+//  která dorazí mezitím, v něm chybí — a bez slučování by ji uložení smazalo.
+// -----------------------------------------------------------------------------
+describe('příchozí pošta se nepřepíše starším pohledem administrace', () => {
+  const seSeznamem = (klic, polozky) => {
+    const c = clone(DEFAULTS);
+    c[klic] = polozky;
+    return c;
+  };
+  const rezervace = (id, createdAt) => ({
+    id, createdAt, name: `Zájemce ${id}`, email: `${id}@example.cz`,
+    area: 'Hlavní stadion', dateISO: '2026-09-01', from: '18:00', to: '19:00',
+    date: '1. září 2026', status: 'nová', source: 'web', messages: [],
+  });
+
+  it('poptávka doručená po načtení administrace zůstane', async () => {
+    await loginAs('spravce');
+    const stara = rezervace('rez-stara', '2026-08-01T09:00:00.000Z');
+    const nova = rezervace('rez-nova', '2026-08-01T12:00:00.000Z');
+    globalThis.__fkMemStore.data = seSeznamem('reservations', [nova, stara]);
+
+    // administrace odesílá pohled, ve kterém nová poptávka ještě nebyla,
+    // a nic nemaže — hlavička se smazanými je tedy prázdná
+    const zAdmina = seSeznamem('reservations', [stara]);
+    zAdmina.club = { ...zAdmina.club, motto: 'Nové motto' };
+    expect((await PUT(putReq(zAdmina, {}))).status).toBe(200);
+
+    const ulozeno = await (await GET()).json();
+    expect(ulozeno.reservations.map((r) => r.id)).toEqual(['rez-nova', 'rez-stara']);
+    expect(ulozeno.club.motto).toBe('Nové motto'); // úprava admina se uložila
+  });
+
+  it('smazání rezervace projde, když ho administrace ohlásí', async () => {
+    await loginAs('spravce');
+    const stara = rezervace('rez-stara', '2026-08-01T09:00:00.000Z');
+    const novejsi = rezervace('rez-novejsi', '2026-08-01T12:00:00.000Z');
+    globalThis.__fkMemStore.data = seSeznamem('reservations', [novejsi, stara]);
+
+    const smazane = { reservations: ['id:rez-stara'] };
+    expect((await PUT(putReq(seSeznamem('reservations', [novejsi]), smazane))).status).toBe(200);
+
+    const ulozeno = await (await GET()).json();
+    expect(ulozeno.reservations.map((r) => r.id)).toEqual(['rez-novejsi']);
+  });
+
+  it('smazat jde i tu úplně nejnovější položku', async () => {
+    await loginAs('spravce');
+    const stara = rezervace('rez-stara', '2026-08-01T09:00:00.000Z');
+    const nejnovejsi = rezervace('rez-nejnovejsi', '2026-08-01T12:00:00.000Z');
+    globalThis.__fkMemStore.data = seSeznamem('reservations', [nejnovejsi, stara]);
+
+    const smazane = { reservations: ['id:rez-nejnovejsi'] };
+    expect((await PUT(putReq(seSeznamem('reservations', [stara]), smazane))).status).toBe(200);
+
+    const ulozeno = await (await GET()).json();
+    expect(ulozeno.reservations.map((r) => r.id)).toEqual(['rez-stara']);
+  });
+
+  it('bez ohlášeného smazání se z příchozích seznamů nic neztratí', async () => {
+    await loginAs('spravce');
+    const rez = rezervace('rez-1', '2026-08-01T09:00:00.000Z');
+    globalThis.__fkMemStore.data = seSeznamem('reservations', [rez]);
+
+    // starý klient / cizí volání bez hlavičky → mazání se neprovede
+    expect((await PUT(putReq(seSeznamem('reservations', [])))).status).toBe(200);
+
+    const ulozeno = await (await GET()).json();
+    expect(ulozeno.reservations.map((r) => r.id)).toEqual(['rez-1']);
+  });
+
+  it('platí i pro zprávy z kontaktu, které nemají id', async () => {
+    await loginAs('spravce');
+    const stara = { name: 'Jan', email: 'jan@example.cz', text: 'starý dotaz', date: '2026-08-01T09:00:00.000Z', status: 'nová' };
+    const nova = { name: 'Eva', email: 'eva@example.cz', text: 'nový dotaz', date: '2026-08-01T12:00:00.000Z', status: 'nová' };
+    globalThis.__fkMemStore.data = seSeznamem('messages', [nova, stara]);
+
+    expect((await PUT(putReq(seSeznamem('messages', [stara]), {}))).status).toBe(200);
+    const ulozeno = await (await GET()).json();
+    expect(ulozeno.messages.map((m) => m.email)).toEqual(['eva@example.cz', 'jan@example.cz']);
+  });
+
+  it('český zápis data u rezervace nic neplete', async () => {
+    await loginAs('spravce');
+    // seed rezervace mají `date` jako český text a prázdné `createdAt`
+    const seed = { ...rezervace('rez-seed', ''), date: '25. 6. 2026' };
+    const nova = rezervace('rez-nova', '2026-08-07T10:00:00.000Z');
+    globalThis.__fkMemStore.data = seSeznamem('reservations', [nova, seed]);
+
+    expect((await PUT(putReq(seSeznamem('reservations', [seed]), {}))).status).toBe(200);
+
+    const ulozeno = await (await GET()).json();
+    expect(ulozeno.reservations.map((r) => r.id)).toContain('rez-nova');
+  });
+
+  it('starý záznam bez data vzniku jde smazat', async () => {
+    await loginAs('spravce');
+    const bezData = { ...rezervace('rez-stara-bez-data', ''), date: '25. 6. 2026' };
+    globalThis.__fkMemStore.data = seSeznamem('reservations', [bezData]);
+
+    const smazane = { reservations: ['id:rez-stara-bez-data'] };
+    expect((await PUT(putReq(seSeznamem('reservations', []), smazane))).status).toBe(200);
+
+    const ulozeno = await (await GET()).json();
+    expect(ulozeno.reservations).toEqual([]);
+  });
+
+  it('přihláška doručená mezitím nezpůsobí 403 roli, která přihlášky needituje', async () => {
+    // redaktor má registrace 'none' — mezitím doručená přihláška vypadala jako
+    // jeho smazání a shodila mu uložení novinky, na kterou právo má
+    await loginAs('redaktor');
+    const nova = { id: 'prih-nova', createdAt: '2026-08-01T12:00:00.000Z', name: 'Malý Novák', status: 'nová', source: 'web', messages: [] };
+    const zaklad = seSeznamem('cmsRegistrations', [nova]);
+    globalThis.__fkMemStore.data = zaklad;
+
+    const zAdmina = seSeznamem('cmsRegistrations', []);
+    zAdmina.news = clone(zaklad.news);
+    zAdmina.news[0] = { ...zAdmina.news[0], title: 'Redaktor tohle smí' };
+
+    const res = await PUT(putReq(zAdmina, {}));
+    expect(res.status).toBe(200);
+    const ulozeno = await (await GET()).json();
+    expect(ulozeno.cmsRegistrations.map((r) => r.id)).toEqual(['prih-nova']);
+    expect(ulozeno.news[0].title).toBe('Redaktor tohle smí');
   });
 });
