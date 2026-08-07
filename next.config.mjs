@@ -8,7 +8,6 @@ const nextConfig = {
   // Pro běh v kontejneru. Next vygeneruje `.next/standalone/server.js` s jen
   // těmi závislostmi, které se opravdu volají — obraz je pak řádově menší
   // a nepotřebuje ani `next start`, ani celé `node_modules`.
-  // Vercel tohle nastavení ignoruje, takže nasazení tam se nemění.
   output: 'standalone',
 };
 

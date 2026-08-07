@@ -4,7 +4,10 @@ import { ContentProvider } from '@/lib/store';
 import { SessionProvider } from '@/lib/session';
 
 export const metadata = {
-  metadataBase: new URL('https://fk-kunice-1934.vercel.app'),
+  // Ostrá adresa webu. Z ní se odvozují absolutní odkazy v náhledech pro
+  // sociální sítě — dokud tu byla stará testovací adresa, náhledy ukazovaly
+  // na web, který už neexistuje.
+  metadataBase: new URL('https://www.fkkunice.cz'),
   title: {
     default: 'FK Kunice 1934 — Společně silnější',
     template: '%s · FK Kunice 1934',

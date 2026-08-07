@@ -25,17 +25,25 @@ nesedí, nepokračuj dál.
 
 ## Co si připrav předem
 
-1. **Připojovací řetězec k databázi** (`DATABASE_URL`). Web teď jede na
-   hostované databázi Neon a nejjednodušší je nechat ho tam i po přestěhování;
-   vlastní databázi v clusteru řeší až poslední sekce návodu. Vypadá jako
-   `postgres://uzivatel:heslo@host/dbname?sslmode=require`.
-   Bez něj web funguje, ale **všechno, co v administraci nastavíš, zmizí při
-   každém restartu** — data se drží jen v paměti. Řetězec je v nastavení
-   projektu na Vercelu (Settings → Environment Variables), nebo v Neonu.
-   Vezmi ten **stávající**, ne nový — v novém by web neměl žádný obsah.
+> **Stav k srpnu 2026: stěhování je hotové.** Web běží v clusteru, databáze
+> taky (`fk-kunice-db`), DNS domény `fkkunice.cz` je v Cloudflare a míří rovnou
+> na ingress clusteru. Vercel ani Neon už v provozu nefigurují. Kroky níž jsou
+> původní postup přestěhování — nech si je jako záznam a pro případ, že by se
+> web zakládal znovu. Na běžnou aktualizaci webu ti stačí sekce
+> „Aktualizace webu potom" na konci.
+
+1. **Připojovací řetězec k databázi** (`DATABASE_URL`) — dnes už ho ručně
+   nastavovat nemusíš. Databáze běží v clusteru a deployment si připojení bere
+   ze secretu `fk-kunice-db-app` (viz `k8s/fk-kunice.yaml`), což přebíjí
+   hodnotu ze `fk-kunice-secrets`. Vlastní řetězec potřebuješ, jen když web
+   zakládáš úplně znovu proti databázi mimo cluster.
+   Bez databáze web funguje, ale **všechno, co v administraci nastavíš, zmizí
+   při každém restartu** — data se drží jen v paměti.
 2. **E-mail a heslo do administrace**, které chceš používat. Vymýšlíš si je
    teď, nikdo ti je neposílá.
-3. **Přístup do Blueboardu** k doméně `fkkunice.cz` (krok 6).
+3. **Přístup ke správě DNS domény `fkkunice.cz`** (krok 6). Doména je dnes
+   v Cloudflare — kroky psané pro Blueboard tedy ber jako historii, záznamy se
+   dnes mění tam.
 
 ---
 

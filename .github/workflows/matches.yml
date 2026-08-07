@@ -1,6 +1,7 @@
 # Stažení zápasů z fotbal.cz → návrhy do administrace FK Kunice.
 # Běží 4× týdně (středa, pátek, sobota, neděle) a po ručním spuštění.
-# Playwright potřebuje skutečný prohlížeč, proto GitHub Actions a ne Vercel.
+# Playwright potřebuje skutečný prohlížeč, proto GitHub Actions a ne webový
+# kontejner — do jeho obrazu se prohlížeč schválně nedává.
 name: Zápasy z fotbal.cz
 
 on:

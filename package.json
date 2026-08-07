@@ -2,7 +2,7 @@
   "name": "fk-kunice-1934",
   "version": "1.0.0",
   "private": true,
-  "description": "FK Kunice 1934 — oficiální web fotbalového klubu + CMS. Next.js, nasazeno na Vercelu.",
+  "description": "FK Kunice 1934 — oficiální web fotbalového klubu + CMS. Next.js, běží v kontejneru v nethost clusteru.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

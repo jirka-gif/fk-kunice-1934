@@ -109,7 +109,7 @@ být **odolné a s ruční kontrolou**.
 2. `scripts/scrape-matches.mjs` (Playwright, headless): nejbližší zápas, poslední výsledek,
    tabulka → odešle jako **návrh** do chráněného API (tajný token).
 3. Naplánování 4× týdně přes **GitHub Actions** cron (`.github/workflows/matches.yml`) —
-   Playwright se nehodí na Vercel serverless.
+   Playwright potřebuje skutečný prohlížeč, do obrazu webu se nedává.
 4. V adminu (Zápasy) schvalování návrhů (Potvrdit/Upravit/Zahodit) napojené na stávající editor.
 5. Monitoring: při selhání upozornění; web neukazuje stará data jako nová.
 

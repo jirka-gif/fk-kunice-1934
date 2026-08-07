@@ -6,7 +6,14 @@ Veškeré texty pro uživatele (UI, hlášky, komentáře v adminu) piš **česk
 ## Co to je
 Oficiální web fotbalového klubu **FK Kunice 1934** + vlastní administrace (CMS).
 **Next.js 14 (App Router), React 18, čistý JavaScript (JSX) — NE TypeScript.**
-Nasazeno na **Vercelu**.
+
+**Kde to běží:** jako kontejner v nethost clusteru (namespace `fk-kunice`),
+obraz z GHCR staví workflow **Build image** při každém pushi do `main`.
+Databáze je taky v clusteru (`fk-kunice-db`, CloudNativePG). Doména
+`www.fkkunice.cz` má DNS v Cloudflare — ten provoz jen směruje, neproxuje ho,
+takže požadavky chodí rovnou na ingress clusteru. Postup nasazení je
+v `k8s/README.md`. **Na Vercelu web neběží** — kdyby v kódu zbyla zmínka,
+je to pozůstatek, ne návod.
 
 ## Lokální testování
 `.env.local` (není v gitu) zapíná `FK_LOCAL_STORE=1` → obsah i uživatelé se
@@ -101,15 +108,18 @@ odolné a **vždy s ruční kontrolou**.
 - `scripts/scrape-matches.mjs` — Playwright headless: projde týmy s vyplněným
   `sourceUrl`, HTML pošle parseru a výsledek odešle jako **návrh** na
   `POST /api/matches` (hlavička `x-scraper-token`, proměnná `MATCHES_TOKEN`).
-- `.github/workflows/matches.yml` — cron 4× týdně (St/Pá/So/Ne). Na Vercelu to
-  nejde, Playwright potřebuje skutečný prohlížeč. Při selhání založí issue.
+- `.github/workflows/matches.yml` — cron 4× týdně (St/Pá/So/Ne). Běží
+  v GitHub Actions, ne ve webovém kontejneru — Playwright potřebuje skutečný
+  prohlížeč a ten se do obrazu webu nedává. Při selhání založí issue.
 - Obsah: `matchProposals` (návrhy) + `matchesSync` (stav posledního běhu).
   **Návrh se na web nikdy nepropíše sám** — v adminu (Zápasy → Návrhy) ho člověk
   potvrdí, upraví nebo zahodí. Web tak nikdy neukazuje neověřená data a při
   selhání stahování svítí v adminu varování.
 
 ## Sociální sítě (Krok 4)
-- `app/api/og/match/route.js` — vizuál výsledku přes **@vercel/og** (edge).
+- `app/api/og/match/route.js` — vizuál výsledku přes knihovnu **@vercel/og**.
+  (Je to jen npm balíček na kreslení obrázků, s hostingem nemá nic společného —
+  běží nám v clusteru stejně dobře. Neodstraňovat při úklidu zmínek o Vercelu.)
   **Formát 1080 × 1350 px (4:5)** — ten Instagram i Facebook zobrazí v plné výšce.
   Široké 1200 × 630 je jen pro náhledy odkazů, ne pro příspěvky.
   Všechny texty jsou parametry adresy, takže admin mění vizuál bez zásahu do kódu.

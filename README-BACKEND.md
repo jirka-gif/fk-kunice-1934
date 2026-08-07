@@ -2,7 +2,9 @@
 
 Tento dokument popisuje **testovací (vývojovou) verzi backendu**, která byla přidána k webu FK Kunice, a **postup nasazení do reálné produkční databáze**.
 
-Cílem této verze je jediné: aby web běžel **celý na Vercelu s reálnou perzistencí** — tedy aby se úpravy z administrace ukládaly na server (ne jen do prohlížeče), formuláře dorazily ke klubu a do `/admin` se dalo přihlásit. Přitom je udělaná tak, aby **fungovala i bez databáze** (spadne zpět na výchozí obsah), takže ji lze bezpečně zapnout a zprovoznit postupně.
+Cílem této verze je jediné: aby web běžel **s reálnou perzistencí** — tedy aby se úpravy z administrace ukládaly na server (ne jen do prohlížeče), formuláře dorazily ke klubu a do `/admin` se dalo přihlásit. Přitom je udělaná tak, aby **fungovala i bez databáze** (spadne zpět na výchozí obsah), takže ji lze bezpečně zapnout a zprovoznit postupně.
+
+> **Kde web běží dnes:** jako kontejner v nethost clusteru (namespace `fk-kunice`), databáze je v clusteru taky (`fk-kunice-db`, CloudNativePG). Doména `www.fkkunice.cz` má DNS v Cloudflare. Nasazení a provoz popisuje [k8s/README.md](k8s/README.md). Vercel ani Neon se už nepoužívají.
 
 ---
 
@@ -61,45 +63,30 @@ Chceš-li lokálně i ukládání do databáze, vytvoř soubor `.env.local` podl
 
 ---
 
-## 4. Nasazení na Vercel (testovací provoz)
+## 4. Nasazení do provozu
 
-Web už na Vercelu běží. Aby fungovala i perzistence, stačí přidat databázi a dvě proměnné:
+Web běží v nethost clusteru. Celý postup — přístup ke clusteru, uložení hesel do secretu, nasazení, verze obrazu, DNS a certifikát — je v [k8s/README.md](k8s/README.md). Tady jen shrnutí, jak to do sebe zapadá:
 
-### Krok 1 — Přidej databázi (Neon Postgres)
-1. Ve Vercelu otevři svůj projekt → záložka **Storage**.
-2. **Create Database** → vyber **Neon (Serverless Postgres)** → **Continue** a databázi vytvoř (stačí bezplatný tarif).
-3. Po vytvoření klikni na **Connect Project** a připoj ji k tomuto projektu.
+1. **Push do `main`** spustí workflow **Build image**, který postaví obraz a pošle ho do GHCR pod tagem `sha-<sedm znaků>`.
+2. **Proměnné prostředí** jsou v secretu `fk-kunice-secrets`. Deployment si je tahá přes `envFrom`, takže cokoli do secretu přidáš, stane se proměnnou. Přidání jedné hodnoty bez přepsání ostatních:
 
-Vercel tím sám do projektu vloží proměnnou s připojením (obvykle `DATABASE_URL`, případně `POSTGRES_URL` — aplikace umí obojí). Nemusíš nic kopírovat ručně.
+   ```bash
+   kubectl --context client-admin@frankee-dev -n fk-kunice patch secret fk-kunice-secrets --type=merge -p '{"stringData":{"KLIC":"hodnota"}}'
+   ```
 
-### Krok 2 — Nastav přihlašovací heslo a klíč
-V projektu → **Settings → Environment Variables** přidej:
+3. **Nasazení nové verze** = `set image` na ten tag a `rollout status`. Po změně samotného secretu (beze změny obrazu) stačí `rollout restart` — běžící pod má staré proměnné v paměti.
+4. **Databáze** se při prvním otevření webu sama naplní výchozím obsahem, žádný import se nedělá.
 
-| Název | Hodnota |
-|---|---|
-| `ADMIN_PASSWORD` | vlastní silné heslo do administrace |
-| `AUTH_SECRET` | náhodný dlouhý řetězec (např. z `openssl rand -base64 32`) |
-
-### Krok 3 — Znovu nasaď
-V záložce **Deployments** dej u posledního nasazení **Redeploy** (nebo pushni jakoukoli změnu). Po nasazení:
-
-- Web běží normálně a **úpravy v `/admin` se ukládají do databáze** — platí pro všechny.
-- Databáze se při prvním otevření webu **sama naplní** výchozím obsahem (není potřeba žádný import).
-- Formuláře (kontakt, pronájem) se ukládají a objeví se v administraci.
-
-Přihlášení do administrace: otevři `https://tvuj-web.vercel.app/admin`, zadej `ADMIN_PASSWORD`.
+Přihlášení do administrace: <https://www.fkkunice.cz/admin>.
 
 ---
 
-## 5. Přechod na reálnou produkční databázi
+## 5. Zálohy a bezpečnost dat
 
-Až se rozhodneš jít „naostro", **není potřeba nic přenášet ani přepisovat kód** — jde jen o oddělení testovacích a produkčních dat. Doporučený postup:
-
-1. **Založ samostatnou produkční databázi.** Buď novou Neon databázi jako v kroku 4, nebo si u Neonu odděl **produkční větev** (Neon má tzv. branches — testovací data pak nemíchají s ostrými).
-2. **Nastav proměnné pro produkční prostředí.** Ve Vercelu mají proměnné tři úrovně — *Production*, *Preview*, *Development*. Produkční `DATABASE_URL`, `ADMIN_PASSWORD` a `AUTH_SECRET` nastav pro **Production**; testovací hodnoty klidně nech pro Preview.
-3. **Nasaď na produkční doménu** (např. `fkkunice.cz`) — v **Settings → Domains** přidej vlastní doménu a nasměruj na ni DNS. Web zůstává na Vercelu, mění se jen adresa a produkční databáze.
-4. **Zapni zálohy.** V Neonu zkontroluj *Point-in-Time Restore* / zálohy, ať jsou data klubu chráněná.
-5. **Změň výchozí heslo.** Ujisti se, že `ADMIN_PASSWORD` je v produkci silné a jiné než testovací.
+1. **Zálohy databáze** běží v clusteru jako naplánovaná úloha (`fk-kunice-db-backup`). Že proběhly, ověříš přes `kubectl -n fk-kunice get jobs`.
+2. **Ruční záloha** jde kdykoli z administrace tlačítkem **Export dat (JSON)** — celý obsah je jeden JSON, takže se dá i nahrát zpátky.
+3. **Silné heslo správce.** `ADMIN_PASSWORD` v secretu slouží jen k založení prvního účtu; další uživatele zakládá správce v administraci a každý si mění heslo sám.
+4. **Hesla nikdy do gitu.** Secret se zakládá příkazem, ne souborem v repozitáři — proto v `k8s/fk-kunice.yaml` schválně není.
 
 > Protože obsah je uložený jako JSON, **zálohu uděláš i ručně** kdykoli tlačítkem **Export dat (JSON)** přímo v administraci. Ten samý JSON jde v případě potřeby nahrát zpět do databáze.
 
@@ -127,7 +114,7 @@ Frontend ani administraci není nutné měnit.
 ## 7. Meze testovací verze (vědomé kompromisy)
 
 - **Přihlášení je na jedno sdílené heslo** — bez uživatelů a rolí (to řeší další fáze).
-- **Fotky se zatím ukládají jako base64 uvnitř obsahu.** Funguje to, ale pro hodně velkých fotek je lepší přejít na úložiště souborů (Vercel Blob / Supabase Storage).
+- **Fotky se zatím ukládají jako base64 uvnitř obsahu.** Funguje to, ale pro hodně velkých fotek je lepší přejít na úložiště souborů (S3-kompatibilní bucket nebo objektové úložiště v clusteru).
 - **Bez databáze se změny neuloží natrvalo** (drží se jen v paměti běžícího procesu) — pro ostrý provoz vždy nastav `DATABASE_URL`.
 - **Formulářové zprávy** se ukládají do pole `messages` v obsahu; samostatná sekce v administraci pro ně přijde v další fázi (zatím je vidět v exportu JSON).
 
@@ -211,8 +198,9 @@ fotbal.cz nemá veřejné API a scraping blokuje (403), HTML se navíc mění.
 2. `scripts/scrape-matches.mjs` — Playwright headless projde týmy s vyplněným
    `sourceUrl` a výsledek pošle jako **návrh** na `POST /api/matches`
    (hlavička `x-scraper-token`). Bez tokenu API vrátí 401.
-3. `.github/workflows/matches.yml` — cron 4× týdně (St/Pá/So/Ne). Vercel by
-   Playwright neutáhl. Při selhání workflow založí issue.
+3. `.github/workflows/matches.yml` — cron 4× týdně (St/Pá/So/Ne). Ve webovém
+   kontejneru to nejde, Playwright potřebuje skutečný prohlížeč a ten se do
+   obrazu nedává. Při selhání workflow založí issue.
 4. **Návrh se nikdy nepropíše sám.** V adminu (Zápasy → Návrhy) ho člověk
    zkontroluje, případně upraví a potvrdí — teprve pak se zapíše k týmu.
 5. Monitoring: `matchesSync` drží stav posledního běhu. Admin ukáže červený pruh
@@ -221,7 +209,7 @@ fotbal.cz nemá veřejné API a scraping blokuje (403), HTML se navíc mění.
 ### Co nastavit
 | Kde | Co |
 |---|---|
-| Vercel / `.env.local` | `MATCHES_TOKEN` |
+| Secret `fk-kunice-secrets` / `.env.local` | `MATCHES_TOKEN` |
 | GitHub → Secrets | `MATCHES_TOKEN` (stejná hodnota), `SITE_URL` |
 | Administrace | u týmu „Adresa soutěže na fotbal.cz" |
 
@@ -247,7 +235,8 @@ fotbal.cz nemá veřejné API a scraping blokuje (403), HTML se navíc mění.
 Bez nich se nic neodešle a v administraci se ukáže, která proměnná chybí.
 
 ### Jak to funguje
-- Vizuál výsledku vzniká na `/api/og/match` (@vercel/og) — klubové barvy, skóre,
+- Vizuál výsledku vzniká na `/api/og/match` (knihovna @vercel/og — jen balíček na
+  kreslení obrázků, s hostingem nesouvisí) — klubové barvy, skóre,
   soupeř, střelci. Všechno jsou parametry adresy, takže se dá měnit z adminu.
 - Po potvrzení výsledku zápasu vznikne **koncept** příspěvku. V nastavení jde
   přepnout na „rovnou dát ke schválení".

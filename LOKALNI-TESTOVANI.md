@@ -1,6 +1,7 @@
 # Lokální testování — FK Kunice
 
-Prostředí, kde si můžeš naklikat úplně všechno bez databáze a bez Vercelu.
+Prostředí, kde si můžeš naklikat úplně všechno na vlastním počítači — bez
+databáze a bez zásahu do provozu.
 Data se ukládají do složky `.data/`, takže **přežijí restart serveru**.
 Smazání `.data/` = návrat na čistý web.
 

@@ -2,8 +2,9 @@
 // =============================================================================
 //  STAŽENÍ ZÁPASŮ Z FOTBAL.CZ  →  NÁVRHY DO ADMINISTRACE
 //
-//  Spouští se z GitHub Actions (.github/workflows/matches.yml), NE na Vercelu —
-//  Playwright potřebuje skutečný prohlížeč, který se do serverless funkce nevejde.
+//  Spouští se z GitHub Actions (.github/workflows/matches.yml), NE ve webovém
+//  kontejneru — Playwright potřebuje skutečný prohlížeč a ten se do obrazu webu
+//  schválně nedává (byl by mnohonásobně větší).
 //
 //  Postup:
 //    1. stáhne obsah webu (GET /api/content) a vezme si u týmů `sourceUrl`

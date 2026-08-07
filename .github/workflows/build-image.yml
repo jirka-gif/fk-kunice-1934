@@ -1,7 +1,7 @@
 name: Build image
 
 # Staví obraz pro nethost cluster (ns `fk-kunice`, doména www.fkkunice.cz).
-# Vercel tenhle workflow nepotřebuje a nijak se ho nedotýká.
+# Tohle je jediná cesta, jak se kód dostane na produkci.
 #
 # Obraz jde do GHCR pod tímhle repem a je VEŘEJNÝ — cluster ho pak stáhne
 # bez pull secretu, stejně jako frenkee-web. Ověřeno anonymním stažením

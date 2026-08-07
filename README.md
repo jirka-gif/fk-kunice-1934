@@ -1,7 +1,9 @@
 # FK Kunice 1934 — web + CMS
 
 Oficiální web fotbalového klubu **FK Kunice 1934** postavený podle schváleného návrhu
-(„FK Kunice 1934.dc.html"). **Next.js 14 (App Router) + React**, nasazeno na **Vercelu**.
+(„FK Kunice 1934.dc.html"). **Next.js 14 (App Router) + React**, běží jako kontejner
+v nethost clusteru (namespace `fk-kunice`) na adrese **www.fkkunice.cz** — postup
+nasazení v [k8s/README.md](k8s/README.md).
 
 > Společně silnější.
 
@@ -33,21 +35,15 @@ npm run dev      # http://localhost:3000
 npm run build    # produkční build
 ```
 
-## CMS / headless backend
+## CMS
 
-`content/club.js` je navržený jako **seed a zároveň datová vrstva**, takže napojení
-reálného headless CMS je jen výměna zdroje dat (`content/club.js` → CMS dotaz) bez
-zásahu do komponent.
+Klub má **vlastní administraci** na `/admin` — zápasy, soupisky, novinky, kempy,
+rezervace i texty stránek se editujou z prohlížeče. Obsah je uložený jako jeden
+JSON záznam v Postgresu, `content/club.js` slouží jen jako výchozí seed.
+Podrobnosti v [CLAUDE.md](CLAUDE.md) a [README-BACKEND.md](README-BACKEND.md).
 
-Doporučené napojení **Sanity** (hosted, zdarma, vizuální Studio na `/studio`):
-
-1. `npm create sanity@latest` (přihlášení k Sanity účtu — provede správce klubu).
-2. Naimportovat `content/club.js` jako seed dokumenty.
-3. Do Vercelu přidat `NEXT_PUBLIC_SANITY_PROJECT_ID` + `NEXT_PUBLIC_SANITY_DATASET`.
-4. Komponenty pak místo `content/club.js` čtou z CMS — vedení klubu edituje
-   zápasy, soupisky, novinky a rezervace z prohlížeče.
-
-Do té doby `/admin` slouží jako živý přehledový dashboard.
+> Dřív tu stál návrh napojit hostované CMS (Sanity). Neudělalo se to — vlastní
+> administrace byla levnější a klub nemusí spravovat další účet.
 
 ## Logo a fotky
 
