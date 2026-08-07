@@ -10,6 +10,9 @@ vi.mock('next/headers', () => ({
 process.env.ADMIN_PASSWORD = 'tajne-heslo';
 process.env.ADMIN_EMAIL = 'spravce@fkkunice.cz';
 process.env.AUTH_SECRET = 'tajny-podpis';
+// Pojistka proti omylem odeslané poště je mimo produkci zapnutá — tady ji
+// vědomě vypínáme, protože `fetch` je podvržený a nic ven neodejde.
+process.env.FK_MAIL_LIVE = '1';
 delete process.env.DATABASE_URL;
 delete process.env.POSTGRES_URL;
 delete process.env.RESEND_API_KEY;

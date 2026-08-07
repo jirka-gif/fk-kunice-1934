@@ -156,6 +156,14 @@ odolné a **vždy s ruční kontrolou**.
   serveru a při kolizi vrací **409** — jinak by dva lidé poptali stejný čas.
 - `lib/mail.js` — upozornění přes Resend HTTP API (bez SMTP knihovny).
   Bez `RESEND_API_KEY` se e-mail neodešle, ale poptávka se uloží.
+  **Odesílání je mimo produkci vypnuté** (`mailBlocked()`): posílá se jen když
+  `NODE_ENV=production`, jinak je potřeba výslovně `FK_MAIL_LIVE=1`. Důvod:
+  klíč z `.env.local` si načte i `npm run dev`, takže lokální klikání i jeden běh
+  e2e testů rozeslaly desítky skutečných e-mailů na adresu klubu. **Tuhle pojistku
+  neobcházej** a při vývoji neposílej naostro bez domluvy s klubem.
+  Kam upozornění chodí, říká `notifyAddress()` — **jen** `rentalSettings.notifyEmail`.
+  Klubový e-mail z Nastavení je odesílací adresa (`MAIL_FROM`), ne schránka:
+  jako náhrada se nepoužívá, upozornění by mizela do prázdna.
   Důvod odmítnutí čteme z `error.message` i z `message` — Resend vrací obojí.
 - `app/api/mail/route.js` — `GET` vrací stav pošty (`configured`, odesílatel,
   co chybí; **klíč nikdy**), `POST { to }` pošle zkušební e-mail. Stav vidí, kdo

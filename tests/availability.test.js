@@ -121,6 +121,7 @@ describe('upozornění e-mailem', () => {
   const load = async () => { vi.resetModules(); return import('@/lib/mail'); };
 
   it('bez klíče se e-mail neposílá, ale nic nespadne', async () => {
+    process.env.FK_MAIL_LIVE = '1'; // ať se testuje chybějící klíč, ne pojistka
     delete process.env.RESEND_API_KEY;
     const { sendMail, mailConfigured } = await load();
     expect(mailConfigured()).toBe(false);
@@ -137,6 +138,7 @@ describe('upozornění e-mailem', () => {
   });
 
   it('s nastaveným klíčem odešle požadavek na Resend', async () => {
+    process.env.FK_MAIL_LIVE = '1';
     process.env.RESEND_API_KEY = 'test-klic';
     process.env.MAIL_FROM = 'web@fkkunice.cz';
     const { sendMail } = await load();
@@ -150,6 +152,7 @@ describe('upozornění e-mailem', () => {
   });
 
   it('chybu z Resendu vrátí čitelně', async () => {
+    process.env.FK_MAIL_LIVE = '1';
     process.env.RESEND_API_KEY = 'test-klic';
     process.env.MAIL_FROM = 'web@fkkunice.cz';
     const { sendMail } = await load();

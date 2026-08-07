@@ -231,6 +231,9 @@ describe('upozornění klubu na novou poštu', () => {
 
   beforeEach(() => {
     odeslane.length = 0;
+    // Pojistka je mimo produkci zapnutá; tady ji vědomě vypínáme, `fetch` je
+    // podvržený a nic ven neodejde.
+    process.env.FK_MAIL_LIVE = '1';
     process.env.RESEND_API_KEY = 'test-klic';
     process.env.MAIL_FROM = 'web@fkkunice.cz';
     vi.stubGlobal('fetch', async (url, opts) => {
@@ -240,6 +243,7 @@ describe('upozornění klubu na novou poštu', () => {
   });
 
   afterEach(() => {
+    delete process.env.FK_MAIL_LIVE;
     delete process.env.RESEND_API_KEY;
     delete process.env.MAIL_FROM;
     vi.unstubAllGlobals();
