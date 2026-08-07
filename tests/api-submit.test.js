@@ -270,14 +270,30 @@ describe('upozornění klubu na novou poštu', () => {
     expect(odeslane[0].text).toContain('Kdy máte trénink?');
   });
 
-  it('bez adresy pro upozornění se použije klubový e-mail', async () => {
+  // Klubový e-mail z Nastavení je ODESÍLACÍ adresa, ne schránka, kterou někdo
+  // čte. Když se na něj upozornění posílala, mizela do prázdna a nikdo o nich
+  // nevěděl — a v testech odcházela skutečná pošta na adresu klubu.
+  it('bez vyplněné adresy pro upozornění se neposílá nic', async () => {
     const c = mergeStored(null);
     c.rentalSettings = { ...c.rentalSettings, notifyEmail: '' };
     c.club = { ...c.club, email: 'info@fkkunice.cz' };
     globalThis.__fkMemStore.data = c;
 
-    await POST(req({ type: 'message', payload: { name: 'Eva', text: 'dotaz' } }));
-    expect(odeslane[0].to).toEqual(['info@fkkunice.cz']);
+    const res = await POST(req({ type: 'message', payload: { name: 'Eva', text: 'dotaz' } }));
+    expect(res.status).toBe(200);          // zpráva se uloží tak jako tak
+    expect(odeslane).toHaveLength(0);      // ale nikam se nestřílí
+
+    expect(globalThis.__fkMemStore.data.messages[0].text).toBe('dotaz');
+  });
+
+  it('nepoužije klubovou adresu ani u poptávky pronájmu', async () => {
+    const c = mergeStored(null);
+    c.rentalSettings = { ...c.rentalSettings, notifyEmail: '' };
+    c.club = { ...c.club, email: 'info@fkkunice.cz' };
+    globalThis.__fkMemStore.data = c;
+
+    await POST(req({ type: 'registration', payload: { name: 'Malý Novák' } }));
+    expect(odeslane).toHaveLength(0);
   });
 
   it('bez nastavené pošty se přihláška i zpráva přesto uloží', async () => {

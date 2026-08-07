@@ -378,6 +378,17 @@ export function StavPosty({ vychoziEmail = '' }) {
         </span>
       </div>
 
+      {/* Nastavená pošta ještě neznamená, že upozornění mají kam chodit. Bez
+          adresy výš se neposílá nic — dřív se v tom případě sahalo na klubový
+          e-mail, jenže to je adresa odesílatele, ne schránka, kterou někdo čte,
+          a upozornění mizela do prázdna. */}
+      {!nacita && ok && !vychoziEmail && (
+        <div style={{ background: '#FFF6E5', color: '#8A5A00', borderRadius: 10, padding: '10px 13px', fontSize: 12.5, fontWeight: 700, marginTop: 10 }}>
+          Chybí „E-mail pro upozornění" výš — na nové poptávky, přihlášky ani zprávy vám nic nepřijde.
+          Do administrace se ale uloží všechno.
+        </div>
+      )}
+
       <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 600, marginTop: 8, lineHeight: 1.6 }}>
         {nacita && 'Načítám stav…'}
         {!nacita && ok && <>Posílá se z adresy <b>{stav.from}</b>. Upozornění na poptávky i odpovědi žadatelům odcházejí.</>}

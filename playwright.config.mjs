@@ -35,6 +35,12 @@ export default defineConfig({
       // vlastní složka se sestaveným kódem, ať e2e nekoliduje s `npm run dev`
       NEXT_DIST_DIR: '.next-e2e',
       POSTGRES_URL: '',
+      // POŠTA MUSÍ ZŮSTAT VYPNUTÁ. `next dev` si sám načte .env.local, takže bez
+      // těchhle dvou řádků zdědí e2e ostrý klíč k Resendu a každé odeslání
+      // formuláře v testech pošle skutečný e-mail. Stalo se — jeden běh testů
+      // rozešle deset až patnáct zpráv na adresu klubu.
+      RESEND_API_KEY: '',
+      MAIL_FROM: '',
     },
   },
 });

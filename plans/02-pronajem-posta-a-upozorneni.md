@@ -158,9 +158,15 @@ ani zpráva z kontaktu klubu nikde nezacinkají.
 1. Do `lib/mail.js` přidat `registrationMail(registration)` a `messageMail(message)`
    vedle stávající `reservationMail` (`lib/mail.js:55`) — stejná stavba textu,
    stejný závěr „vyřídit jde v administraci: …".
-2. V `app/api/submit/route.js` poslat upozornění i u obou zbylých typů. Adresát:
-   `rentalSettings.notifyEmail`, a když je prázdný, `club.email` — jinak by upozornění
-   tiše nikam nechodilo.
+2. V `app/api/submit/route.js` poslat upozornění i u obou zbylých typů. Adresát je
+   **výhradně** `rentalSettings.notifyEmail`.
+   **Nesahat na `club.email` jako náhradu.** Zkusilo se to a byla to chyba: klubový
+   e-mail je odesílací adresa (`MAIL_FROM`), ne schránka, kterou někdo čte —
+   upozornění tam mizela do prázdna. Navíc tím začaly skutečné e-maily odcházet
+   i z e2e testů, kde je `notifyEmail` prázdný. Prázdná adresa = neposílat,
+   a administrace na to upozorní (`StavPosty`).
+   V `playwright.config.mjs` musí zůstat `RESEND_API_KEY: ''` a `MAIL_FROM: ''` —
+   `next dev` si jinak načte ostrý klíč z `.env.local` a testy rozesílají pravou poštu.
 3. Odeslání zůstává bonus: když pošta není nastavená, položka se **uloží tak jako tak**
    a odeslání formuláře nesmí selhat (stejně jako dnes u pronájmu).
 
