@@ -14,6 +14,10 @@ import { canView, canEdit, visibleGroups, visibleSectionsInGroup, sectionLabel }
 
 const RED = '#C1121F';
 
+// Český tvar podle počtu: 1 zpráva, 2 zprávy, 5 zpráv. Bez toho pruh hlásil
+// „1 nové zprávy", což vypadá jako chyba webu.
+const cesky = (n, [jedna, dveAzCtyri, petAVic]) => (n === 1 ? jedna : n < 5 ? dveAzCtyri : petAVic);
+
 export default function Admin() {
   const d = useData();
   const [section, setSectionId] = useState('prehled');
@@ -21,6 +25,9 @@ export default function Admin() {
   const [me, setMe] = useState(null);
   const [loadingMe, setLoadingMe] = useState(true);
   const [saveStatus, setSaveStatus] = useState(null);
+  // Kolik pošty přibylo od chvíle, kdy si administrace načetla obsah. Sama se
+  // neaktualizuje, takže bez tohohle nebyla nová poptávka vidět až do reloadu.
+  const [novaPosta, setNovaPosta] = useState(null);
 
   // kdo je přihlášený a co smí — bez toho administraci nevykreslujeme
   useEffect(() => {
@@ -59,6 +66,32 @@ export default function Admin() {
     if (!ids.includes(section)) setSectionId(ids[0] || '');
   }, [me, section, allowedIds]);
 
+  // Zeptáme se, až se člověk na administraci vrátí — poptávky nechodí často,
+  // takže se nemá smysl ptát pořád. Skutečné upozornění je e-mail (/api/submit).
+  useEffect(() => {
+    if (!me) return;
+    let alive = true;
+    const zkontroluj = async () => {
+      try {
+        const res = await fetch('/api/inbox', { cache: 'no-store' });
+        if (!res.ok || !alive) return;
+        setNovaPosta(await res.json());
+      } catch { /* server nedostupný — pruh se prostě neukáže */ }
+    };
+    // Bez podmínky na `visibilityState` uvnitř: události samy nastanou jen při
+    // návratu, a v některých prohlížečích hlásí záložka „hidden", i když ji
+    // člověk zrovna používá — kontrola by se pak nespustila nikdy.
+    const priZobrazeni = () => { if (document.visibilityState === 'visible') zkontroluj(); };
+    zkontroluj();
+    document.addEventListener('visibilitychange', priZobrazeni);
+    window.addEventListener('focus', zkontroluj);
+    return () => {
+      alive = false;
+      document.removeEventListener('visibilitychange', priZobrazeni);
+      window.removeEventListener('focus', zkontroluj);
+    };
+  }, [me]);
+
   const playersTotal = d.teams.reduce((s, t) => s + t.players.length, 0);
   const coachesTotal = d.teams.reduce((s, t) => s + t.coaches.length, 0);
 
@@ -76,6 +109,18 @@ export default function Admin() {
     .map((m) => ({ ...m, time: `${m.when.getDate()}. ${m.when.getMonth() + 1}. ${String(m.when.getHours()).padStart(2, '0')}:${String(m.when.getMinutes()).padStart(2, '0')}` }));
 
   const novychNavrhu = d.matchProposals.filter((p) => p.status === 'nová').length;
+
+  // Rozdíl proti tomu, co má administrace načtené. Kladné číslo = dorazilo to,
+  // co ještě není na obrazovce. Načtení necháváme na člověku: administrace se
+  // edituje a tiché přepsání by sebralo rozepsanou práci.
+  const prirustky = novaPosta
+    ? [
+        { tvary: ['poptávka pronájmu', 'poptávky pronájmu', 'poptávek pronájmu'], kolik: novaPosta.reservations - newReservations },
+        { tvary: ['zpráva', 'zprávy', 'zpráv'], kolik: novaPosta.messages - newMessages },
+        { tvary: ['přihláška', 'přihlášky', 'přihlášek'], kolik: novaPosta.registrations - newRegistrations },
+        { tvary: ['návrh zápasu', 'návrhy zápasů', 'návrhů zápasů'], kolik: novaPosta.proposals - novychNavrhu },
+      ].filter((p) => p.kolik > 0)
+    : [];
   const konceptu = d.socialPosts.filter((p) => p.status !== 'odesláno').length;
   // do seznamu jde jen to, co opravdu čeká — prázdné řádky nikoho nezajímají
   const ukoly = [
@@ -127,6 +172,21 @@ export default function Admin() {
 
   return (
     <section className="fk-admin" style={{ maxWidth: 1320, margin: '0 auto', padding: '76px 24px 80px', display: 'grid', gridTemplateColumns: '240px 1fr', gap: 24, alignItems: 'start' }}>
+      {/* Přišla pošta, kterou administrace ještě nemá načtenou. */}
+      {prirustky.length > 0 && (
+        <div
+          data-nova-posta
+          style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#FBEAEC', color: RED, borderRadius: 10, padding: '13px 16px', fontSize: 14, fontWeight: 700, marginBottom: 4 }}
+        >
+          <span>
+            Mezitím přibylo: {prirustky.map((p) => `${p.kolik} ${cesky(p.kolik, p.tvary)}`).join(', ')}.
+          </span>
+          <span style={{ marginLeft: 'auto' }}>
+            <Btn small kind="primary" onClick={() => window.location.reload()}>Načíst</Btn>
+          </span>
+        </div>
+      )}
+
       {/* MOBIL: menu schované pod tlačítkem, ať administrace nezačíná dlouhým seznamem */}
       <button
         className="fk-admin-burger"
